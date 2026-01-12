@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.1.0...v5.2.0) (2026-01-12)
+
+
+### Features
+
+* Implement analytics and logs cleanup jobs, enhance dashboard language breakdown, and improve SMS log details ([ee47b1e](https://github.com/LindemannRock/craft-sms-manager/commit/ee47b1e7fbfc723b0f2f227a5cc7673f9a5116f2))
+
 ## [5.1.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.0.0...v5.1.0) (2026-01-12)
 
 
