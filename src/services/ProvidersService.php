@@ -15,6 +15,7 @@ use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\providers\MppSmsProvider;
 use lindemannrock\smsmanager\providers\ProviderInterface;
 use lindemannrock\smsmanager\records\ProviderRecord;
+use lindemannrock\smsmanager\SmsManager;
 
 /**
  * Providers Service
@@ -221,6 +222,19 @@ class ProvidersService extends Component
             return ['success' => false, 'error' => Craft::t('sms-manager', 'Cannot delete the default provider. Set another provider as default first.')];
         }
 
+        // Check if in use by integrations
+        $usages = SmsManager::$plugin->integrations->getProviderUsages($id);
+        if (count($usages) > 0) {
+            $usageLabels = array_map(fn($u) => $u['pluginName'] . ': ' . $u['label'], $usages);
+            return [
+                'success' => false,
+                'error' => Craft::t('sms-manager', 'Cannot delete provider. It is in use by: {usages}', [
+                    'usages' => implode(', ', $usageLabels),
+                ]),
+                'usages' => $usages,
+            ];
+        }
+
         $deleted = $provider->delete();
 
         if ($deleted) {
@@ -233,11 +247,6 @@ class ProvidersService extends Component
 
         return ['success' => false, 'error' => Craft::t('sms-manager', 'Could not delete provider.')];
     }
-
-    // TODO: Implement proper usage tracking when building the Formie integration plugin.
-    // Usage should be determined by integrations that are configured to use a provider/sender ID,
-    // not by historical log data. Integration plugins should register themselves and expose
-    // a way for sms-manager to query if a provider/sender ID is in use.
 
     /**
      * Get provider options for select fields

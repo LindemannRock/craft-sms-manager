@@ -23,6 +23,7 @@ use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\models\Settings;
+use lindemannrock\smsmanager\services\IntegrationsService;
 use lindemannrock\smsmanager\services\ProvidersService;
 use lindemannrock\smsmanager\services\SenderIdsService;
 use lindemannrock\smsmanager\services\SmsService;
@@ -39,6 +40,7 @@ use yii\base\Event;
  * @property-read SmsService $sms
  * @property-read ProvidersService $providers
  * @property-read SenderIdsService $senderIds
+ * @property-read IntegrationsService $integrations
  * @property-read Settings $settings
  * @method Settings getSettings()
  */
@@ -94,6 +96,7 @@ class SmsManager extends Plugin
             'sms' => SmsService::class,
             'providers' => ProvidersService::class,
             'senderIds' => SenderIdsService::class,
+            'integrations' => IntegrationsService::class,
         ]);
 
         // Register translations

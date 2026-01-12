@@ -42,6 +42,10 @@
                 "This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
         }) }}
 
+        {# TODO: Decide whether to keep default provider/sender ID in settings or only use isDefault toggle on records.
+           Currently the isDefault toggle on provider/sender ID records is what SmsService actually uses.
+           These settings dropdowns are not used - hidden until decision is made. #}
+        {#
         <hr>
 
         <h2>{{ "Default Provider & Sender ID"|t('sms-manager') }}</h2>
@@ -73,6 +77,8 @@
         }) }}
 
         <hr>
+        #}
+
 
         <h2>{{ "Logging Settings"|t('sms-manager') }}</h2>
 

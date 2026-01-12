@@ -1,0 +1,45 @@
+{# Encoding Tab - SMS encoding distribution analytics #}
+
+{# Encoding Summary Stats #}
+<div class="analytics-stats">
+    <div class="stat-box">
+        <div class="stat-value" style="color: #3b82f6;" id="gsm7-count">{{ summaryStats.english|number_format }}</div>
+        <div class="stat-label">{{ encodingLabels.gsm7 }} {{ 'Messages'|t('sms-manager') }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-value" style="color: #8b5cf6;" id="ucs2-count">{{ summaryStats.arabic|number_format }}</div>
+        <div class="stat-label">{{ encodingLabels.ucs2 }} {{ 'Messages'|t('sms-manager') }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-value" style="color: #6b7280;" id="mixed-count">{{ summaryStats.other|number_format }}</div>
+        <div class="stat-label">{{ encodingLabels.mixed }} {{ 'Messages'|t('sms-manager') }}</div>
+    </div>
+</div>
+
+{# Encoding Charts #}
+<div class="analytics-charts two-columns">
+    <div class="chart-container">
+        <h3>{{ 'Distribution'|t('sms-manager') }}</h3>
+        <canvas id="encoding-pie-chart"></canvas>
+    </div>
+    <div class="chart-container">
+        <h3>{{ 'Daily Breakdown'|t('sms-manager') }}</h3>
+        <div style="height: 250px;">
+            <canvas id="encoding-daily-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+{# Encoding Info #}
+{% set encodingInfo %}
+    <strong>{{ 'About SMS Encoding'|t('sms-manager') }}</strong><br><br>
+    {{ 'SMS messages use different encodings based on character content, which affects segment length:'|t('sms-manager') }}<br><br>
+    <strong>{{ encodingLabels.gsm7 }}</strong> — {{ '160 characters per segment. Used for Latin-alphabet languages (English, German, French, Spanish, etc.), numbers, and basic punctuation.'|t('sms-manager') }}<br><br>
+    <strong>{{ encodingLabels.ucs2 }}</strong> — {{ '70 characters per segment. Required for Arabic, Hebrew, Chinese, Japanese, Korean, Russian, Greek, Thai, and emojis.'|t('sms-manager') }}<br><br>
+    <strong>{{ encodingLabels.mixed }}</strong> — {{ 'Messages containing a mix of GSM-7 and UCS-2 characters.'|t('sms-manager') }}
+{% endset %}
+
+{% include 'lindemannrock-base/_components/info-box' with {
+    message: encodingInfo,
+    type: 'info'
+} %}

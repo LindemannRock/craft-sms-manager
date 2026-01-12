@@ -188,7 +188,8 @@ class AnalyticsController extends Controller
             'providers' => $this->getProviderChartData($startDate, $endDate),
             'senderids' => $this->getSenderIdChartData($startDate, $endDate, $providerId),
             'languages' => $this->getLanguageChartData($startDate, $endDate, $providerId),
-            'language-daily' => $this->getLanguageDailyChartData($startDate, $endDate, $providerId),
+            'encoding' => $this->getEncodingChartData($startDate, $endDate, $providerId),
+            'encoding-daily' => $this->getEncodingDailyChartData($startDate, $endDate, $providerId),
             default => [],
         };
 
@@ -318,15 +319,79 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Get language chart data
+     * Get language chart data from actual log records
      */
     private function getLanguageChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
-                'SUM(englishCount) as english',
-                'SUM(arabicCount) as arabic',
-                'SUM(otherCount) as other',
+                'language',
+                'COUNT(*) as count',
+            ])
+            ->from('{{%smsmanager_logs}}')
+            ->where(['>=', 'dateCreated', $startDate->format('Y-m-d 00:00:00')])
+            ->andWhere(['<=', 'dateCreated', $endDate->format('Y-m-d 23:59:59')])
+            ->groupBy(['language'])
+            ->orderBy(['count' => SORT_DESC]);
+
+        if ($providerId !== 'all') {
+            $query->andWhere(['providerId' => $providerId]);
+        }
+
+        $data = $query->all();
+
+        // Get language display names
+        $languageNames = $this->getLanguageDisplayNames();
+
+        $labels = [];
+        $values = [];
+
+        foreach ($data as $row) {
+            $langCode = $row['language'] ?? 'unknown';
+            $labels[] = $languageNames[$langCode] ?? ucfirst($langCode);
+            $values[] = (int)$row['count'];
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $values,
+        ];
+    }
+
+    /**
+     * Get language display names based on Craft's locale data
+     */
+    private function getLanguageDisplayNames(): array
+    {
+        $names = [
+            'en' => Craft::t('sms-manager', 'English'),
+            'ar' => Craft::t('sms-manager', 'Arabic'),
+            'fr' => Craft::t('sms-manager', 'French'),
+            'de' => Craft::t('sms-manager', 'German'),
+            'es' => Craft::t('sms-manager', 'Spanish'),
+            'it' => Craft::t('sms-manager', 'Italian'),
+            'pt' => Craft::t('sms-manager', 'Portuguese'),
+            'nl' => Craft::t('sms-manager', 'Dutch'),
+            'ja' => Craft::t('sms-manager', 'Japanese'),
+            'zh' => Craft::t('sms-manager', 'Chinese'),
+            'ko' => Craft::t('sms-manager', 'Korean'),
+            'ru' => Craft::t('sms-manager', 'Russian'),
+            'unknown' => Craft::t('sms-manager', 'Unknown'),
+        ];
+
+        return $names;
+    }
+
+    /**
+     * Get encoding chart data (GSM-7 vs UCS-2)
+     */
+    private function getEncodingChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
+    {
+        $query = (new Query())
+            ->select([
+                'SUM(englishCount) as gsm7',
+                'SUM(arabicCount) as ucs2',
+                'SUM(otherCount) as mixed',
             ])
             ->from(AnalyticsRecord::tableName())
             ->where(['>=', 'date', $startDate->format('Y-m-d')])
@@ -338,54 +403,31 @@ class AnalyticsController extends Controller
 
         $data = $query->one();
 
-        // Build dynamic language labels from Craft sites
-        $labels = $this->getLanguageLabels();
-
         return [
-            'labels' => [$labels['en'], $labels['ar'], $labels['other']],
+            'labels' => [
+                Craft::t('sms-manager', 'GSM-7 (Latin)'),
+                Craft::t('sms-manager', 'UCS-2 (Unicode)'),
+                Craft::t('sms-manager', 'Mixed'),
+            ],
             'values' => [
-                (int)($data['english'] ?? 0),
-                (int)($data['arabic'] ?? 0),
-                (int)($data['other'] ?? 0),
+                (int)($data['gsm7'] ?? 0),
+                (int)($data['ucs2'] ?? 0),
+                (int)($data['mixed'] ?? 0),
             ],
         ];
     }
 
     /**
-     * Get dynamic language labels from Craft sites
+     * Get encoding daily chart data
      */
-    private function getLanguageLabels(): array
-    {
-        $labels = [
-            'en' => Craft::t('sms-manager', 'English'),
-            'ar' => Craft::t('sms-manager', 'Arabic'),
-            'other' => Craft::t('sms-manager', 'Other'),
-        ];
-
-        // Override with site-specific labels if available
-        foreach (Craft::$app->getSites()->getAllSites() as $site) {
-            $langCode = explode('-', $site->language)[0];
-            if ($langCode === 'en') {
-                $labels['en'] = $site->language . ' (' . $site->name . ')';
-            } elseif ($langCode === 'ar') {
-                $labels['ar'] = $site->language . ' (' . $site->name . ')';
-            }
-        }
-
-        return $labels;
-    }
-
-    /**
-     * Get language daily chart data
-     */
-    private function getLanguageDailyChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
+    private function getEncodingDailyChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
                 'date',
-                'SUM(englishCount) as english',
-                'SUM(arabicCount) as arabic',
-                'SUM(otherCount) as other',
+                'SUM(englishCount) as gsm7',
+                'SUM(arabicCount) as ucs2',
+                'SUM(otherCount) as mixed',
             ])
             ->from(AnalyticsRecord::tableName())
             ->where(['>=', 'date', $startDate->format('Y-m-d')])
@@ -409,9 +451,9 @@ class AnalyticsController extends Controller
 
             $chartData[] = [
                 'date' => $date->format('M j'),
-                'english' => (int)($dayData['english'] ?? 0),
-                'arabic' => (int)($dayData['arabic'] ?? 0),
-                'other' => (int)($dayData['other'] ?? 0),
+                'gsm7' => (int)($dayData['gsm7'] ?? 0),
+                'ucs2' => (int)($dayData['ucs2'] ?? 0),
+                'mixed' => (int)($dayData['mixed'] ?? 0),
             ];
 
             $date->modify('+1 day');
@@ -419,9 +461,9 @@ class AnalyticsController extends Controller
 
         return [
             'labels' => array_column($chartData, 'date'),
-            'english' => array_column($chartData, 'english'),
-            'arabic' => array_column($chartData, 'arabic'),
-            'other' => array_column($chartData, 'other'),
+            'gsm7' => array_column($chartData, 'gsm7'),
+            'ucs2' => array_column($chartData, 'ucs2'),
+            'mixed' => array_column($chartData, 'mixed'),
         ];
     }
 

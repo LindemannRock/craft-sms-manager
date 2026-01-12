@@ -13,6 +13,7 @@ use craft\base\Component;
 use craft\helpers\StringHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\SenderIdRecord;
+use lindemannrock\smsmanager\SmsManager;
 
 /**
  * Sender IDs Service
@@ -179,6 +180,19 @@ class SenderIdsService extends Component
             return ['success' => false, 'error' => Craft::t('sms-manager', 'Cannot delete the default sender ID. Set another sender ID as default first.')];
         }
 
+        // Check if in use by integrations
+        $usages = SmsManager::$plugin->integrations->getSenderIdUsages($id);
+        if (count($usages) > 0) {
+            $usageLabels = array_map(fn($u) => $u['pluginName'] . ': ' . $u['label'], $usages);
+            return [
+                'success' => false,
+                'error' => Craft::t('sms-manager', 'Cannot delete sender ID. It is in use by: {usages}', [
+                    'usages' => implode(', ', $usageLabels),
+                ]),
+                'usages' => $usages,
+            ];
+        }
+
         $deleted = $senderId->delete();
 
         if ($deleted) {
@@ -191,11 +205,6 @@ class SenderIdsService extends Component
 
         return ['success' => false, 'error' => Craft::t('sms-manager', 'Could not delete sender ID.')];
     }
-
-    // TODO: Implement proper usage tracking when building the Formie integration plugin.
-    // Usage should be determined by integrations that are configured to use a provider/sender ID,
-    // not by historical log data. Integration plugins should register themselves and expose
-    // a way for sms-manager to query if a provider/sender ID is in use.
 
     /**
      * Get sender ID options for select fields

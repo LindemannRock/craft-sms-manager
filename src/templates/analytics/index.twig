@@ -13,20 +13,12 @@
     },
 ] %}
 
-{# Build language labels from Craft sites #}
-{% set languageLabels = {
-    'en': 'English'|t('sms-manager'),
-    'ar': 'Arabic'|t('sms-manager'),
-    'other': 'Other'|t('sms-manager')
+{# Encoding labels for SMS character encoding #}
+{% set encodingLabels = {
+    'gsm7': 'GSM-7 (Latin)'|t('sms-manager'),
+    'ucs2': 'UCS-2 (Unicode)'|t('sms-manager'),
+    'mixed': 'Mixed'|t('sms-manager')
 } %}
-{% for site in craft.app.sites.getAllSites() %}
-    {% set langCode = site.language|split('-')|first %}
-    {% if langCode == 'en' %}
-        {% set languageLabels = languageLabels|merge({'en': site.language ~ ' (' ~ site.name ~ ')'}) %}
-    {% elseif langCode == 'ar' %}
-        {% set languageLabels = languageLabels|merge({'ar': site.language ~ ' (' ~ site.name ~ ')'}) %}
-    {% endif %}
-{% endfor %}
 
 {# Permission checks #}
 {% set canExport = currentUser.can('smsManager:exportAnalytics') %}
@@ -35,7 +27,7 @@
 {% set tabs = {
     overview: { label: "Overview"|t('sms-manager'), url: '#overview' },
     senderids: { label: "Sender IDs"|t('sms-manager'), url: '#senderids' },
-    languages: { label: "Languages"|t('sms-manager'), url: '#languages' },
+    encoding: { label: "Encoding"|t('sms-manager'), url: '#encoding' },
 } %}
 
 {% set selectedTab = 'overview' %}
@@ -110,8 +102,8 @@
         {% include 'sms-manager/analytics/_tabs/senderids' %}
     </div>
 
-    <div id="languages" class="tab-content hidden">
-        {% include 'sms-manager/analytics/_tabs/languages' %}
+    <div id="encoding" class="tab-content hidden">
+        {% include 'sms-manager/analytics/_tabs/encoding' %}
     </div>
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
@@ -270,7 +262,7 @@ function loadAllChartData(dateRange, providerId) {
         }
     });
 
-    // Language chart (overview)
+    // Language chart (overview - actual languages from logs)
     $.ajax({
         url: Craft.getActionUrl('sms-manager/analytics/get-data'),
         type: 'POST',
@@ -279,7 +271,6 @@ function loadAllChartData(dateRange, providerId) {
         success: function(response) {
             if (response.success && response.data && response.data.labels) {
                 renderLanguageChart(response.data);
-                renderLanguagePieChart(response.data);
             }
         }
     });
@@ -297,15 +288,28 @@ function loadAllChartData(dateRange, providerId) {
         }
     });
 
-    // Language daily chart
+    // Encoding distribution chart (GSM-7 vs UCS-2)
     $.ajax({
         url: Craft.getActionUrl('sms-manager/analytics/get-data'),
         type: 'POST',
         dataType: 'json',
-        data: { dateRange: dateRange, providerId: providerId, type: 'language-daily', [csrfName]: csrfToken },
+        data: { dateRange: dateRange, providerId: providerId, type: 'encoding', [csrfName]: csrfToken },
+        success: function(response) {
+            if (response.success && response.data && response.data.labels) {
+                renderEncodingPieChart(response.data);
+            }
+        }
+    });
+
+    // Encoding daily chart
+    $.ajax({
+        url: Craft.getActionUrl('sms-manager/analytics/get-data'),
+        type: 'POST',
+        dataType: 'json',
+        data: { dateRange: dateRange, providerId: providerId, type: 'encoding-daily', [csrfName]: csrfToken },
         success: function(response) {
             if (response.success && response.data) {
-                renderLanguageDailyChart(response.data);
+                renderEncodingDailyChart(response.data);
             }
         }
     });
@@ -389,7 +393,7 @@ function renderLanguageChart(data) {
             labels: data.labels,
             datasets: [{
                 data: data.values,
-                backgroundColor: ['#3b82f6', '#8b5cf6', '#6b7280']
+                backgroundColor: chartColors.slice(0, data.labels.length)
             }]
         },
         options: {
@@ -400,13 +404,13 @@ function renderLanguageChart(data) {
     });
 }
 
-function renderLanguagePieChart(data) {
-    const ctx = document.getElementById('language-pie-chart');
+function renderEncodingPieChart(data) {
+    const ctx = document.getElementById('encoding-pie-chart');
     if (!ctx) return;
 
-    if (window.smsCharts.languagePie) window.smsCharts.languagePie.destroy();
+    if (window.smsCharts.encodingPie) window.smsCharts.encodingPie.destroy();
 
-    window.smsCharts.languagePie = new Chart(ctx, {
+    window.smsCharts.encodingPie = new Chart(ctx, {
         type: 'pie',
         data: {
             labels: data.labels,
@@ -423,30 +427,30 @@ function renderLanguagePieChart(data) {
     });
 }
 
-function renderLanguageDailyChart(data) {
-    const ctx = document.getElementById('language-daily-chart');
+function renderEncodingDailyChart(data) {
+    const ctx = document.getElementById('encoding-daily-chart');
     if (!ctx) return;
 
-    if (window.smsCharts.languageDaily) window.smsCharts.languageDaily.destroy();
+    if (window.smsCharts.encodingDaily) window.smsCharts.encodingDaily.destroy();
 
-    window.smsCharts.languageDaily = new Chart(ctx, {
+    window.smsCharts.encodingDaily = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: data.labels,
             datasets: [
                 {
-                    label: '{{ languageLabels.en }}',
-                    data: data.english,
+                    label: '{{ encodingLabels.gsm7 }}',
+                    data: data.gsm7,
                     backgroundColor: '#3b82f6'
                 },
                 {
-                    label: '{{ languageLabels.ar }}',
-                    data: data.arabic,
+                    label: '{{ encodingLabels.ucs2 }}',
+                    data: data.ucs2,
                     backgroundColor: '#8b5cf6'
                 },
                 {
-                    label: '{{ languageLabels.other }}',
-                    data: data.other,
+                    label: '{{ encodingLabels.mixed }}',
+                    data: data.mixed,
                     backgroundColor: '#6b7280'
                 }
             ]

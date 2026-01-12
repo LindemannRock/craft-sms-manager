@@ -56,7 +56,8 @@ class LogsController extends Controller
         $statusFilter = $request->getQueryParam('status', 'all');
         $providerFilter = $request->getQueryParam('provider', 'all');
         $languageFilter = $request->getQueryParam('language', 'all');
-        $periodFilter = $request->getQueryParam('period', 'all');
+        $sourceFilter = $request->getQueryParam('source', 'all');
+        $dateRange = $request->getQueryParam('dateRange', 'last30days');
         $sort = $request->getQueryParam('sort', 'dateCreated');
         $dir = $request->getQueryParam('dir', 'desc');
         $page = max(1, (int)$request->getQueryParam('page', 1));
@@ -82,10 +83,20 @@ class LogsController extends Controller
             $query->andWhere(['language' => $languageFilter]);
         }
 
-        // Apply period filter
-        if ($periodFilter !== 'all' && is_numeric($periodFilter)) {
-            $date = (new \DateTime())->modify("-{$periodFilter} days")->format('Y-m-d H:i:s');
-            $query->andWhere(['>=', 'dateCreated', $date]);
+        // Apply source filter
+        if ($sourceFilter !== 'all') {
+            if ($sourceFilter === 'direct') {
+                $query->andWhere(['or', ['sourcePlugin' => null], ['sourcePlugin' => '']]);
+            } else {
+                $query->andWhere(['sourcePlugin' => $sourceFilter]);
+            }
+        }
+
+        // Apply date range filter
+        if ($dateRange !== 'all') {
+            $dates = $this->getDateRangeFromParam($dateRange);
+            $query->andWhere(['>=', 'dateCreated', $dates['start']->format('Y-m-d 00:00:00')]);
+            $query->andWhere(['<=', 'dateCreated', $dates['end']->format('Y-m-d 23:59:59')]);
         }
 
         // Apply search
@@ -129,10 +140,20 @@ class LogsController extends Controller
         // Get providers for filter
         $providers = SmsManager::$plugin->providers->getAllProviders();
 
+        // Get unique source plugins for filter
+        $sources = (new Query())
+            ->select(['sourcePlugin'])
+            ->from(LogRecord::tableName())
+            ->distinct()
+            ->where(['not', ['sourcePlugin' => null]])
+            ->andWhere(['not', ['sourcePlugin' => '']])
+            ->column();
+
         return $this->renderTemplate('sms-manager/sms-logs/index', [
             'logs' => $logs,
             'settings' => $settings,
             'providers' => $providers,
+            'sources' => $sources,
             'totalCount' => $totalCount,
             'totalPages' => $totalPages,
             'page' => $page,
@@ -142,7 +163,8 @@ class LogsController extends Controller
             'statusFilter' => $statusFilter,
             'providerFilter' => $providerFilter,
             'languageFilter' => $languageFilter,
-            'periodFilter' => $periodFilter,
+            'sourceFilter' => $sourceFilter,
+            'dateRange' => $dateRange,
             'sort' => $sort,
             'dir' => $dir,
         ]);
@@ -185,17 +207,23 @@ class LogsController extends Controller
 
         $request = Craft::$app->getRequest();
 
-        $period = $request->getQueryParam('period', '30');
+        $dateRange = $request->getQueryParam('dateRange', 'last30days');
         $format = $request->getQueryParam('format', 'csv');
 
-        $endDate = new \DateTime();
-        $startDate = (clone $endDate)->modify("-{$period} days");
+        $dates = $this->getDateRangeFromParam($dateRange);
+        $startDate = $dates['start'];
+        $endDate = $dates['end'];
 
-        $logs = (new Query())
+        $query = (new Query())
             ->from(LogRecord::tableName())
-            ->where(['>=', 'dateCreated', $startDate->format('Y-m-d H:i:s')])
-            ->orderBy(['dateCreated' => SORT_DESC])
-            ->all();
+            ->orderBy(['dateCreated' => SORT_DESC]);
+
+        if ($dateRange !== 'all') {
+            $query->where(['>=', 'dateCreated', $startDate->format('Y-m-d 00:00:00')])
+                ->andWhere(['<=', 'dateCreated', $endDate->format('Y-m-d 23:59:59')]);
+        }
+
+        $logs = $query->all();
 
         // Enrich with provider/sender names
         foreach ($logs as &$log) {
@@ -205,25 +233,33 @@ class LogsController extends Controller
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
         }
 
+        // Build filename with settings-based name
+        $settings = SmsManager::$plugin->getSettings();
+        $filenamePart = strtolower(str_replace(' ', '-', $settings->getPluralLowerDisplayName()));
+        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
+        $filename = $filenamePart . '-logs-' . $dateRangeLabel . '-' . date('Y-m-d-His') . '.' . $format;
+
         if ($format === 'csv') {
-            return $this->exportCsv($logs);
+            return $this->exportCsv($logs, $filename);
         }
 
-        return $this->asJson($logs);
+        $response = Craft::$app->getResponse();
+        $response->headers->set('Content-Type', 'application/json');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->content = json_encode($logs, JSON_PRETTY_PRINT);
+
+        return $response;
     }
 
     /**
      * Export logs as CSV
      *
      * @param array $logs
+     * @param string $filename
      * @return Response
      */
-    private function exportCsv(array $logs): Response
+    private function exportCsv(array $logs, string $filename): Response
     {
-        $settings = SmsManager::$plugin->getSettings();
-        $filenamePart = strtolower(str_replace(' ', '-', $settings->getPluralLowerDisplayName()));
-        $filename = $filenamePart . '-logs-' . date('Y-m-d-His') . '.csv';
-
         $headers = [
             'Date',
             'Recipient',
@@ -232,6 +268,7 @@ class LogsController extends Controller
             'Status',
             'Provider',
             'Sender ID',
+            'Source',
             'Message ID',
             'Error',
         ];
@@ -248,6 +285,7 @@ class LogsController extends Controller
                 $log['status'],
                 $log['providerName'],
                 $log['senderIdName'],
+                $log['sourcePlugin'] ?? 'Direct',
                 $log['providerMessageId'],
                 $log['errorMessage'],
             ]);
@@ -313,5 +351,32 @@ class LogsController extends Controller
         }
 
         return $this->asJson(['success' => false, 'error' => 'Could not delete log']);
+    }
+
+    /**
+     * Get date range from parameter
+     *
+     * @param string $dateRange Date range parameter
+     * @return array{start: \DateTime, end: \DateTime}
+     */
+    private function getDateRangeFromParam(string $dateRange): array
+    {
+        $endDate = new \DateTime();
+
+        $startDate = match ($dateRange) {
+            'today' => new \DateTime(),
+            'yesterday' => (new \DateTime())->modify('-1 day'),
+            'last7days' => (new \DateTime())->modify('-7 days'),
+            'last30days' => (new \DateTime())->modify('-30 days'),
+            'last90days' => (new \DateTime())->modify('-90 days'),
+            'all' => (new \DateTime())->modify('-365 days'),
+            default => (new \DateTime())->modify('-30 days'),
+        };
+
+        if ($dateRange === 'yesterday') {
+            $endDate = (new \DateTime())->modify('-1 day');
+        }
+
+        return ['start' => $startDate, 'end' => $endDate];
     }
 }
