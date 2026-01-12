@@ -143,39 +143,50 @@
         </div>
     </div>
 
-    {# Language Distribution #}
+    {# Language Distribution - Show only languages from site configuration #}
     <div class="pane" style="margin-block: 0;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <h3 style="margin: 0;">{{ "Language Distribution"|t('sms-manager') }}</h3>
             <span style="font-size: 12px; color: #6b7280;">{{ "Last 30 days"|t('sms-manager') }}</span>
         </div>
 
+        {% set languageNames = {
+            'en': 'English'|t('sms-manager'),
+            'ar': 'Arabic'|t('sms-manager'),
+            'fr': 'French'|t('sms-manager'),
+            'de': 'German'|t('sms-manager'),
+            'es': 'Spanish'|t('sms-manager'),
+            'it': 'Italian'|t('sms-manager'),
+            'pt': 'Portuguese'|t('sms-manager'),
+            'nl': 'Dutch'|t('sms-manager'),
+            'ja': 'Japanese'|t('sms-manager'),
+            'zh': 'Chinese'|t('sms-manager'),
+            'ko': 'Korean'|t('sms-manager'),
+            'ru': 'Russian'|t('sms-manager'),
+        } %}
+
+        {% set siteLanguages = [] %}
+        {% for site in craft.app.sites.getAllSites() %}
+            {% set langCode = site.language|split('-')|first %}
+            {% if langCode not in siteLanguages %}
+                {% set siteLanguages = siteLanguages|merge([langCode]) %}
+            {% endif %}
+        {% endfor %}
+
         <table class="data fullwidth" style="margin: 0;">
             <tbody>
-                <tr>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
-                        {{ "English"|t('sms-manager') }}
-                    </td>
-                    <td style="text-align: right; padding: 12px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600;">
-                        {{ monthStats.english|number_format }}
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
-                        {{ "Arabic"|t('sms-manager') }}
-                    </td>
-                    <td style="text-align: right; padding: 12px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600;">
-                        {{ monthStats.arabic|number_format }}
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px 0;">
-                        {{ "Other"|t('sms-manager') }}
-                    </td>
-                    <td style="text-align: right; padding: 12px 0; font-weight: 600;">
-                        {{ monthStats.other|number_format }}
-                    </td>
-                </tr>
+                {% for langCode in siteLanguages %}
+                    {% set langName = languageNames[langCode] ?? langCode|capitalize %}
+                    {% set langCount = monthStats.languageBreakdown[langCode] ?? 0 %}
+                    <tr>
+                        <td style="padding: 12px 0;{% if not loop.last %} border-bottom: 1px solid #e5e7eb;{% endif %}">
+                            {{ langName }}
+                        </td>
+                        <td style="text-align: right; padding: 12px 0;{% if not loop.last %} border-bottom: 1px solid #e5e7eb;{% endif %} font-weight: 600;">
+                            {{ langCount|number_format }}
+                        </td>
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -188,16 +199,16 @@
 <div class="pane" style="margin-bottom: 32px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h3 style="margin: 0;">{{ "Recent Activity"|t('sms-manager') }}</h3>
-        <span style="font-size: 12px; color: #6b7280;">{{ "Latest messages"|t('sms-manager') }}</span>
+        <span style="font-size: 12px; color: #6b7280;">{{ "Latest {count} messages"|t('sms-manager', {count: 15}) }}</span>
     </div>
 
-    <table class="data fullwidth" style="margin: 0;">
+    <table class="data fullwidth" style="margin: 0; table-layout: fixed;">
         <thead>
             <tr>
-                <th>{{ "Recipient"|t('sms-manager') }}</th>
-                <th>{{ "Message"|t('sms-manager') }}</th>
-                <th>{{ "Status"|t('sms-manager') }}</th>
-                <th>{{ "Date"|t('sms-manager') }}</th>
+                <th style="padding: 12px 0; width: 140px;">{{ "Recipient"|t('sms-manager') }}</th>
+                <th style="padding: 12px 0;">{{ "Message"|t('sms-manager') }}</th>
+                <th style="padding: 12px 0; width: 80px;">{{ "Status"|t('sms-manager') }}</th>
+                <th style="padding: 12px 0; width: 100px;">{{ "Date"|t('sms-manager') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -206,7 +217,7 @@
                     <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
                         <code style="font-family: monospace; font-size: 13px;">{{ log.recipient }}</code>
                     </td>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                         {{ log.message|slice(0, 50) }}{% if log.message|length > 50 %}...{% endif %}
                     </td>
                     <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
@@ -226,7 +237,7 @@
         </tbody>
     </table>
     <div style="margin-top: 16px;">
-        <a href="{{ url('sms-manager/logs') }}" class="go">{{ "View all logs"|t('sms-manager') }}</a>
+        <a href="{{ url('sms-manager/sms-logs') }}" class="go">{{ "View all logs"|t('sms-manager') }}</a>
     </div>
 </div>
 {% endif %}

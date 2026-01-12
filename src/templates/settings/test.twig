@@ -66,6 +66,10 @@
                 id: 'testRecipient',
                 name: 'testRecipient',
                 placeholder: '+1234567890',
+                inputAttributes: {
+                    pattern: '[+]?[0-9\\s\\-()]+',
+                    inputmode: 'tel',
+                },
             }) }}
 
             {{ forms.textareaField({
@@ -218,6 +222,26 @@ if (testButton) {
             resultsTitle.innerHTML = '{{ "Validation Error"|t("sms-manager") }}';
             resultsTitle.style.color = '#dc2626';
             resultsContent.innerHTML = '<p style="color: #dc2626;">{{ "Please enter a recipient phone number"|t("sms-manager") }}</p>';
+            return;
+        }
+
+        // Phone number format validation - must contain only digits, +, spaces, dashes, parentheses
+        const phonePattern = /^[+]?[0-9\s\-()]+$/;
+        if (!phonePattern.test(recipient)) {
+            testResults.style.display = 'block';
+            resultsTitle.innerHTML = '{{ "Validation Error"|t("sms-manager") }}';
+            resultsTitle.style.color = '#dc2626';
+            resultsContent.innerHTML = '<p style="color: #dc2626;">{{ "Invalid phone number format. Please use only digits, +, spaces, dashes, or parentheses."|t("sms-manager") }}</p>';
+            return;
+        }
+
+        // Must contain at least some digits
+        const digitsOnly = recipient.replace(/[^0-9]/g, '');
+        if (digitsOnly.length < 6) {
+            testResults.style.display = 'block';
+            resultsTitle.innerHTML = '{{ "Validation Error"|t("sms-manager") }}';
+            resultsTitle.style.color = '#dc2626';
+            resultsContent.innerHTML = '<p style="color: #dc2626;">{{ "Phone number must contain at least 6 digits."|t("sms-manager") }}</p>';
             return;
         }
 

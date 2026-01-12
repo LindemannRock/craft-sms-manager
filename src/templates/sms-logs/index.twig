@@ -185,6 +185,47 @@
             margin: 0 12px;
             color: #596673;
         }
+        /* Clickable row hover effect */
+        .clickable-row {
+            cursor: pointer;
+            transition: background 0.1s ease;
+        }
+        .clickable-row:hover {
+            background: #f9fafb !important;
+        }
+        /* Context row styling */
+        .context-row td {
+            padding: 0 !important;
+        }
+        .context-row .context-content {
+            padding: 16px;
+            background: #f9fafb;
+            border-left: 3px solid #3498db;
+        }
+        .context-row.error .context-content {
+            border-left-color: #ef4444;
+        }
+        .context-label {
+            font-size: 11px;
+            color: #606d7b;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .context-value {
+            font-family: Monaco, 'Courier New', monospace;
+            font-size: 12px;
+            background: #ffffff;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            padding: 8px 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .context-grid {
+            display: grid;
+            gap: 12px;
+        }
     </style>
 
     <div id="elements" class="elements">
@@ -214,7 +255,9 @@
                     {% if logs|length %}
                         {% for log in logs %}
                             {% set colors = statusColors[log.status] ?? { bg: '#f3f4f6', text: '#6b7280' } %}
-                            <tr data-id="{{ log.id }}">
+                            {% set hasDetails = log.errorMessage or log.providerResponse or (log.message|length > 50) %}
+                            {# Main log row - clickable #}
+                            <tr class="clickable-row" data-id="{{ log.id }}" data-entry-id="{{ loop.index }}">
                                 <td class="light">{{ log.dateCreated|date('M j, H:i') }}</td>
                                 <td><code>{{ log.recipient }}</code></td>
                                 <td class="message-cell" title="{{ log.message }}">
@@ -244,6 +287,43 @@
                                     {% endif %}
                                 </td>
                             </tr>
+                            {# Expandable context row - hidden by default #}
+                            {% if hasDetails %}
+                                <tr class="context-row {{ log.status == 'failed' ? 'error' : '' }}" data-entry-id="{{ loop.index }}" style="display: none;">
+                                    <td colspan="8">
+                                        <div class="context-content">
+                                            <div class="context-grid">
+                                                {# Full message #}
+                                                <div>
+                                                    <div class="context-label">{{ 'Full Message'|t('sms-manager') }}</div>
+                                                    <div class="context-value">{{ log.message }}</div>
+                                                </div>
+                                                {# Error message (if failed) #}
+                                                {% if log.errorMessage %}
+                                                    <div>
+                                                        <div class="context-label" style="color: #dc2626;">{{ 'Error'|t('sms-manager') }}</div>
+                                                        <div class="context-value" style="border-color: #fecaca; background: #fef2f2;">{{ log.errorMessage }}</div>
+                                                    </div>
+                                                {% endif %}
+                                                {# Provider response #}
+                                                {% if log.providerResponse %}
+                                                    <div>
+                                                        <div class="context-label">{{ 'Provider Response'|t('sms-manager') }}</div>
+                                                        <div class="context-value">{{ log.providerResponse }}</div>
+                                                    </div>
+                                                {% endif %}
+                                                {# Provider Message ID #}
+                                                {% if log.providerMessageId %}
+                                                    <div>
+                                                        <div class="context-label">{{ 'Message ID'|t('sms-manager') }}</div>
+                                                        <div class="context-value">{{ log.providerMessageId }}</div>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
                         {% endfor %}
                     {% else %}
                         <tr>
@@ -283,6 +363,31 @@
             if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
                 new Craft.MenuBtn(btn);
             }
+        });
+
+        // Clickable rows to toggle context/details
+        document.querySelectorAll('.clickable-row').forEach(row => {
+            row.addEventListener('click', function(e) {
+                // Don't toggle if clicking on a link or button
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+
+                const entryId = this.dataset.entryId;
+                const contextRow = document.querySelector('.context-row[data-entry-id="' + entryId + '"]');
+
+                if (contextRow) {
+                    const isVisible = contextRow.style.display !== 'none';
+                    contextRow.style.display = isVisible ? 'none' : 'table-row';
+
+                    // Toggle visual indicator on main row
+                    if (!isVisible) {
+                        this.style.background = '#f0f4f8';
+                    } else {
+                        this.style.background = '';
+                    }
+                }
+            });
         });
 
         // Clear search

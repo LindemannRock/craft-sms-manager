@@ -271,6 +271,7 @@ class LogsController extends Controller
             'Source',
             'Message ID',
             'Error',
+            'Provider Response',
         ];
 
         $output = fopen('php://temp', 'r+');
@@ -288,6 +289,7 @@ class LogsController extends Controller
                 $log['sourcePlugin'] ?? 'Direct',
                 $log['providerMessageId'],
                 $log['errorMessage'],
+                $log['providerResponse'],
             ]);
         }
 

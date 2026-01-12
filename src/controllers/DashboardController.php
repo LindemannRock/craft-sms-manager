@@ -63,13 +63,16 @@ class DashboardController extends Controller
         $monthAgo = (new \DateTime())->modify('-30 days')->format('Y-m-d');
         $monthStats = $this->getStatsForPeriod($monthAgo, $today);
 
+        // Add language breakdown from logs
+        $monthStats['languageBreakdown'] = $this->getLanguageBreakdown($monthAgo, $today);
+
         // Get recent logs
         $recentLogs = [];
         if ($settings->enableLogs) {
             $recentLogs = (new Query())
                 ->from(LogRecord::tableName())
                 ->orderBy(['dateCreated' => SORT_DESC])
-                ->limit(10)
+                ->limit(15)
                 ->all();
         }
 
@@ -163,6 +166,32 @@ class DashboardController extends Controller
             return 0.0;
         }
         return round(($sent / $total) * 100, 1);
+    }
+
+    /**
+     * Get language breakdown from logs
+     *
+     * @param string $startDate
+     * @param string $endDate
+     * @return array
+     */
+    private function getLanguageBreakdown(string $startDate, string $endDate): array
+    {
+        $data = (new Query())
+            ->select(['language', 'COUNT(*) as count'])
+            ->from(LogRecord::tableName())
+            ->where(['>=', 'dateCreated', $startDate . ' 00:00:00'])
+            ->andWhere(['<=', 'dateCreated', $endDate . ' 23:59:59'])
+            ->groupBy(['language'])
+            ->all();
+
+        $breakdown = [];
+        foreach ($data as $row) {
+            $lang = $row['language'] ?? 'unknown';
+            $breakdown[$lang] = (int)$row['count'];
+        }
+
+        return $breakdown;
     }
 
     /**

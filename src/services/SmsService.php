@@ -8,7 +8,9 @@
 
 namespace lindemannrock\smsmanager\services;
 
+use Craft;
 use craft\base\Component;
+use craft\db\Query;
 use craft\helpers\StringHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
@@ -110,6 +112,11 @@ class SmsService extends Component
         // Save log if logging is enabled
         if ($settings->enableLogs) {
             $log->save(false);
+
+            // Trim logs if auto-trim is enabled
+            if ($settings->autoTrimLogs) {
+                $this->trimLogs();
+            }
         }
 
         // Get provider instance
@@ -293,6 +300,11 @@ class SmsService extends Component
         // Save log if logging is enabled
         if ($settings->enableLogs) {
             $log->save(false);
+
+            // Trim logs if auto-trim is enabled
+            if ($settings->autoTrimLogs) {
+                $this->trimLogs();
+            }
         }
 
         // Get provider instance
@@ -505,5 +517,75 @@ class SmsService extends Component
 
         $analytics->dateUpdated = new \DateTime();
         $analytics->save(false);
+
+        // Trim analytics if auto-trim is enabled
+        $settings = SmsManager::$plugin->getSettings();
+        if ($settings->autoTrimAnalytics) {
+            $this->trimAnalytics();
+        }
+    }
+
+    /**
+     * Trim logs to stay within limit
+     */
+    private function trimLogs(): void
+    {
+        $settings = SmsManager::$plugin->getSettings();
+        $limit = $settings->logsLimit;
+
+        // Get current count
+        $currentCount = (new Query())
+            ->from(LogRecord::tableName())
+            ->count();
+
+        if ($currentCount <= $limit) {
+            return;
+        }
+
+        // Get IDs to delete (oldest by dateCreated)
+        $idsToDelete = (new Query())
+            ->select(['id'])
+            ->from(LogRecord::tableName())
+            ->orderBy(['dateCreated' => SORT_ASC])
+            ->limit($currentCount - $limit)
+            ->column();
+
+        if (!empty($idsToDelete)) {
+            Craft::$app->getDb()->createCommand()
+                ->delete(LogRecord::tableName(), ['id' => $idsToDelete])
+                ->execute();
+        }
+    }
+
+    /**
+     * Trim analytics to stay within limit
+     */
+    private function trimAnalytics(): void
+    {
+        $settings = SmsManager::$plugin->getSettings();
+        $limit = $settings->analyticsLimit;
+
+        // Get current count
+        $currentCount = (new Query())
+            ->from(AnalyticsRecord::tableName())
+            ->count();
+
+        if ($currentCount <= $limit) {
+            return;
+        }
+
+        // Get IDs to delete (oldest by date)
+        $idsToDelete = (new Query())
+            ->select(['id'])
+            ->from(AnalyticsRecord::tableName())
+            ->orderBy(['date' => SORT_ASC])
+            ->limit($currentCount - $limit)
+            ->column();
+
+        if (!empty($idsToDelete)) {
+            Craft::$app->getDb()->createCommand()
+                ->delete(AnalyticsRecord::tableName(), ['id' => $idsToDelete])
+                ->execute();
+        }
     }
 }

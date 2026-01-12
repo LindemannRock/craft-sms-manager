@@ -22,6 +22,8 @@ use craft\web\UrlManager;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\jobs\CleanupAnalyticsJob;
+use lindemannrock\smsmanager\jobs\CleanupLogsJob;
 use lindemannrock\smsmanager\models\Settings;
 use lindemannrock\smsmanager\services\IntegrationsService;
 use lindemannrock\smsmanager\services\ProvidersService;
@@ -138,6 +140,12 @@ class SmsManager extends Plugin
                 $event->types[] = SmsManagerUtility::class;
             }
         );
+
+        // Schedule cleanup jobs (only on non-console requests to avoid running during migrations)
+        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+            $this->scheduleAnalyticsCleanup();
+            $this->scheduleLogsCleanup();
+        }
     }
 
     /**
@@ -378,5 +386,65 @@ class SmsManager extends Plugin
                 'label' => Craft::t('sms-manager', 'Manage settings'),
             ],
         ];
+    }
+
+    /**
+     * Schedule analytics cleanup job
+     */
+    private function scheduleAnalyticsCleanup(): void
+    {
+        $settings = $this->getSettings();
+
+        // Only schedule cleanup if analytics is enabled and retention is set
+        if ($settings->enableAnalytics && $settings->analyticsRetention > 0) {
+            // Check if a cleanup job is already scheduled (within next 24 hours)
+            $existingJob = (new \craft\db\Query())
+                ->from('{{%queue}}')
+                ->where(['like', 'job', 'smsmanager'])
+                ->andWhere(['like', 'job', 'CleanupAnalyticsJob'])
+                ->andWhere(['<=', 'timePushed', time() + 86400])
+                ->exists();
+
+            if (!$existingJob) {
+                $job = new CleanupAnalyticsJob([
+                    'reschedule' => true,
+                ]);
+
+                // Add to queue with a small initial delay
+                Craft::$app->queue->delay(5 * 60)->push($job);
+
+                $this->logInfo('Scheduled initial analytics cleanup job', ['interval' => '24 hours']);
+            }
+        }
+    }
+
+    /**
+     * Schedule logs cleanup job
+     */
+    private function scheduleLogsCleanup(): void
+    {
+        $settings = $this->getSettings();
+
+        // Only schedule cleanup if logs are enabled and retention is set
+        if ($settings->enableLogs && $settings->logsRetention > 0) {
+            // Check if a cleanup job is already scheduled (within next 24 hours)
+            $existingJob = (new \craft\db\Query())
+                ->from('{{%queue}}')
+                ->where(['like', 'job', 'smsmanager'])
+                ->andWhere(['like', 'job', 'CleanupLogsJob'])
+                ->andWhere(['<=', 'timePushed', time() + 86400])
+                ->exists();
+
+            if (!$existingJob) {
+                $job = new CleanupLogsJob([
+                    'reschedule' => true,
+                ]);
+
+                // Add to queue with a small initial delay
+                Craft::$app->queue->delay(5 * 60)->push($job);
+
+                $this->logInfo('Scheduled initial logs cleanup job', ['interval' => '24 hours']);
+            }
+        }
     }
 }
