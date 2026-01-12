@@ -1,0 +1,29 @@
+{# MPP-SMS Provider Settings #}
+{% import "_includes/forms" as forms %}
+
+{{ forms.autosuggestField({
+    label: 'API Key'|t('sms-manager'),
+    instructions: 'Your MPP-SMS API key.'|t('sms-manager'),
+    id: 'providerSettings-apiKey',
+    name: 'providerSettings[apiKey]',
+    value: providerSettings.apiKey ?? '',
+    required: true,
+    class: 'code',
+    suggestEnvVars: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'API URL'|t('sms-manager'),
+    instructions: 'The API endpoint URL. Leave blank to use the default.'|t('sms-manager'),
+    id: 'providerSettings-apiUrl',
+    name: 'providerSettings[apiUrl]',
+    value: providerSettings.apiUrl ?? '',
+    placeholder: 'https://api.mpp-sms.com/api/send.aspx',
+    class: 'code',
+    suggestEnvVars: true,
+}) }}
+
+{% include 'lindemannrock-base/_components/info-box' with {
+    message: '<strong>' ~ 'Note:'|t('sms-manager') ~ '</strong> ' ~ 'MPP-SMS only supports Kuwait mobile numbers. Arabic messages are automatically encoded in UCS-2 format.'|t('sms-manager'),
+    type: 'warning'
+} %}

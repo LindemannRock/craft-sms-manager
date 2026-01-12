@@ -1,0 +1,325 @@
+{% extends "sms-manager/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = "Test SMS"|t('sms-manager') %}
+{% set selectedSettingsItem = 'test' %}
+
+{% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
+{% set crumbs = [
+    {
+        label: smsHelper.fullName|t('sms-manager'),
+        url: url('sms-manager'),
+    },
+    {
+        label: 'Settings'|t('sms-manager'),
+        url: url('sms-manager/settings'),
+    },
+    {
+        label: 'Test'|t('sms-manager'),
+        url: url('sms-manager/settings/test'),
+    },
+] %}
+
+{% block content %}
+
+    <h2 style="margin-top: 0px;">{{ "Test SMS Sending"|t('sms-manager') }}</h2>
+
+    <p>{{ "Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs."|t('sms-manager') }}</p>
+
+    {% if not providers|length %}
+        <div class="pane" style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px;">
+            <p style="margin: 0;"><strong>{{ 'No providers configured.'|t('sms-manager') }}</strong></p>
+            <p style="margin: 8px 0 0;">{{ 'Please configure at least one provider before testing.'|t('sms-manager') }}</p>
+            <a href="{{ url('sms-manager/providers/new') }}" class="btn" style="margin-top: 12px;">{{ 'Add Provider'|t('sms-manager') }}</a>
+        </div>
+    {% elseif not senderIds|length %}
+        <div class="pane" style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px;">
+            <p style="margin: 0;"><strong>{{ 'No sender IDs configured.'|t('sms-manager') }}</strong></p>
+            <p style="margin: 8px 0 0;">{{ 'Please configure at least one sender ID before testing.'|t('sms-manager') }}</p>
+            <a href="{{ url('sms-manager/sender-ids/new') }}" class="btn" style="margin-top: 12px;">{{ 'Add Sender ID'|t('sms-manager') }}</a>
+        </div>
+    {% else %}
+        <div class="pane" style="margin-bottom: 24px;">
+            <h3 style="margin-top: 0;">{{ "SMS Configuration"|t('sms-manager') }}</h3>
+
+            {{ forms.selectField({
+                label: 'Provider'|t('sms-manager'),
+                instructions: 'Select the SMS provider to use'|t('sms-manager'),
+                id: 'testProvider',
+                name: 'testProvider',
+                options: providerOptions,
+                value: defaultProviderId,
+            }) }}
+
+            {{ forms.selectField({
+                label: 'Sender ID'|t('sms-manager'),
+                instructions: 'Select the sender ID to use'|t('sms-manager'),
+                id: 'testSenderId',
+                name: 'testSenderId',
+                options: senderIdOptions,
+                value: defaultSenderIdId,
+            }) }}
+
+            {{ forms.textField({
+                label: 'Recipient Phone Number'|t('sms-manager'),
+                instructions: 'Enter the phone number to send the test SMS to (international format, e.g. +1234567890)'|t('sms-manager'),
+                id: 'testRecipient',
+                name: 'testRecipient',
+                placeholder: '+1234567890',
+            }) }}
+
+            {{ forms.textareaField({
+                label: 'Message'|t('sms-manager'),
+                instructions: 'Enter the message to send. Keep it short for testing.'|t('sms-manager'),
+                id: 'testMessage',
+                name: 'testMessage',
+                value: 'This is a test SMS from ' ~ siteName ~ ' via SMS Manager.',
+                rows: 3,
+            }) }}
+
+            {% set languageOptions = [] %}
+            {% set seenLanguages = [] %}
+            {% for site in craft.app.sites.getAllSites() %}
+                {% set langCode = site.language|split('-')|first %}
+                {% if langCode not in seenLanguages %}
+                    {% set seenLanguages = seenLanguages|merge([langCode]) %}
+                    {% set languageOptions = languageOptions|merge([{
+                        label: site.language ~ ' (' ~ site.name ~ ')',
+                        value: langCode
+                    }]) %}
+                {% endif %}
+            {% endfor %}
+
+            {{ forms.selectField({
+                label: 'Language'|t('sms-manager'),
+                instructions: 'Select the message language (affects character encoding)'|t('sms-manager'),
+                id: 'testLanguage',
+                name: 'testLanguage',
+                options: languageOptions,
+                value: languageOptions[0].value ?? 'en',
+            }) }}
+
+            <div id="message-info" style="padding: 12px; background: #f3f4f6; border-radius: 4px; margin-bottom: 20px;">
+                <span id="char-count">0</span> {{ 'characters'|t('sms-manager') }}
+                <span class="light" style="margin-left: 12px;">|</span>
+                <span style="margin-left: 12px;"><span id="sms-count">1</span> {{ 'SMS part(s)'|t('sms-manager') }}</span>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button type="button" id="testButton" class="btn submit">{{ "Send Test SMS"|t('sms-manager') }}</button>
+                <span id="testStatus" style="font-size: 0.9em;"></span>
+            </div>
+        </div>
+
+        <div id="testResults" style="display: none;">
+            <div class="pane">
+                <h3 id="resultsTitle" style="margin-top: 0;"></h3>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}
+
+{% js %}
+const testButton = document.getElementById('testButton');
+const testProviderSelect = document.getElementById('testProvider');
+const testSenderIdSelect = document.getElementById('testSenderId');
+const testRecipientInput = document.getElementById('testRecipient');
+const testMessageInput = document.getElementById('testMessage');
+const testLanguageSelect = document.getElementById('testLanguage');
+const testResults = document.getElementById('testResults');
+const resultsTitle = document.getElementById('resultsTitle');
+const resultsContent = document.getElementById('resultsContent');
+const testStatus = document.getElementById('testStatus');
+const charCount = document.getElementById('char-count');
+const smsCount = document.getElementById('sms-count');
+
+// Sender IDs by provider for filtering
+const senderIdsByProvider = {{ senderIdsByProvider|json_encode|raw }};
+
+// Update sender ID dropdown when provider changes
+if (testProviderSelect) {
+    testProviderSelect.addEventListener('change', function() {
+        const providerId = this.value;
+        const senderIds = senderIdsByProvider[providerId] || [];
+
+        // Clear and rebuild sender ID options
+        testSenderIdSelect.innerHTML = '';
+        senderIds.forEach(function(senderId) {
+            const option = document.createElement('option');
+            option.value = senderId.id;
+            option.textContent = senderId.name + (senderId.isDefault ? ' (Default)' : '') + (senderId.isTest ? ' [Test]' : '');
+            testSenderIdSelect.appendChild(option);
+        });
+
+        // Select default if available
+        const defaultSenderId = senderIds.find(s => s.isDefault);
+        if (defaultSenderId) {
+            testSenderIdSelect.value = defaultSenderId.id;
+        }
+    });
+}
+
+// RTL languages
+const rtlLanguages = ['ar', 'he', 'fa', 'ur'];
+
+// Update text direction based on language
+function updateTextDirection() {
+    const lang = testLanguageSelect.value;
+    const isRtl = rtlLanguages.includes(lang);
+    testMessageInput.dir = isRtl ? 'rtl' : 'ltr';
+    testMessageInput.style.textAlign = isRtl ? 'right' : 'left';
+}
+
+// Character counter
+if (testMessageInput) {
+    function updateCharCount() {
+        const message = testMessageInput.value;
+        const length = message.length;
+        const lang = testLanguageSelect.value;
+        const isRtl = rtlLanguages.includes(lang);
+
+        charCount.textContent = length;
+
+        // Calculate SMS parts (GSM-7: 160/153, UCS-2: 70/67 for RTL/Unicode)
+        let singleLimit = isRtl ? 70 : 160;
+        let multiLimit = isRtl ? 67 : 153;
+
+        let parts = 1;
+        if (length > singleLimit) {
+            parts = Math.ceil(length / multiLimit);
+        }
+        smsCount.textContent = parts;
+    }
+
+    testMessageInput.addEventListener('input', updateCharCount);
+    testLanguageSelect.addEventListener('change', function() {
+        updateCharCount();
+        updateTextDirection();
+    });
+    updateCharCount();
+    updateTextDirection();
+}
+
+// Send test SMS
+if (testButton) {
+    testButton.addEventListener('click', function() {
+        const providerId = testProviderSelect.value;
+        const senderIdId = testSenderIdSelect.value;
+        const recipient = testRecipientInput.value.trim();
+        const message = testMessageInput.value.trim();
+        const language = testLanguageSelect.value;
+
+        // Validation
+        if (!recipient) {
+            testResults.style.display = 'block';
+            resultsTitle.innerHTML = '{{ "Validation Error"|t("sms-manager") }}';
+            resultsTitle.style.color = '#dc2626';
+            resultsContent.innerHTML = '<p style="color: #dc2626;">{{ "Please enter a recipient phone number"|t("sms-manager") }}</p>';
+            return;
+        }
+
+        if (!message) {
+            testResults.style.display = 'block';
+            resultsTitle.innerHTML = '{{ "Validation Error"|t("sms-manager") }}';
+            resultsTitle.style.color = '#dc2626';
+            resultsContent.innerHTML = '<p style="color: #dc2626;">{{ "Please enter a message"|t("sms-manager") }}</p>';
+            return;
+        }
+
+        testButton.disabled = true;
+        testButton.textContent = '{{ "Sending..."|t("sms-manager") }}';
+        testStatus.textContent = '';
+
+        fetch('{{ actionUrl("sms-manager/settings/test-sms") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-Token': '{{ craft.app.request.csrfToken }}',
+            },
+            body: JSON.stringify({
+                providerId: providerId,
+                senderIdId: senderIdId,
+                recipient: recipient,
+                message: message,
+                language: language
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            testButton.disabled = false;
+            testButton.textContent = '{{ "Send Test SMS"|t("sms-manager") }}';
+
+            testResults.style.display = 'block';
+
+            if (data.success) {
+                resultsTitle.innerHTML = '{{ "SMS Sent Successfully"|t("sms-manager") }}';
+                resultsTitle.style.color = '#059669';
+
+                resultsContent.innerHTML = `
+<div style="padding: 16px; background: #f0fdf4; border-left: 4px solid #059669; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
+    <p style="margin: 0;"><strong>{{ 'The test SMS was sent successfully.'|t('sms-manager') }}</strong></p>
+</div>
+<dl style="display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin: 20px 0;">
+    <dt><strong>{{ 'Provider'|t('sms-manager') }}:</strong></dt>
+    <dd>${Craft.escapeHtml(data.providerName)}</dd>
+
+    <dt><strong>{{ 'Sender ID'|t('sms-manager') }}:</strong></dt>
+    <dd>${Craft.escapeHtml(data.senderIdName)} (<code>${Craft.escapeHtml(data.senderIdValue)}</code>)</dd>
+
+    <dt><strong>{{ 'Recipient'|t('sms-manager') }}:</strong></dt>
+    <dd><code>${Craft.escapeHtml(data.recipient)}</code></dd>
+
+    <dt><strong>{{ 'Message ID'|t('sms-manager') }}:</strong></dt>
+    <dd><code>${data.messageId || 'N/A'}</code></dd>
+
+    <dt><strong>{{ 'Execution Time'|t('sms-manager') }}:</strong></dt>
+    <dd>${data.executionTime}ms</dd>
+</dl>
+${data.response ? `<details style="margin-top: 16px;"><summary style="cursor: pointer; color: #6b7280;">{{ 'Provider Response'|t('sms-manager') }}</summary><pre style="background: #f3f4f6; padding: 12px; border-radius: 4px; margin-top: 8px; overflow-x: auto; font-size: 12px;">${Craft.escapeHtml(data.response)}</pre></details>` : ''}
+`;
+            } else {
+                resultsTitle.innerHTML = '{{ "SMS Sending Failed"|t("sms-manager") }}';
+                resultsTitle.style.color = '#dc2626';
+
+                resultsContent.innerHTML = `
+<div style="padding: 16px; background: #fef2f2; border-left: 4px solid #dc2626; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
+    <p style="margin: 0;"><strong>{{ 'The test SMS failed to send.'|t('sms-manager') }}</strong></p>
+    <p style="margin: 8px 0 0; color: #dc2626;">${Craft.escapeHtml(data.error || 'Unknown error')}</p>
+</div>
+<dl style="display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin: 20px 0;">
+    <dt><strong>{{ 'Provider'|t('sms-manager') }}:</strong></dt>
+    <dd>${Craft.escapeHtml(data.providerName || 'Unknown')}</dd>
+
+    <dt><strong>{{ 'Sender ID'|t('sms-manager') }}:</strong></dt>
+    <dd>${Craft.escapeHtml(data.senderIdName || 'Unknown')}</dd>
+</dl>
+${data.response ? `<details style="margin-top: 16px;"><summary style="cursor: pointer; color: #6b7280;">{{ 'Provider Response'|t('sms-manager') }}</summary><pre style="background: #f3f4f6; padding: 12px; border-radius: 4px; margin-top: 8px; overflow-x: auto; font-size: 12px;">${Craft.escapeHtml(data.response)}</pre></details>` : ''}
+`;
+            }
+        })
+        .catch(error => {
+            testButton.disabled = false;
+            testButton.textContent = '{{ "Send Test SMS"|t("sms-manager") }}';
+
+            testResults.style.display = 'block';
+            resultsTitle.innerHTML = '{{ "Error"|t("sms-manager") }}';
+            resultsTitle.style.color = '#dc2626';
+            resultsContent.innerHTML = `<p style="color: #dc2626;">${error.message}</p>`;
+        });
+    });
+}
+
+// Enter key triggers send
+if (testRecipientInput) {
+    testRecipientInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            testButton.click();
+        }
+    });
+}
+{% endjs %}

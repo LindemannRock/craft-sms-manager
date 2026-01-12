@@ -1,0 +1,158 @@
+{% extends "sms-manager/_layouts/settings" %}
+{% set title = "Analytics Settings"|t('sms-manager') %}
+{% set fullPageForm = true %}
+{% set selectedSettingsItem = 'analytics' %}
+
+{% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
+{% set crumbs = [
+    {
+        label: smsHelper.fullName|t('sms-manager'),
+        url: url('sms-manager'),
+    },
+    {
+        label: 'Settings'|t('sms-manager'),
+        url: url('sms-manager/settings'),
+    },
+    {
+        label: 'Analytics'|t('sms-manager'),
+        url: url('sms-manager/settings/analytics'),
+    },
+] %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <form method="post" accept-charset="UTF-8">
+        {{ actionInput('sms-manager/settings/save') }}
+        {{ csrfInput() }}
+        {{ redirectInput('sms-manager/settings/analytics') }}
+        {{ hiddenInput('section', 'analytics') }}
+
+        <h2 style="margin-top: 0px;">{{ "Analytics"|t('sms-manager') }}</h2>
+
+        {{ forms.lightswitchField({
+            label: "Enable Analytics"|t('sms-manager'),
+            instructions: "Track SMS sending statistics and trends"|t('sms-manager'),
+            id: 'enableAnalytics',
+            name: 'settings[enableAnalytics]',
+            on: settings.enableAnalytics ?? true,
+            toggle: 'analytics-settings',
+            disabled: settings.isOverriddenByConfig('enableAnalytics'),
+            warning: settings.isOverriddenByConfig('enableAnalytics') ?
+                "This is being overridden by the <code>enableAnalytics</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+        }) }}
+
+        <div id="analytics-settings" class="{{ not (settings.enableAnalytics ?? true) ? 'hidden' }}">
+            <div class="field">
+                <p class="light">{{ "When enabled, {pluginName} will track SMS sending statistics including success rates, language distribution, and provider usage."|t('sms-manager', {pluginName: smsHelper.fullName}) }}</p>
+            </div>
+
+            <hr>
+
+            <h2>{{ "Data Retention"|t('sms-manager') }}</h2>
+
+            {{ forms.textField({
+                label: 'Analytics Retention (Days)'|t('sms-manager'),
+                instructions: 'Number of days to retain analytics (0 = keep forever)'|t('sms-manager'),
+                id: 'analyticsRetention',
+                name: 'settings[analyticsRetention]',
+                type: 'number',
+                value: settings.analyticsRetention,
+                required: true,
+                disabled: settings.isOverriddenByConfig('analyticsRetention'),
+                warning: settings.isOverriddenByConfig('analyticsRetention') ?
+                    "This is being overridden by the <code>analyticsRetention</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            }) }}
+
+            {{ forms.textField({
+                label: 'Analytics Limit'|t('sms-manager'),
+                instructions: 'Maximum number of analytics records to retain'|t('sms-manager'),
+                id: 'analyticsLimit',
+                name: 'settings[analyticsLimit]',
+                type: 'number',
+                value: settings.analyticsLimit,
+                required: true,
+                disabled: settings.isOverriddenByConfig('analyticsLimit'),
+                warning: settings.isOverriddenByConfig('analyticsLimit') ?
+                    "This is being overridden by the <code>analyticsLimit</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Auto Trim Analytics'|t('sms-manager'),
+                instructions: 'Automatically trim analytics to respect the limit'|t('sms-manager'),
+                id: 'autoTrimAnalytics',
+                name: 'settings[autoTrimAnalytics]',
+                on: settings.autoTrimAnalytics,
+                disabled: settings.isOverriddenByConfig('autoTrimAnalytics'),
+                warning: settings.isOverriddenByConfig('autoTrimAnalytics') ?
+                    "This is being overridden by the <code>autoTrimAnalytics</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            }) }}
+
+        </div>
+
+        <hr>
+
+        <h2>{{ "Delivery Logs"|t('sms-manager') }}</h2>
+
+        {{ forms.lightswitchField({
+            label: "Enable Delivery Logs"|t('sms-manager'),
+            instructions: "Store individual SMS delivery records for auditing and debugging"|t('sms-manager'),
+            id: 'enableLogs',
+            name: 'settings[enableLogs]',
+            on: settings.enableLogs ?? true,
+            toggle: 'logs-settings',
+            disabled: settings.isOverriddenByConfig('enableLogs'),
+            warning: settings.isOverriddenByConfig('enableLogs') ?
+                "This is being overridden by the <code>enableLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+        }) }}
+
+        <div id="logs-settings" class="{{ not (settings.enableLogs ?? true) ? 'hidden' }}">
+            <div class="field">
+                <p class="light">{{ "When enabled, individual SMS records will be stored including recipient, message, status, and provider response."|t('sms-manager') }}</p>
+            </div>
+
+            {{ forms.textField({
+                label: 'Logs Retention (Days)'|t('sms-manager'),
+                instructions: 'Number of days to retain delivery logs (0 = keep forever)'|t('sms-manager'),
+                id: 'logsRetention',
+                name: 'settings[logsRetention]',
+                type: 'number',
+                value: settings.logsRetention,
+                required: true,
+                disabled: settings.isOverriddenByConfig('logsRetention'),
+                warning: settings.isOverriddenByConfig('logsRetention') ?
+                    "This is being overridden by the <code>logsRetention</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            }) }}
+
+            {{ forms.textField({
+                label: 'Logs Limit'|t('sms-manager'),
+                instructions: 'Maximum number of log records to retain'|t('sms-manager'),
+                id: 'logsLimit',
+                name: 'settings[logsLimit]',
+                type: 'number',
+                value: settings.logsLimit,
+                required: true,
+                disabled: settings.isOverriddenByConfig('logsLimit'),
+                warning: settings.isOverriddenByConfig('logsLimit') ?
+                    "This is being overridden by the <code>logsLimit</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Auto Trim Logs'|t('sms-manager'),
+                instructions: 'Automatically trim logs to respect the limit'|t('sms-manager'),
+                id: 'autoTrimLogs',
+                name: 'settings[autoTrimLogs]',
+                on: settings.autoTrimLogs,
+                disabled: settings.isOverriddenByConfig('autoTrimLogs'),
+                warning: settings.isOverriddenByConfig('autoTrimLogs') ?
+                    "This is being overridden by the <code>autoTrimLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            }) }}
+        </div>
+
+        <div class="buttons">
+            <button type="submit" class="btn submit">{{ "Save Settings"|t('sms-manager') }}</button>
+        </div>
+    </form>
+
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}

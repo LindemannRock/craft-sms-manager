@@ -1,0 +1,78 @@
+{# Overview Tab - Summary stats and daily trend chart #}
+
+{# Summary Stats Grid #}
+<div class="analytics-stats">
+    <div class="stat-box">
+        <div class="stat-value" id="total-messages">{{ summaryStats.total|number_format }}</div>
+        <div class="stat-label">{{ 'Total Messages'|t('sms-manager') }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-value" style="color: #10b981;" id="total-sent">{{ summaryStats.sent|number_format }}</div>
+        <div class="stat-label">{{ 'Sent Successfully'|t('sms-manager') }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-value" style="color: #ef4444;" id="total-failed">{{ summaryStats.failed|number_format }}</div>
+        <div class="stat-label">{{ 'Failed'|t('sms-manager') }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-value" id="success-rate">{{ summaryStats.successRate }}%</div>
+        <div class="stat-label">{{ 'Success Rate'|t('sms-manager') }}</div>
+    </div>
+</div>
+
+{# Daily Trend Chart #}
+<div class="analytics-charts">
+    <div class="chart-container full-width">
+        <h3>{{ 'Daily SMS Volume'|t('sms-manager') }}</h3>
+        <div style="height: 250px;">
+            <canvas id="daily-trend-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+{# Two Column Layout - Provider and Language breakdown #}
+<div class="analytics-charts two-columns">
+    <div class="chart-container">
+        <h3>{{ 'By Provider'|t('sms-manager') }}</h3>
+        <canvas id="provider-chart"></canvas>
+    </div>
+    <div class="chart-container">
+        <h3>{{ 'By Language'|t('sms-manager') }}</h3>
+        <canvas id="language-chart"></canvas>
+    </div>
+</div>
+
+{# Top Providers Table #}
+<div class="chart-container" style="margin-top: 24px;">
+    <h3>{{ 'Provider Performance'|t('sms-manager') }}</h3>
+    <div class="table-scroll-container">
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Provider'|t('sms-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Sent'|t('sms-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Failed'|t('sms-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Success Rate'|t('sms-manager') }}</th>
+                </tr>
+            </thead>
+            <tbody id="provider-table-body">
+                {% if providerData|length %}
+                    {% for item in providerData %}
+                        {% set itemTotal = (item.sent|default(0)) + (item.failed|default(0)) %}
+                        {% set itemRate = itemTotal > 0 ? ((item.sent|default(0)) / itemTotal * 100)|round(1) : 0 %}
+                        <tr>
+                            <td><strong>{{ item.providerName }}</strong></td>
+                            <td style="text-align: right; color: #10b981;">{{ item.sent|number_format }}</td>
+                            <td style="text-align: right; color: #ef4444;">{{ item.failed|number_format }}</td>
+                            <td style="text-align: right;">{{ itemRate }}%</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="light" style="text-align: center;">{{ 'No data available'|t('sms-manager') }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>

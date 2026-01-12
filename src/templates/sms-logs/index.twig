@@ -1,0 +1,290 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
+
+{% set title = 'SMS Logs'|t('sms-manager') %}
+{% set fullPageForm = false %}
+{% set selectedSubnavItem = 'sms-logs' %}
+
+{% set canDownload = currentUser.can('smsManager:downloadLogs') %}
+
+{% set crumbs = [
+    { label: smsHelper.fullName, url: url('sms-manager') },
+    { label: 'SMS Logs'|t('sms-manager'), url: url('sms-manager/sms-logs') }
+] %}
+
+{# Build language options from Craft sites #}
+{% set languageOptions = [] %}
+{% set seenLanguages = [] %}
+{% for site in craft.app.sites.getAllSites() %}
+    {% set langCode = site.language|split('-')|first %}
+    {% if langCode not in seenLanguages %}
+        {% set seenLanguages = seenLanguages|merge([langCode]) %}
+        {% set languageOptions = languageOptions|merge([{
+            code: langCode,
+            label: site.language ~ ' (' ~ site.name ~ ')'
+        }]) %}
+    {% endif %}
+{% endfor %}
+
+{# Status colors #}
+{% set statusColors = {
+    'sent': { bg: 'rgba(16, 185, 129, 0.12)', text: '#059669' },
+    'delivered': { bg: 'rgba(16, 185, 129, 0.12)', text: '#059669' },
+    'failed': { bg: 'rgba(239, 68, 68, 0.12)', text: '#dc2626' },
+    'pending': { bg: 'rgba(245, 158, 11, 0.12)', text: '#d97706' },
+} %}
+
+{% block toolbar %}
+    <div id="toolbar" class="flex" style="align-items: flex-end;">
+        <div class="flex-grow">
+            <form method="get" action="{{ url('sms-manager/sms-logs') }}">
+                <div class="flex">
+                    {# Status filter #}
+                    <div class="btngroup">
+                        <button type="button" class="btn menubtn statusmenubtn">
+                            <span class="status {{ statusFilter == 'all' ? 'all' : (statusFilter == 'sent' ? 'green' : (statusFilter == 'failed' ? 'red' : 'orange')) }}"></span>
+                            {{ statusFilter == 'all' ? 'All Status'|t('sms-manager') : statusFilter|capitalize }}
+                        </button>
+                        <div class="menu">
+                            <ul>
+                                <li><a class="{{ statusFilter == 'all' ? 'sel' : '' }}" href="?status=all&provider={{ providerFilter }}&language={{ languageFilter }}&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status all"></span>{{ 'All'|t('sms-manager') }}</a></li>
+                                <li><a class="{{ statusFilter == 'sent' ? 'sel' : '' }}" href="?status=sent&provider={{ providerFilter }}&language={{ languageFilter }}&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status green"></span>{{ 'Sent'|t('sms-manager') }}</a></li>
+                                <li><a class="{{ statusFilter == 'delivered' ? 'sel' : '' }}" href="?status=delivered&provider={{ providerFilter }}&language={{ languageFilter }}&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status green"></span>{{ 'Delivered'|t('sms-manager') }}</a></li>
+                                <li><a class="{{ statusFilter == 'failed' ? 'sel' : '' }}" href="?status=failed&provider={{ providerFilter }}&language={{ languageFilter }}&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status red"></span>{{ 'Failed'|t('sms-manager') }}</a></li>
+                                <li><a class="{{ statusFilter == 'pending' ? 'sel' : '' }}" href="?status=pending&provider={{ providerFilter }}&language={{ languageFilter }}&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status orange"></span>{{ 'Pending'|t('sms-manager') }}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {# Language filter - dynamic from Craft sites #}
+                    {% set currentLangLabel = 'All Languages'|t('sms-manager') %}
+                    {% if languageFilter != 'all' %}
+                        {% for lang in languageOptions %}
+                            {% if lang.code == languageFilter %}
+                                {% set currentLangLabel = lang.label %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    <div class="btngroup">
+                        <button type="button" class="btn menubtn">
+                            {{ currentLangLabel }}
+                        </button>
+                        <div class="menu">
+                            <ul>
+                                <li><a class="{{ languageFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language=all&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'All Languages'|t('sms-manager') }}</a></li>
+                                {% for lang in languageOptions %}
+                                    <li><a class="{{ languageFilter == lang.code ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ lang.code }}&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ lang.label }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {# Date range filter #}
+                    {% set periodLabels = {
+                        'all': 'All Time'|t('sms-manager'),
+                        '1': 'Last 24 hours'|t('sms-manager'),
+                        '7': 'Last 7 days'|t('sms-manager'),
+                        '30': 'Last 30 days'|t('sms-manager'),
+                        '90': 'Last 90 days'|t('sms-manager'),
+                    } %}
+                    <div class="btngroup">
+                        <button type="button" class="btn menubtn">
+                            {{ periodLabels[periodFilter] ?? periodLabels['all'] }}
+                        </button>
+                        <div class="menu">
+                            <ul>
+                                <li><a class="{{ periodFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&period=all&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'All Time'|t('sms-manager') }}</a></li>
+                                <li><a class="{{ periodFilter == '1' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&period=1&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Last 24 hours'|t('sms-manager') }}</a></li>
+                                <li><a class="{{ periodFilter == '7' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&period=7&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Last 7 days'|t('sms-manager') }}</a></li>
+                                <li><a class="{{ periodFilter == '30' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&period=30&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Last 30 days'|t('sms-manager') }}</a></li>
+                                <li><a class="{{ periodFilter == '90' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&period=90&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Last 90 days'|t('sms-manager') }}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {# Search #}
+                    <div class="search-container texticon flex-grow">
+                        <span class="texticon-icon search icon" aria-hidden="true"></span>
+                        <input type="text" class="clearable text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search logs...'|t('sms-manager') }}" autocomplete="off">
+                        <button type="button" class="clear-btn {{ search ? '' : 'hidden' }}" title="{{ 'Clear'|t('app') }}"></button>
+                        <input type="hidden" name="status" value="{{ statusFilter }}">
+                        <input type="hidden" name="provider" value="{{ providerFilter }}">
+                        <input type="hidden" name="language" value="{{ languageFilter }}">
+                        <input type="hidden" name="period" value="{{ periodFilter }}">
+                        <input type="hidden" name="sort" value="{{ sort }}">
+                        <input type="hidden" name="dir" value="{{ dir }}">
+                    </div>
+                </div>
+            </form>
+        </div>
+        {% if canDownload %}
+            <a href="{{ url('sms-manager/sms-logs/export', {period: 30, format: 'csv'}) }}" class="btn">
+                {{ 'Export CSV'|t('sms-manager') }}
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    <style>
+        .log-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .message-cell {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pagination {
+            gap: 4px;
+            align-items: center;
+        }
+        .page-info {
+            margin: 0 12px;
+            color: #596673;
+        }
+    </style>
+
+    <div id="elements" class="elements">
+        <div class="tableview tablepane">
+            <table class="data fullwidth">
+                <thead>
+                    <tr>
+                        <th scope="col" data-attribute="dateCreated" class="orderable {{ sort == 'dateCreated' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="dateCreated">{{ 'Date'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="recipient" class="orderable {{ sort == 'recipient' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="recipient">{{ 'Recipient'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col">{{ 'Message'|t('sms-manager') }}</th>
+                        <th scope="col" data-attribute="language" class="orderable {{ sort == 'language' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="language">{{ 'Language'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="status" class="orderable {{ sort == 'status' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="status">{{ 'Status'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col">{{ 'Provider'|t('sms-manager') }}</th>
+                        <th scope="col">{{ 'Sender ID'|t('sms-manager') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if logs|length %}
+                        {% for log in logs %}
+                            {% set colors = statusColors[log.status] ?? { bg: '#f3f4f6', text: '#6b7280' } %}
+                            <tr data-id="{{ log.id }}">
+                                <td class="light">{{ log.dateCreated|date('M j, H:i') }}</td>
+                                <td><code>{{ log.recipient }}</code></td>
+                                <td class="message-cell" title="{{ log.message }}">
+                                    {{ log.message|slice(0, 50) }}{% if log.message|length > 50 %}...{% endif %}
+                                </td>
+                                <td>
+                                    {% set langLabel = log.language %}
+                                    {% for lang in languageOptions %}
+                                        {% if lang.code == log.language %}
+                                            {% set langLabel = lang.label %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="light">{{ langLabel }}</span>
+                                </td>
+                                <td>
+                                    <span class="log-status" style="background: {{ colors.bg }}; color: {{ colors.text }};">
+                                        {{ log.status|capitalize }}
+                                    </span>
+                                </td>
+                                <td><span class="light">{{ log.providerName }}</span></td>
+                                <td><span class="light">{{ log.senderIdName }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2em;">
+                                {{ 'No logs found.'|t('sms-manager') }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Pagination #}
+    <div id="footer" class="flex">
+        <div class="light">
+            <div class="flex pagination">
+                <nav class="flex" aria-label="log pagination">
+                    <button type="button" class="page-link prev-page {{ page <= 1 ? 'disabled' : '' }}" {{ page <= 1 ? 'disabled' : '' }} title="{{ 'Previous Page'|t('app') }}"></button>
+                    <button type="button" class="page-link next-page {{ page >= totalPages ? 'disabled' : '' }}" {{ page >= totalPages ? 'disabled' : '' }} title="{{ 'Next Page'|t('app') }}"></button>
+                </nav>
+                <div class="page-info">
+                    {% set endRange = min(offset + limit, totalCount) %}
+                    {% if totalCount == 0 %}
+                        {{ 'no logs'|t('sms-manager') }}
+                    {% else %}
+                        {{ offset + 1 }} – {{ endRange }} {{ 'of'|t('app') }} {{ totalCount }} {{ 'logs'|t('sms-manager') }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize menu buttons
+        document.querySelectorAll('.menubtn').forEach(btn => {
+            if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
+                new Craft.MenuBtn(btn);
+            }
+        });
+
+        // Clear search
+        const searchClearBtn = document.querySelector('.search-container .clear-btn');
+        if (searchClearBtn) {
+            searchClearBtn.addEventListener('click', function() {
+                const searchInput = this.previousElementSibling;
+                searchInput.value = '';
+                searchInput.form.submit();
+            });
+        }
+
+        // Search on Enter
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    this.form.submit();
+                }
+            });
+        }
+
+        // Sort buttons
+        document.querySelectorAll('th.orderable button').forEach(button => {
+            button.addEventListener('click', function() {
+                const sortField = this.dataset.sort;
+                const currentSort = '{{ sort }}';
+                const currentDir = '{{ dir }}';
+                let newDir = 'asc';
+
+                if (sortField === currentSort) {
+                    newDir = currentDir === 'asc' ? 'desc' : 'asc';
+                }
+
+                window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&period={{ periodFilter }}&search={{ search }}&sort=' + sortField + '&dir=' + newDir + '&page=1';
+            });
+        });
+
+        // Pagination
+        document.querySelector('.prev-page:not(.disabled)')?.addEventListener('click', function() {
+            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page - 1 }}';
+        });
+
+        document.querySelector('.next-page:not(.disabled)')?.addEventListener('click', function() {
+            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&period={{ periodFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page + 1 }}';
+        });
+    </script>
+{% endblock %}

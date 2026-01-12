@@ -1,0 +1,64 @@
+{# Sender IDs Tab - Sender ID performance breakdown #}
+
+{# Sender ID Chart #}
+<div class="analytics-charts">
+    <div class="chart-container full-width">
+        <h3>{{ 'Messages by Sender ID'|t('sms-manager') }}</h3>
+        <div style="height: 300px;">
+            <canvas id="senderid-bar-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+{# Two Column Layout - Success/Failure distribution #}
+<div class="analytics-charts two-columns">
+    <div class="chart-container">
+        <h3>{{ 'Sender ID Distribution'|t('sms-manager') }}</h3>
+        <canvas id="senderid-pie-chart"></canvas>
+    </div>
+    <div class="chart-container">
+        <h3>{{ 'Success Rate by Sender ID'|t('sms-manager') }}</h3>
+        <canvas id="senderid-success-chart"></canvas>
+    </div>
+</div>
+
+{# Sender ID Performance Table #}
+<div class="chart-container" style="margin-top: 24px;">
+    <h3>{{ 'Sender ID Performance'|t('sms-manager') }}</h3>
+    <div class="table-scroll-container">
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Sender ID'|t('sms-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Total'|t('sms-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Sent'|t('sms-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Failed'|t('sms-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Success Rate'|t('sms-manager') }}</th>
+                </tr>
+            </thead>
+            <tbody id="senderid-table-body">
+                {% if senderIdData|length %}
+                    {% for item in senderIdData %}
+                        {% set itemTotal = (item.sent|default(0)) + (item.failed|default(0)) %}
+                        {% set itemRate = itemTotal > 0 ? ((item.sent|default(0)) / itemTotal * 100)|round(1) : 0 %}
+                        <tr>
+                            <td><strong>{{ item.senderIdName }}</strong></td>
+                            <td style="text-align: right;">{{ itemTotal|number_format }}</td>
+                            <td style="text-align: right; color: #10b981;">{{ item.sent|number_format }}</td>
+                            <td style="text-align: right; color: #ef4444;">{{ item.failed|number_format }}</td>
+                            <td style="text-align: right;">
+                                <span style="color: {{ itemRate >= 90 ? '#10b981' : (itemRate >= 70 ? '#f59e0b' : '#ef4444') }};">
+                                    {{ itemRate }}%
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="light" style="text-align: center;">{{ 'No data available'|t('sms-manager') }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>

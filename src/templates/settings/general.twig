@@ -1,0 +1,109 @@
+{% extends "sms-manager/_layouts/settings" %}
+{% set title = "General Settings"|t('sms-manager') %}
+{% set fullPageForm = true %}
+{% set selectedSettingsItem = 'general' %}
+
+{% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
+{% set crumbs = [
+    {
+        label: smsHelper.fullName|t('sms-manager'),
+        url: url('sms-manager'),
+    },
+    {
+        label: 'Settings'|t('sms-manager'),
+        url: url('sms-manager/settings'),
+    },
+    {
+        label: 'General'|t('sms-manager'),
+        url: url('sms-manager/settings/general'),
+    },
+] %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <form method="post" accept-charset="UTF-8">
+        {{ actionInput('sms-manager/settings/save') }}
+        {{ csrfInput() }}
+        {{ redirectInput('sms-manager/settings/general') }}
+        {{ hiddenInput('section', 'general') }}
+
+        <h2 style="margin-top: 0px;">{{ "Plugin Settings"|t('sms-manager') }}</h2>
+
+        {{ forms.textField({
+            label: "Plugin Name"|t('sms-manager'),
+            instructions: "The name of the plugin as it appears in the Control Panel menu"|t('sms-manager'),
+            id: 'pluginName',
+            name: 'settings[pluginName]',
+            value: settings.pluginName,
+            required: true,
+            disabled: settings.isOverriddenByConfig('pluginName'),
+            warning: settings.isOverriddenByConfig('pluginName') ?
+                "This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+        }) }}
+
+        <hr>
+
+        <h2>{{ "Default Provider & Sender ID"|t('sms-manager') }}</h2>
+
+        {% set providerOptions = craft.app.plugins.getPlugin('sms-manager').providers.getProviderOptions() %}
+        {{ forms.selectField({
+            label: 'Default Provider'|t('sms-manager'),
+            instructions: 'The default provider to use for sending SMS messages'|t('sms-manager'),
+            id: 'defaultProviderId',
+            name: 'settings[defaultProviderId]',
+            value: settings.defaultProviderId,
+            options: [{label: 'Select a provider'|t('sms-manager'), value: ''}]|merge(providerOptions),
+            disabled: settings.isOverriddenByConfig('defaultProviderId'),
+            warning: settings.isOverriddenByConfig('defaultProviderId') ?
+                "This is being overridden by the <code>defaultProviderId</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+        }) }}
+
+        {% set senderIdOptions = craft.app.plugins.getPlugin('sms-manager').senderIds.getSenderIdOptions() %}
+        {{ forms.selectField({
+            label: 'Default Sender ID'|t('sms-manager'),
+            instructions: 'The default sender ID to use for sending SMS messages'|t('sms-manager'),
+            id: 'defaultSenderIdId',
+            name: 'settings[defaultSenderIdId]',
+            value: settings.defaultSenderIdId,
+            options: [{label: 'Select a sender ID'|t('sms-manager'), value: ''}]|merge(senderIdOptions),
+            disabled: settings.isOverriddenByConfig('defaultSenderIdId'),
+            warning: settings.isOverriddenByConfig('defaultSenderIdId') ?
+                "This is being overridden by the <code>defaultSenderIdId</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+        }) }}
+
+        <hr>
+
+        <h2>{{ "Logging Settings"|t('sms-manager') }}</h2>
+
+        {% set logOptions = [
+            {value: 'error', label: 'Error (Critical errors only)'|t('sms-manager')},
+            {value: 'warning', label: 'Warning (Errors and warnings)'|t('sms-manager')},
+            {value: 'info', label: 'Info (General information)'|t('sms-manager')},
+        ] %}
+
+        {% if craft.app.config.general.devMode %}
+            {% set logOptions = logOptions|merge([
+                {value: 'debug', label: 'Debug (Detailed debugging)'|t('sms-manager')}
+            ]) %}
+        {% endif %}
+
+        {{ forms.selectField({
+            label: 'Log Level'|t('sms-manager'),
+            instructions: 'Choose what types of messages to log. Debug level requires devMode to be enabled.'|t('sms-manager'),
+            id: 'logLevel',
+            name: 'settings[logLevel]',
+            value: settings.logLevel,
+            options: logOptions,
+            disabled: settings.isOverriddenByConfig('logLevel'),
+            warning: settings.isOverriddenByConfig('logLevel') ?
+                "This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+        }) }}
+
+        <div class="buttons">
+            <button type="submit" class="btn submit">{{ "Save Settings"|t('sms-manager') }}</button>
+        </div>
+    </form>
+
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}

@@ -1,0 +1,60 @@
+{
+    "name": "lindemannrock/craft-sms-manager",
+    "description": "SMS gateway and management for Craft CMS with multi-provider support",
+    "type": "craft-plugin",
+    "version": "5.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "sms",
+        "messaging",
+        "gateway",
+        "mpp-sms"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bilal Hary Lindemann",
+            "email": "bh@lindemannrock.com",
+            "homepage": "https://lindemannrock.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "support@lindemannrock.com",
+        "issues": "https://github.com/LindemannRock/craft-sms-manager/issues",
+        "source": "https://github.com/LindemannRock/craft-sms-manager",
+        "docs": "https://github.com/LindemannRock/craft-sms-manager/blob/main/README.md"
+    },
+    "require": {
+        "php": "^8.2",
+        "craftcms/cms": "^5.0.0",
+        "lindemannrock/craft-plugin-base": "^5.0",
+        "lindemannrock/craft-logging-library": "^5.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main"
+    },
+    "autoload": {
+        "psr-4": {
+            "lindemannrock\\smsmanager\\": "src/"
+        }
+    },
+    "scripts": {
+        "phpstan": "phpstan --ansi --memory-limit=1G",
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --fix --ansi"
+    },
+    "extra": {
+        "name": "SMS Manager",
+        "handle": "sms-manager",
+        "developer": "LindemannRock",
+        "developerUrl": "https://lindemannrock.com",
+        "documentationUrl": "https://github.com/LindemannRock/craft-sms-manager/blob/main/README.md",
+        "changelogUrl": "https://github.com/LindemannRock/craft-sms-manager/blob/main/CHANGELOG.md",
+        "class": "lindemannrock\\smsmanager\\SmsManager"
+    }
+}

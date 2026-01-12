@@ -1,0 +1,269 @@
+{# Permission checks #}
+{% set canViewProviders = currentUser.can('smsManager:viewProviders') %}
+{% set canViewSenderIds = currentUser.can('smsManager:viewSenderIds') %}
+{% set canViewAnalytics = currentUser.can('smsManager:viewAnalytics') %}
+{% set canClearAnalytics = currentUser.can('smsManager:clearAnalytics') %}
+{% set canViewLogs = currentUser.can('smsManager:viewLogs') %}
+{% set canClearLogs = currentUser.can('smsManager:downloadLogs') %}
+{% set canManageSettings = currentUser.can('smsManager:manageSettings') %}
+
+<div style="margin-bottom: 32px;">
+    <h2>{{ "{pluginName} Overview"|t('sms-manager', {pluginName: smsHelper.fullName}) }}</h2>
+    <p class="light">{{ "Manage SMS providers, sender IDs, and clear analytics data."|t('sms-manager') }}</p>
+</div>
+
+<div style="margin-bottom: 40px;">
+    <h2>{{ "System Overview"|t('sms-manager') }}</h2>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch;">
+        {# Providers Card #}
+        <div class="pane" style="padding: 24px; margin-block: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); display: flex; flex-direction: column; height: 100%;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #059669;"></div>
+                <h4 style="margin: 0; color: #374151; font-size: 15px; font-weight: 600;">{{ "SMS Providers"|t('sms-manager') }}</h4>
+            </div>
+
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <div style="font-size: 28px; font-weight: 700; color: #059669; line-height: 1;">
+                        {{ providersCount }}
+                    </div>
+                    <div style="padding: 3px 10px; border-radius: 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: white; background: {{ activeProviders > 0 ? '#059669' : '#9ca3af' }};">
+                        {{ activeProviders > 0 ? 'Active'|t('sms-manager') : 'None Active'|t('sms-manager') }}
+                    </div>
+                </div>
+                <div style="font-size: 14px; color: #4b5563; margin-bottom: 12px;">
+                    {{ "Total providers configured"|t('sms-manager') }}
+                </div>
+
+                <div style="margin-top: auto;">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.9); border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 4px;">{{ activeProviders|number_format }}</div>
+                        <div style="font-size: 11px; color: #4b5563; text-transform: uppercase;">{{ 'Active Providers'|t('sms-manager') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Sender IDs Card #}
+        <div class="pane" style="padding: 24px; margin-block: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); display: flex; flex-direction: column; height: 100%;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #0ea5e9;"></div>
+                <h4 style="margin: 0; color: #374151; font-size: 15px; font-weight: 600;">{{ "Sender IDs"|t('sms-manager') }}</h4>
+            </div>
+
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <div style="font-size: 28px; font-weight: 700; color: #0ea5e9; line-height: 1;">
+                        {{ senderIdsCount }}
+                    </div>
+                    <div style="padding: 3px 10px; border-radius: 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: white; background: {{ activeSenderIds > 0 ? '#0ea5e9' : '#9ca3af' }};">
+                        {{ activeSenderIds > 0 ? 'Active'|t('sms-manager') : 'None Active'|t('sms-manager') }}
+                    </div>
+                </div>
+                <div style="font-size: 14px; color: #4b5563; margin-bottom: 12px;">
+                    {{ "Total sender IDs configured"|t('sms-manager') }}
+                </div>
+
+                <div style="margin-top: auto;">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.9); border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 4px;">{{ activeSenderIds|number_format }}</div>
+                        <div style="font-size: 11px; color: #4b5563; text-transform: uppercase;">{{ 'Active Sender IDs'|t('sms-manager') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Analytics & Logs Card #}
+        {% if settings.enableAnalytics or settings.enableLogs %}
+        <div class="pane" style="padding: 24px; margin-block: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); display: flex; flex-direction: column; height: 100%;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #8b5cf6;"></div>
+                <h4 style="margin: 0; color: #374151; font-size: 15px; font-weight: 600;">{{ "Analytics & Logs"|t('sms-manager') }}</h4>
+            </div>
+
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <div style="font-size: 14px; color: #4b5563; margin-bottom: 12px;">
+                    {{ "SMS tracking and message logs"|t('sms-manager') }}
+                </div>
+
+                <div style="margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.9); border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 600; color: #10b981; margin-bottom: 4px;">{{ totalSent|number_format }}</div>
+                        <div style="font-size: 11px; color: #4b5563; text-transform: uppercase;">{{ 'Sent'|t('sms-manager') }}</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(255,255,255,0.9); border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 600; color: #ef4444; margin-bottom: 4px;">{{ totalFailed|number_format }}</div>
+                        <div style="font-size: 11px; color: #4b5563; text-transform: uppercase;">{{ 'Failed'|t('sms-manager') }}</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(255,255,255,0.9); border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 16px; font-weight: 600; color: #f59e0b; margin-bottom: 4px;">{{ logsCount|number_format }}</div>
+                        <div style="font-size: 11px; color: #4b5563; text-transform: uppercase;">{{ 'Logs'|t('sms-manager') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# Determine what sections to show #}
+{% set hasNavigation = canViewProviders or canViewSenderIds or (settings.enableAnalytics and canViewAnalytics) or (settings.enableLogs and canViewLogs) or canManageSettings %}
+{% set hasAnalyticsManagement = canClearAnalytics and settings.enableAnalytics %}
+{% set hasLogsManagement = canClearLogs and settings.enableLogs %}
+{% set hasAnyQuickAction = hasNavigation or hasAnalyticsManagement or hasLogsManagement %}
+
+{# Quick Actions #}
+{% if hasAnyQuickAction %}
+<div style="margin-bottom: 40px;">
+    <h2>{{ 'Quick Actions'|t('sms-manager') }}</h2>
+
+    <div class="pane">
+        {% if hasNavigation %}
+        <div style="margin-bottom: 24px;">
+            <h3 style="margin-bottom: 8px;">{{ "Navigation"|t('sms-manager') }}</h3>
+            <p class="light" style="margin-bottom: 16px;">{{ "Access main plugin sections"|t('sms-manager') }}</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                {% if canViewProviders %}
+                <a href="{{ url('sms-manager/providers') }}" class="btn">
+                    {{ "Manage Providers"|t('sms-manager') }}
+                </a>
+                {% endif %}
+                {% if canViewSenderIds %}
+                <a href="{{ url('sms-manager/sender-ids') }}" class="btn">
+                    {{ "Manage Sender IDs"|t('sms-manager') }}
+                </a>
+                {% endif %}
+                {% if settings.enableAnalytics and canViewAnalytics %}
+                    <a href="{{ url('sms-manager/analytics') }}" class="btn">
+                        {{ "View Analytics"|t('sms-manager') }}
+                    </a>
+                {% endif %}
+                {% if settings.enableLogs and canViewLogs %}
+                    <a href="{{ url('sms-manager/sms-logs') }}" class="btn">
+                        {{ "View SMS Logs"|t('sms-manager') }}
+                    </a>
+                {% endif %}
+                {% if canManageSettings %}
+                <a href="{{ url('sms-manager/settings') }}" class="btn">
+                    {{ "View Settings"|t('sms-manager') }}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if hasAnalyticsManagement %}
+            {% if hasNavigation %}<hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">{% endif %}
+
+            <div>
+                <h3 style="margin-bottom: 8px;">{{ "Analytics Data Management"|t('sms-manager') }}</h3>
+                <p class="light" style="margin-bottom: 16px;">{{ "Permanently delete all SMS analytics data. This action cannot be undone!"|t('sms-manager') }}</p>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn secondary" id="clear-all-analytics">
+                        {{ "Clear All Analytics"|t('sms-manager') }} ({{ analyticsCount|number_format }})
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if hasLogsManagement %}
+            {% if hasNavigation or hasAnalyticsManagement %}<hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">{% endif %}
+
+            <div>
+                <h3 style="margin-bottom: 8px;">{{ "SMS Logs Management"|t('sms-manager') }}</h3>
+                <p class="light" style="margin-bottom: 16px;">{{ "Permanently delete all SMS logs. This action cannot be undone!"|t('sms-manager') }}</p>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn secondary" id="clear-all-logs">
+                        {{ "Clear All SMS Logs"|t('sms-manager') }} ({{ logsCount|number_format }})
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% js %}
+{% if settings.enableAnalytics %}
+$('#clear-all-analytics').on('click', function() {
+    if (!confirm('{{ "Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!"|t('sms-manager')|e('js') }}')) {
+        return;
+    }
+
+    // Second confirmation for extra safety
+    if (!confirm('{{ "This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?"|t('sms-manager')|e('js') }}')) {
+        return;
+    }
+
+    const $btn = $(this);
+    $btn.addClass('loading').prop('disabled', true);
+
+    $.ajax({
+        url: '{{ actionUrl('sms-manager/utilities/clear-all-analytics')|raw }}',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            {{ craft.app.config.general.csrfTokenName }}: '{{ craft.app.request.csrfToken }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                Craft.cp.displayNotice(response.message);
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                Craft.cp.displayError(response.error || '{{ "Failed to clear analytics"|t('sms-manager')|e('js') }}');
+            }
+        },
+        error: function() {
+            Craft.cp.displayError('{{ "Failed to clear analytics"|t('sms-manager')|e('js') }}');
+        },
+        complete: function() {
+            $btn.removeClass('loading').prop('disabled', false);
+        }
+    });
+});
+{% endif %}
+
+{% if settings.enableLogs %}
+$('#clear-all-logs').on('click', function() {
+    if (!confirm('{{ "Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!"|t('sms-manager')|e('js') }}')) {
+        return;
+    }
+
+    // Second confirmation for extra safety
+    if (!confirm('{{ "This will delete all SMS log entries. Are you absolutely sure?"|t('sms-manager')|e('js') }}')) {
+        return;
+    }
+
+    const $btn = $(this);
+    $btn.addClass('loading').prop('disabled', true);
+
+    $.ajax({
+        url: '{{ actionUrl('sms-manager/utilities/clear-all-logs')|raw }}',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            {{ craft.app.config.general.csrfTokenName }}: '{{ craft.app.request.csrfToken }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                Craft.cp.displayNotice(response.message);
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                Craft.cp.displayError(response.error || '{{ "Failed to clear SMS logs"|t('sms-manager')|e('js') }}');
+            }
+        },
+        error: function() {
+            Craft.cp.displayError('{{ "Failed to clear SMS logs"|t('sms-manager')|e('js') }}');
+        },
+        complete: function() {
+            $btn.removeClass('loading').prop('disabled', false);
+        }
+    });
+});
+{% endif %}
+{% endjs %}
+
+{% include 'lindemannrock-base/_components/plugin-credit' %}

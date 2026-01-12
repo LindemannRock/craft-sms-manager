@@ -1,0 +1,44 @@
+{% extends "_layouts/cp" %}
+
+{% set title = title ?? 'Settings'|t('sms-manager') %}
+{% set selectedSettingsItem = selectedSettingsItem ?? 'general' %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% block sidebar %}
+    <nav id="settings-nav">
+        <ul>
+            <li>
+                <a href="{{ url('sms-manager/settings/general') }}" {% if selectedSettingsItem == 'general' %}class="sel"{% endif %} data-nav-item="general">
+                    {{ 'General'|t('sms-manager') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url('sms-manager/settings/analytics') }}" {% if selectedSettingsItem == 'analytics' %}class="sel"{% endif %} data-nav-item="analytics">
+                    {{ 'Analytics'|t('sms-manager') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url('sms-manager/settings/interface') }}" {% if selectedSettingsItem == 'interface' %}class="sel"{% endif %} data-nav-item="interface">
+                    {{ 'Interface'|t('sms-manager') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url('sms-manager/settings/test') }}" {% if selectedSettingsItem == 'test' %}class="sel"{% endif %} data-nav-item="test">
+                    {{ 'Test'|t('sms-manager') }}
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endblock %}
+
+{% css %}
+    /* Prevent scroll-based highlighting */
+    #settings-nav a {
+        transition: none;
+    }
+
+    /* Ensure only the current page link is highlighted */
+    #settings-nav a.sel {
+        cursor: default;
+    }
+{% endcss %}

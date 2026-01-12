@@ -1,0 +1,532 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
+
+{% set title = 'Sender IDs'|t('sms-manager') %}
+{% set fullPageForm = false %}
+{% set selectedSubnavItem = 'sender-ids' %}
+
+{# Permission checks #}
+{% set canCreate = currentUser.can('smsManager:createSenderIds') %}
+{% set canEdit = currentUser.can('smsManager:editSenderIds') %}
+{% set canDelete = currentUser.can('smsManager:deleteSenderIds') %}
+{% set showActionsColumn = canEdit or canDelete %}
+
+{# Get query parameters #}
+{% set search = craft.app.request.getParam('search', '') %}
+{% set statusFilter = craft.app.request.getParam('status', 'all') %}
+{% set providerFilter = craft.app.request.getParam('provider', 'all') %}
+{% set testFilter = craft.app.request.getParam('test', 'all') %}
+{% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
+{% set limit = settings.itemsPerPage ?? 50 %}
+{% set offset = (page - 1) * limit %}
+
+{# Filter sender IDs #}
+{% set filteredSenderIds = senderIds %}
+
+{# Status filter #}
+{% if statusFilter == 'enabled' %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => s.enabled) %}
+{% elseif statusFilter == 'disabled' %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => not s.enabled) %}
+{% endif %}
+
+{# Provider filter #}
+{% if providerFilter != 'all' %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => s.providerId == providerFilter) %}
+{% endif %}
+
+{# Test filter #}
+{% if testFilter == 'test' %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => s.isTest) %}
+{% elseif testFilter == 'production' %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => not s.isTest) %}
+{% endif %}
+
+{# Search filter #}
+{% if search %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => search|lower in s.name|lower or search|lower in s.handle|lower or search|lower in s.senderId|lower) %}
+{% endif %}
+
+{% set totalCount = filteredSenderIds|length %}
+{% set totalPages = (totalCount / limit)|round(0, 'ceil') %}
+{% set paginatedSenderIds = filteredSenderIds|slice(offset, limit) %}
+
+{% set crumbs = [
+    { label: smsHelper.fullName, url: url('sms-manager') },
+    { label: 'Sender IDs'|t('sms-manager'), url: url('sms-manager/sender-ids') }
+] %}
+
+{# Provider type colors #}
+{% set typeColors = {
+    'mpp-sms': '#6366f1',
+} %}
+
+{% set typeRgb = {
+    'mpp-sms': '99, 102, 241',
+} %}
+
+{% set typeTextColors = {
+    'mpp-sms': '#312e81',
+} %}
+
+{% set typeLabels = {
+    'mpp-sms': 'MPP-SMS',
+} %}
+
+{% block toolbar %}
+    <div id="toolbar" class="flex" style="align-items: flex-end;">
+        <div class="flex-grow">
+            <form method="get" action="{{ url('sms-manager/sender-ids') }}">
+                <div class="flex">
+                    <div class="btngroup">
+                        <button type="button" class="btn menubtn statusmenubtn">
+                            <span class="status {{ statusFilter == 'all' ? 'all' : (statusFilter == 'enabled' ? 'green' : 'disabled') }}"></span>
+                            {{ statusFilter == 'all' ? 'All'|t('sms-manager') : statusFilter|capitalize }}
+                        </button>
+                        <div class="menu">
+                            <ul>
+                                <li>
+                                    <a class="{{ statusFilter == 'all' ? 'sel' : '' }}" href="?status=all&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}">
+                                        <span class="status all"></span>{{ 'All'|t('sms-manager') }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="{{ statusFilter == 'enabled' ? 'sel' : '' }}" href="?status=enabled&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}">
+                                        <span class="status green"></span>{{ 'Enabled'|t('sms-manager') }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="{{ statusFilter == 'disabled' ? 'sel' : '' }}" href="?status=disabled&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}">
+                                        <span class="status disabled"></span>{{ 'Disabled'|t('sms-manager') }}
+                                    </a>
+                                </li>
+                                <li><hr class="padded"></li>
+                                <li class="menu-header">{{ 'Provider'|t('sms-manager') }}</li>
+                                <li>
+                                    <a class="{{ providerFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider=all&test={{ testFilter }}&search={{ search }}">
+                                        <span class="status all"></span>{{ 'All Providers'|t('sms-manager') }}
+                                    </a>
+                                </li>
+                                {% for provider in providers %}
+                                    <li>
+                                        <a class="{{ providerFilter == provider.id ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ provider.id }}&test={{ testFilter }}&search={{ search }}">
+                                            <span class="status" style="background: {{ providerFilter == provider.id ? '#6366f1' : '#aab6c1' }};"></span>{{ provider.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                                <li><hr class="padded"></li>
+                                <li class="menu-header">{{ 'Type'|t('sms-manager') }}</li>
+                                <li>
+                                    <a class="{{ testFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=all&search={{ search }}">
+                                        <span class="status all"></span>{{ 'All Types'|t('sms-manager') }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="{{ testFilter == 'production' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=production&search={{ search }}">
+                                        <span class="status" style="background: {{ testFilter == 'production' ? '#6366f1' : '#aab6c1' }};"></span>{{ 'Production'|t('sms-manager') }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="{{ testFilter == 'test' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=test&search={{ search }}">
+                                        <span class="status" style="background: {{ testFilter == 'test' ? '#ec4899' : '#aab6c1' }};"></span>{{ 'Test'|t('sms-manager') }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="search-container texticon flex-grow">
+                        <span class="texticon-icon search icon" aria-hidden="true"></span>
+                        <input type="text" class="clearable text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search sender IDs...'|t('sms-manager') }}" autocomplete="off" dir="ltr" aria-label="Search" {% if search %} autofocus {% endif %}>
+                        <button type="button" class="clear-btn {{ search ? '' : 'hidden' }}" title="{{ 'Clear search'|t('sms-manager') }}" role="button" aria-label="{{ 'Clear search'|t('sms-manager') }}"></button>
+                        <input type="hidden" name="status" value="{{ statusFilter }}">
+                        <input type="hidden" name="provider" value="{{ providerFilter }}">
+                        <input type="hidden" name="test" value="{{ testFilter }}">
+                    </div>
+                </div>
+            </form>
+        </div>
+        {% if canCreate %}
+            <a href="{{ url('sms-manager/sender-ids/new') }}" class="btn submit add icon">
+                {{ 'New Sender ID'|t('sms-manager') }}
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% css %}
+.menu-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #7c97b2;
+    padding: 8px 14px 4px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.checkbox-cell {
+    width: 40px !important;
+    text-align: center;
+}
+{% endcss %}
+
+{% block content %}
+    <div id="elements" class="elements">
+        <div class="tableview tablepane">
+            <table class="data fullwidth">
+                <thead>
+                    <tr>
+                        <th class="checkbox-cell selectallcontainer">
+                            <div class="checkbox" role="checkbox" tabindex="0" aria-checked="false" aria-label="Select all"></div>
+                        </th>
+                        <th scope="col">{{ 'Name'|t('sms-manager') }}</th>
+                        <th scope="col">{{ 'Handle'|t('sms-manager') }}</th>
+                        <th scope="col">{{ 'Sender ID'|t('sms-manager') }}</th>
+                        <th scope="col">{{ 'Provider'|t('sms-manager') }}</th>
+                        <th scope="col">{{ 'Default'|t('sms-manager') }}</th>
+                        <th scope="col">{{ 'Test'|t('sms-manager') }}</th>
+                        <th scope="col">{{ 'Enabled'|t('sms-manager') }}</th>
+                        {% if showActionsColumn %}
+                            <th class="thin">{{ 'Actions'|t('sms-manager') }}</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if paginatedSenderIds|length %}
+                        {% for senderId in paginatedSenderIds %}
+                            {% set provider = null %}
+                            {% for p in providers %}
+                                {% if p.id == senderId.providerId %}
+                                    {% set provider = p %}
+                                {% endif %}
+                            {% endfor %}
+                            <tr data-id="{{ senderId.id }}" data-name="{{ senderId.name }}">
+                                <td class="checkbox-cell">
+                                    <div class="checkbox" title="Select" tabindex="0" aria-checked="false" role="checkbox"></div>
+                                </td>
+                                <td>
+                                    {% if canEdit %}
+                                        <a class="label-link" href="{{ url('sms-manager/sender-ids/' ~ senderId.id) }}">
+                                            <span>{{ senderId.name }}</span>
+                                        </a>
+                                    {% else %}
+                                        <span>{{ senderId.name }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><code>{{ senderId.handle }}</code></td>
+                                <td><code>{{ senderId.senderId }}</code></td>
+                                <td>
+                                    {% if provider %}
+                                        <span class="status-label" style="background: rgba({{ typeRgb[provider.type] ?? '107, 114, 128' }}, 0.12);">
+                                            <span class="status" style="background: {{ typeColors[provider.type] ?? '#6b7280' }};"></span>
+                                            <span class="status-label-text" style="color: {{ typeTextColors[provider.type] ?? '#374151' }};">{{ provider.name }}</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="light">{{ 'Unknown'|t('sms-manager') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if senderId.isDefault %}
+                                        <span class="status-label" style="background: rgba(245, 158, 11, 0.12);">
+                                            <span class="status" style="background: #f59e0b;"></span>
+                                            <span class="status-label-text" style="color: #78350f;">{{ 'Default'|t('sms-manager') }}</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="light">–</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if senderId.isTest %}
+                                        <span class="status-label" style="background: rgba(236, 72, 153, 0.12);">
+                                            <span class="status" style="background: #ec4899;"></span>
+                                            <span class="status-label-text" style="color: #9d174d;">{{ 'Test'|t('sms-manager') }}</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="light">–</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if senderId.enabled %}
+                                        <span class="status-label teal">
+                                            <span class="status teal"></span>
+                                            <span class="status-label-text">{{ 'Enabled'|t('sms-manager') }}</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="status-label gray">
+                                            <span class="status disabled"></span>
+                                            <span class="status-label-text">{{ 'Disabled'|t('sms-manager') }}</span>
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                {% if showActionsColumn %}
+                                    <td class="thin" style="text-align: right;">
+                                        <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('sms-manager') }}"></button>
+                                        <div class="menu">
+                                            <ul>
+                                                {% if canEdit %}
+                                                    <li>
+                                                        <a href="{{ url('sms-manager/sender-ids/' ~ senderId.id) }}">
+                                                            {{ 'Edit'|t('sms-manager') }}
+                                                        </a>
+                                                    </li>
+                                                {% endif %}
+                                                {% if canDelete %}
+                                                    <li><hr class="padded"></li>
+                                                    <li>
+                                                        <a class="sender-id-action error" data-action="delete" data-id="{{ senderId.id }}" data-name="{{ senderId.name }}">
+                                                            {{ 'Delete'|t('sms-manager') }}
+                                                        </a>
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="{{ showActionsColumn ? 9 : 8 }}" style="text-align: center; padding: 2em;">
+                                {{ 'No sender IDs found.'|t('sms-manager') }}
+                                {% if canCreate %}
+                                    <a href="{{ url('sms-manager/sender-ids/new') }}">{{ 'Create one'|t('sms-manager') }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Pagination footer #}
+    <div id="footer" class="flex flex-justify">
+        <div class="light">
+            <div class="flex pagination">
+                <nav class="flex" aria-label="sender ID pagination">
+                    <button type="button" class="page-link prev-page {{ page <= 1 ? 'disabled' : '' }}" {{ page <= 1 ? 'disabled' : '' }} title="{{ 'Previous Page'|t('sms-manager') }}"></button>
+                    <button type="button" class="page-link next-page {{ page >= totalPages ? 'disabled' : '' }}" {{ page >= totalPages ? 'disabled' : '' }} title="{{ 'Next Page'|t('sms-manager') }}"></button>
+                </nav>
+                <div class="page-info" style="margin: 0 12px; color: #596673;">
+                    {% set endRange = min(offset + limit, totalCount) %}
+                    {% if totalCount == 0 %}
+                        {{ 'no sender IDs'|t('sms-manager') }}
+                    {% else %}
+                        {{ offset + 1 }} – {{ endRange }} {{ 'of'|t('sms-manager') }} {{ totalCount }} {{ totalCount == 1 ? 'sender ID'|t('sms-manager') : 'sender IDs'|t('sms-manager') }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div id="actions-container" class="flex" style="display: none;">
+            {% if canEdit %}
+                <div>
+                    <button type="button" class="btn menubtn secondary" id="bulk-actions-btn" aria-label="Set status">
+                        {{ 'Set status'|t('app') }}
+                    </button>
+                    <div class="menu">
+                        <ul>
+                            <li><a id="bulk-enable-action">{{ 'Enable'|t('sms-manager') }}</a></li>
+                            <li><a id="bulk-disable-action">{{ 'Disable'|t('sms-manager') }}</a></li>
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+            {% if canDelete %}
+                <button type="button" class="btn secondary" id="bulk-delete-btn">
+                    <span id="delete-label">{{ 'Delete'|t('sms-manager') }}</span>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Initialize menu buttons
+        document.querySelectorAll('.menubtn').forEach(btn => {
+            if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
+                new Craft.MenuBtn(btn);
+            }
+        });
+
+        // Clear search
+        const clearBtn = document.querySelector('.clear-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                const searchInput = document.querySelector('input[name="search"]');
+                searchInput.value = '';
+                searchInput.form.submit();
+            });
+        }
+
+        // Search on Enter
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    this.form.submit();
+                }
+            });
+        }
+
+        // Pagination
+        document.querySelector('.prev-page:not(.disabled)')?.addEventListener('click', function() {
+            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&page={{ page - 1 }}';
+        });
+
+        document.querySelector('.next-page:not(.disabled)')?.addEventListener('click', function() {
+            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&page={{ page + 1 }}';
+        });
+
+        // Checkbox functionality
+        const selectAllCheckbox = document.querySelector('.selectallcontainer .checkbox');
+        const checkboxes = document.querySelectorAll('tbody .checkbox');
+        let selectedIds = new Set();
+
+        function toggleCheckbox(checkbox, checked) {
+            if (checked) {
+                checkbox.classList.add('checked');
+                checkbox.setAttribute('aria-checked', 'true');
+            } else {
+                checkbox.classList.remove('checked');
+                checkbox.setAttribute('aria-checked', 'false');
+            }
+        }
+
+        function updateBulkButtons() {
+            const hasSelection = selectedIds.size > 0;
+            const actionsContainer = document.getElementById('actions-container');
+            const deleteLabel = document.getElementById('delete-label');
+
+            if (hasSelection) {
+                actionsContainer.style.display = '';
+                const count = selectedIds.size;
+                if (deleteLabel) {
+                    deleteLabel.textContent = `{{ 'Delete'|t('sms-manager') }} (${count})`;
+                }
+            } else {
+                actionsContainer.style.display = 'none';
+            }
+        }
+
+        // Select all
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('click', function() {
+                const isChecked = !this.classList.contains('checked');
+                toggleCheckbox(this, isChecked);
+
+                checkboxes.forEach(checkbox => {
+                    toggleCheckbox(checkbox, isChecked);
+                    const id = checkbox.closest('tr').dataset.id;
+                    if (isChecked) {
+                        selectedIds.add(id);
+                    } else {
+                        selectedIds.delete(id);
+                    }
+                });
+
+                updateBulkButtons();
+            });
+        }
+
+        // Individual checkboxes
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                const isChecked = !this.classList.contains('checked');
+                toggleCheckbox(this, isChecked);
+
+                const id = this.closest('tr').dataset.id;
+                if (isChecked) {
+                    selectedIds.add(id);
+                } else {
+                    selectedIds.delete(id);
+                }
+
+                updateBulkButtons();
+            });
+        });
+
+        // Initialize bulk actions menu button
+        const bulkActionsBtn = document.getElementById('bulk-actions-btn');
+        if (bulkActionsBtn) {
+            if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
+                new Craft.MenuBtn(bulkActionsBtn);
+            }
+        }
+
+        // Bulk enable
+        document.getElementById('bulk-enable-action')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const ids = Array.from(selectedIds);
+
+            Craft.sendActionRequest('POST', 'sms-manager/sender-ids/bulk-enable', {
+                data: { senderIdIds: ids }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(`{{ 'Enabled'|t('sms-manager') }} ${response.data.count} {{ 'sender IDs'|t('sms-manager') }}`);
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('{{ 'Failed to enable sender IDs'|t('sms-manager') }}');
+            });
+        });
+
+        // Bulk disable
+        document.getElementById('bulk-disable-action')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const ids = Array.from(selectedIds);
+
+            Craft.sendActionRequest('POST', 'sms-manager/sender-ids/bulk-disable', {
+                data: { senderIdIds: ids }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(`{{ 'Disabled'|t('sms-manager') }} ${response.data.count} {{ 'sender IDs'|t('sms-manager') }}`);
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('{{ 'Failed to disable sender IDs'|t('sms-manager') }}');
+            });
+        });
+
+        // Bulk delete
+        document.getElementById('bulk-delete-btn')?.addEventListener('click', function() {
+            const ids = Array.from(selectedIds);
+            if (!confirm(`{{ 'Delete'|t('sms-manager') }} ${ids.length} {{ 'sender ID(s)? This cannot be undone.'|t('sms-manager') }}`)) return;
+
+            Craft.sendActionRequest('POST', 'sms-manager/sender-ids/bulk-delete', {
+                data: { senderIdIds: ids }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(`{{ 'Deleted'|t('sms-manager') }} ${response.data.count} {{ 'sender IDs'|t('sms-manager') }}`);
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('{{ 'Failed to delete sender IDs'|t('sms-manager') }}');
+            });
+        });
+
+        // Individual sender ID action menu clicks
+        document.querySelectorAll('.sender-id-action').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const action = this.dataset.action;
+                const senderIdId = this.dataset.id;
+                const senderIdName = this.dataset.name;
+
+                if (action === 'delete') {
+                    if (confirm('{{ 'Delete sender ID "{name}"? This cannot be undone.'|t('sms-manager') }}'.replace('{name}', senderIdName))) {
+                        Craft.sendActionRequest('POST', 'sms-manager/sender-ids/delete', {
+                            data: { senderIdId: senderIdId }
+                        }).then(function(response) {
+                            if (response.data.success) {
+                                Craft.cp.displayNotice('{{ 'Sender ID deleted'|t('sms-manager') }}');
+                                setTimeout(() => window.location.reload(), 1000);
+                            }
+                        }).catch(function(error) {
+                            Craft.cp.displayError('{{ 'Failed to delete sender ID'|t('sms-manager') }}');
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

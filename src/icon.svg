@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="smsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="45" fill="url(#smsGradient)" />
+
+  <!-- Phone Body -->
+  <rect x="32" y="22" width="36" height="56" rx="4" ry="4" fill="white"/>
+
+  <!-- Phone Screen -->
+  <rect x="36" y="28" width="28" height="40" rx="2" ry="2" fill="url(#smsGradient)" opacity="0.3"/>
+
+  <!-- Message Bubbles -->
+  <rect x="39" y="32" width="16" height="8" rx="3" ry="3" fill="white"/>
+  <rect x="45" y="44" width="16" height="8" rx="3" ry="3" fill="white"/>
+  <rect x="39" y="56" width="12" height="8" rx="3" ry="3" fill="white"/>
+
+  <!-- Home Button -->
+  <circle cx="50" cy="72" r="3" fill="url(#smsGradient)" opacity="0.5"/>
+</svg>
