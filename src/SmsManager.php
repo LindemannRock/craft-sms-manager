@@ -5,7 +5,7 @@
  * SMS gateway and management with multi-provider support
  *
  * @link      https://lindemannrock.com
- * @copyright Copyright (c) 2025 LindemannRock
+ * @copyright Copyright (c) 2026 LindemannRock
  */
 
 namespace lindemannrock\smsmanager;
