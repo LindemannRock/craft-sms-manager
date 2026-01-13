@@ -258,7 +258,7 @@
                             {% set hasDetails = log.errorMessage or log.providerResponse or (log.message|length > 50) %}
                             {# Main log row - clickable #}
                             <tr class="clickable-row" data-id="{{ log.id }}" data-entry-id="{{ loop.index }}">
-                                <td class="light">{{ log.dateCreated|date('M j, H:i') }}</td>
+                                <td class="light">{{ (log.dateCreated ~ ' UTC')|date('M j, H:i', craft.app.timezone) }}</td>
                                 <td><code>{{ log.recipient }}</code></td>
                                 <td class="message-cell" title="{{ log.message }}">
                                     {{ log.message|slice(0, 50) }}{% if log.message|length > 50 %}...{% endif %}
