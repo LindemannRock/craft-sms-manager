@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.2](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.1...v5.2.2) (2026-01-13)
+
+
+### Bug Fixes
+
+* adjust log date display to use the correct timezone ([4a6e327](https://github.com/LindemannRock/craft-sms-manager/commit/4a6e327721df00c176b19b564d915afa532ce757))
+
 ## [5.2.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.0...v5.2.1) (2026-01-13)
 
 
