@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.0...v5.2.1) (2026-01-13)
+
+
+### Bug Fixes
+
+* update copyright year to 2026 in multiple files ([2658d4c](https://github.com/LindemannRock/craft-sms-manager/commit/2658d4ce2e207f110bca94d9263c4102ff2e9be4))
+
 ## [5.2.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.1.0...v5.2.0) (2026-01-12)
 
 
