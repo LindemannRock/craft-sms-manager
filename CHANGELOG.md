@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.3](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.2...v5.2.3) (2026-01-14)
+
+
+### Bug Fixes
+
+* add RTL support for Arabic messages in SMS logs ([d43e2a5](https://github.com/LindemannRock/craft-sms-manager/commit/d43e2a5d6671d25fa1fd0f892dbb1c2fc577f6be))
+
 ## [5.2.2](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.1...v5.2.2) (2026-01-13)
 
 
