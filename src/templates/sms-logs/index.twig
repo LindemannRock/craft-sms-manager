@@ -294,9 +294,10 @@
                                         <div class="context-content">
                                             <div class="context-grid">
                                                 {# Full message #}
+                                                {% set isRtl = log.language|slice(0, 2) == 'ar' %}
                                                 <div>
                                                     <div class="context-label">{{ 'Full Message'|t('sms-manager') }}</div>
-                                                    <div class="context-value">{{ log.message }}</div>
+                                                    <div class="context-value"{{ isRtl ? ' dir="rtl"' : '' }}>{{ log.message }}</div>
                                                 </div>
                                                 {# Error message (if failed) #}
                                                 {% if log.errorMessage %}
