@@ -149,33 +149,25 @@
 {% endblock %}
 
 {% block details %}
-    <fieldset>
-        <legend class="h6">{{ 'Status'|t('sms-manager') }}</legend>
-        <div class="meta">
-            {{ forms.lightswitchField({
-                label: 'Enabled'|t('sms-manager'),
-                id: 'enabled',
-                name: 'enabled',
-                on: provider.enabled ?? true
-            }) }}
-        </div>
-    </fieldset>
+    <div class="meta">
+        {{ forms.lightswitchField({
+            label: 'Enabled'|t('sms-manager'),
+            id: 'enabled',
+            name: 'enabled',
+            on: provider.enabled ?? true
+        }) }}
 
-    <fieldset>
-        <legend class="h6">{{ 'Options'|t('sms-manager') }}</legend>
-        <div class="meta">
-            {{ forms.lightswitchField({
-                label: 'Default Provider'|t('sms-manager'),
-                id: 'isDefault',
-                name: 'isDefault',
-                on: provider.isDefault ?? false
-            }) }}
-        </div>
-    </fieldset>
+        {{ forms.lightswitchField({
+            label: 'Default Provider'|t('sms-manager'),
+            instructions: 'Use this provider when no specific provider is specified.'|t('sms-manager'),
+            id: 'isDefault',
+            name: 'isDefault',
+            on: provider.isDefault ?? false
+        }) }}
+    </div>
 
     {% if not isNew %}
         <fieldset>
-            <legend class="h6">{{ 'Meta'|t('sms-manager') }}</legend>
             <dl class="meta read-only">
                 <div class="data">
                     <dt class="heading">{{ 'Status'|t('sms-manager') }}</dt>

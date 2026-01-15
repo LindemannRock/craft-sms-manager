@@ -116,40 +116,33 @@
 {% endblock %}
 
 {% block details %}
-    <fieldset>
-        <legend class="h6">{{ 'Status'|t('sms-manager') }}</legend>
-        <div class="meta">
-            {{ forms.lightswitchField({
-                label: 'Enabled'|t('sms-manager'),
-                id: 'enabled',
-                name: 'enabled',
-                on: senderId.enabled ?? true
-            }) }}
-        </div>
-    </fieldset>
+    <div class="meta">
+        {{ forms.lightswitchField({
+            label: 'Enabled'|t('sms-manager'),
+            id: 'enabled',
+            name: 'enabled',
+            on: senderId.enabled ?? true
+        }) }}
 
-    <fieldset>
-        <legend class="h6">{{ 'Options'|t('sms-manager') }}</legend>
-        <div class="meta">
-            {{ forms.lightswitchField({
-                label: 'Default Sender ID'|t('sms-manager'),
-                id: 'isDefault',
-                name: 'isDefault',
-                on: senderId.isDefault ?? false
-            }) }}
+        {{ forms.lightswitchField({
+            label: 'Default Sender ID'|t('sms-manager'),
+            instructions: 'Use this sender ID when no specific sender is specified.'|t('sms-manager'),
+            id: 'isDefault',
+            name: 'isDefault',
+            on: senderId.isDefault ?? false
+        }) }}
 
-            {{ forms.lightswitchField({
-                label: 'Test Sender ID'|t('sms-manager'),
-                id: 'isTest',
-                name: 'isTest',
-                on: senderId.isTest ?? false
-            }) }}
-        </div>
-    </fieldset>
+        {{ forms.lightswitchField({
+            label: 'Test Sender ID'|t('sms-manager'),
+            instructions: 'Use this sender ID for test messages in development mode.'|t('sms-manager'),
+            id: 'isTest',
+            name: 'isTest',
+            on: senderId.isTest ?? false
+        }) }}
+    </div>
 
     {% if not isNew %}
         <fieldset>
-            <legend class="h6">{{ 'Meta'|t('sms-manager') }}</legend>
             <dl class="meta read-only">
                 <div class="data">
                     <dt class="heading">{{ 'Status'|t('sms-manager') }}</dt>
