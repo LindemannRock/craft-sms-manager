@@ -528,7 +528,7 @@ class AnalyticsController extends Controller
 
         // Build filename with settings-based name
         $settings = SmsManager::$plugin->getSettings();
-        $filenamePart = strtolower(str_replace(' ', '-', $settings->getPluralLowerDisplayName()));
+        $filenamePart = strtolower(str_replace(' ', '-', $settings->getLowerDisplayName()));
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
         $filename = $filenamePart . '-analytics-' . $dateRangeLabel . '-' . date('Y-m-d-His') . '.' . $format;
 
