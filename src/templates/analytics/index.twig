@@ -95,15 +95,15 @@
 {% block content %}
     {# Tab Content - IDs must match tab URLs #}
     <div id="overview" class="tab-content">
-        {% include 'sms-manager/analytics/_tabs/overview' %}
+        {% include 'sms-manager/analytics/_partials/overview' %}
     </div>
 
     <div id="senderids" class="tab-content hidden">
-        {% include 'sms-manager/analytics/_tabs/senderids' %}
+        {% include 'sms-manager/analytics/_partials/senderids' %}
     </div>
 
     <div id="encoding" class="tab-content hidden">
-        {% include 'sms-manager/analytics/_tabs/encoding' %}
+        {% include 'sms-manager/analytics/_partials/encoding' %}
     </div>
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
