@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.2.4](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.3...v5.2.4) (2026-01-16)
+
+
+### Bug Fixes
+
+* reorganize and standardize analytics templates ([91e46bc](https://github.com/LindemannRock/craft-sms-manager/commit/91e46bca90e421ffbcadb60e1a2d9f1654093c78))
+* simplify details section in provider and sender ID templates ([53f247c](https://github.com/LindemannRock/craft-sms-manager/commit/53f247c23308056e85f2998ff6318abd4a02075b))
+* update filename generation to use lower display name in Analytics and Logs controllers ([1ea5aaa](https://github.com/LindemannRock/craft-sms-manager/commit/1ea5aaae759aee63f203b9c4f316b3e3d1fff6c6))
+* update PluginHelper bootstrap to include download permissions for logging ([0b5c1f9](https://github.com/LindemannRock/craft-sms-manager/commit/0b5c1f9f3144224760172a0926398552d4729ab5))
+
 ## [5.2.3](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.2...v5.2.3) (2026-01-14)
 
 
