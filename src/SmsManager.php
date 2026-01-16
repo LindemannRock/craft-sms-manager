@@ -79,19 +79,13 @@ class SmsManager extends Plugin
         self::$plugin = $this;
 
         // Bootstrap base module (logging + Twig extension)
-        PluginHelper::bootstrap($this, 'smsHelper', ['smsManager:viewLogs']);
+        PluginHelper::bootstrap(
+            $this,
+            'smsHelper',
+            ['smsManager:viewLogs'],
+            ['smsManager:downloadLogs']
+        );
         PluginHelper::applyPluginNameFromConfig($this);
-
-        // Configure logging library with download permissions
-        $settings = $this->getSettings();
-        LoggingLibrary::configure([
-            'pluginHandle' => $this->handle,
-            'pluginName' => $settings->getFullName(),
-            'logLevel' => $settings->logLevel ?? 'error',
-            'itemsPerPage' => $settings->itemsPerPage ?? 100,
-            'viewPermissions' => ['smsManager:viewLogs'],
-            'downloadPermissions' => ['smsManager:downloadLogs'],
-        ]);
 
         // Register services
         $this->setComponents([
