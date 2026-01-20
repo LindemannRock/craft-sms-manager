@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.5](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.4...v5.2.5) (2026-01-20)
+
+
+### Bug Fixes
+
+* update test SMS message content for clarity ([02b7af5](https://github.com/LindemannRock/craft-sms-manager/commit/02b7af51cedb5978efcd1c8152ba23c38dc425f0))
+
 ## [5.2.4](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.3...v5.2.4) (2026-01-16)
 
 
