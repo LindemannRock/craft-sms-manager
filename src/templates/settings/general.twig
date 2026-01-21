@@ -28,7 +28,7 @@
         {{ redirectInput('sms-manager/settings/general') }}
         {{ hiddenInput('section', 'general') }}
 
-        <h2 style="margin-top: 0px;">{{ "Plugin Settings"|t('sms-manager') }}</h2>
+        <h2 style="margin-top: 0px;">{{ "General Settings"|t('sms-manager') }}</h2>
 
         {{ forms.textField({
             label: "Plugin Name"|t('sms-manager'),
@@ -42,22 +42,9 @@
                 "This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
         }) }}
 
-        <hr>
-
-        <h2>{{ "Default Provider & Sender ID"|t('sms-manager') }}</h2>
-        <p class="light">{{ "Select which configured provider and sender ID to use as the system defaults."|t('sms-manager') }}</p>
-
         {% set enabledProviders = craft.app.plugins.getPlugin('sms-manager').providers.getAllProviders(true) %}
         {% set enabledSenderIds = craft.app.plugins.getPlugin('sms-manager').senderIds.getAllSenderIds(true) %}
 
-        <div class="field">
-            <div class="heading">
-                <label>{{ 'Default Provider'|t('sms-manager') }}</label>
-            </div>
-            <div class="instructions">
-                <p>{{ 'The provider that will be used when no specific provider is specified.'|t('sms-manager') }}</p>
-            </div>
-        </div>
         {% if enabledProviders|length == 0 %}
             {% include 'lindemannrock-base/_components/info-box' with {
                 type: 'notice',
@@ -72,28 +59,19 @@
                 }]) %}
             {% endfor %}
 
-            <div class="input">
-                {{ forms.select({
-                    id: 'defaultProviderHandle',
-                    name: 'settings[defaultProviderHandle]',
-                    value: settings.defaultProviderHandle,
-                    options: providerOptions,
-                    disabled: settings.isOverriddenByConfig('defaultProviderHandle'),
-                }) }}
-            </div>
-            {% if settings.isOverriddenByConfig('defaultProviderHandle') %}
-                <p class="warning with-icon">{{ "This is being overridden by the <code>defaultProviderHandle</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw }}</p>
-            {% endif %}
+            {{ forms.selectField({
+                label: 'Default Provider'|t('sms-manager'),
+                instructions: 'The provider that will be used when no specific provider is specified.'|t('sms-manager'),
+                id: 'defaultProviderHandle',
+                name: 'settings[defaultProviderHandle]',
+                value: settings.defaultProviderHandle,
+                options: providerOptions,
+                disabled: settings.isOverriddenByConfig('defaultProviderHandle'),
+                warning: settings.isOverriddenByConfig('defaultProviderHandle') ?
+                    "This is being overridden by the <code>defaultProviderHandle</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            }) }}
         {% endif %}
 
-        <div class="field" style="margin-top: 24px;">
-            <div class="heading">
-                <label>{{ 'Default Sender ID'|t('sms-manager') }}</label>
-            </div>
-            <div class="instructions">
-                <p>{{ 'The sender ID that will be used when no specific sender ID is specified.'|t('sms-manager') }}</p>
-            </div>
-        </div>
         {% if enabledSenderIds|length == 0 %}
             {% include 'lindemannrock-base/_components/info-box' with {
                 type: 'notice',
@@ -108,22 +86,20 @@
                 }]) %}
             {% endfor %}
 
-            <div class="input">
-                {{ forms.select({
-                    id: 'defaultSenderIdHandle',
-                    name: 'settings[defaultSenderIdHandle]',
-                    value: settings.defaultSenderIdHandle,
-                    options: senderIdOptions,
-                    disabled: settings.isOverriddenByConfig('defaultSenderIdHandle'),
-                }) }}
-            </div>
-            {% if settings.isOverriddenByConfig('defaultSenderIdHandle') %}
-                <p class="warning with-icon">{{ "This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw }}</p>
-            {% endif %}
+            {{ forms.selectField({
+                label: 'Default Sender ID'|t('sms-manager'),
+                instructions: 'The sender ID that will be used when no specific sender ID is specified.'|t('sms-manager'),
+                id: 'defaultSenderIdHandle',
+                name: 'settings[defaultSenderIdHandle]',
+                value: settings.defaultSenderIdHandle,
+                options: senderIdOptions,
+                disabled: settings.isOverriddenByConfig('defaultSenderIdHandle'),
+                warning: settings.isOverriddenByConfig('defaultSenderIdHandle') ?
+                    "This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            }) }}
         {% endif %}
 
         <hr>
-
 
         <h2>{{ "Logging Settings"|t('sms-manager') }}</h2>
 

@@ -152,8 +152,7 @@ class ProvidersService extends Component
     /**
      * Get the default provider
      *
-     * Uses defaultProviderHandle from settings, falls back to isDefault flag,
-     * then first enabled provider.
+     * Uses defaultProviderHandle from settings, falls back to first enabled provider.
      *
      * @return ProviderRecord|null
      */
@@ -167,12 +166,6 @@ class ProvidersService extends Component
             if ($provider && $provider->enabled) {
                 return $provider;
             }
-        }
-
-        // Fall back to isDefault flag in database
-        $provider = ProviderRecord::findOne(['isDefault' => true, 'enabled' => true]);
-        if ($provider) {
-            return $provider;
         }
 
         // Fall back to first enabled provider
@@ -199,15 +192,7 @@ class ProvidersService extends Component
     public function getDefaultProviderHandle(): ?string
     {
         $settings = SmsManager::$plugin->getSettings();
-
-        // Check handle-based default
-        if (!empty($settings->defaultProviderHandle)) {
-            return $settings->defaultProviderHandle;
-        }
-
-        // Fall back to isDefault flag
-        $provider = ProviderRecord::findOne(['isDefault' => true, 'enabled' => true]);
-        return $provider?->handle;
+        return $settings->defaultProviderHandle ?: null;
     }
 
     /**
@@ -231,12 +216,6 @@ class ProvidersService extends Component
 
         $settings = SmsManager::$plugin->getSettings();
         $settings->defaultProviderHandle = $handle;
-
-        // Also update isDefault flag in database for backward compatibility
-        ProviderRecord::updateAll(['isDefault' => false]);
-        if ($provider->id) {
-            ProviderRecord::updateAll(['isDefault' => true], ['id' => $provider->id]);
-        }
 
         return $settings->saveToDatabase();
     }
@@ -263,25 +242,25 @@ class ProvidersService extends Component
             return false;
         }
 
+        // Validate provider-specific settings
+        if ($runValidation) {
+            $providerInstance = $this->createProviderByType($provider->type);
+            if ($providerInstance) {
+                $settingsErrors = $providerInstance->validateSettings($provider->getSettingsArray());
+                if (!empty($settingsErrors)) {
+                    foreach ($settingsErrors as $field => $error) {
+                        // Store with field-specific key for inline display
+                        $provider->addError('providerSettings.' . $field, $error);
+                    }
+                    $this->logError('Provider settings validation failed', ['errors' => $settingsErrors]);
+                    return false;
+                }
+            }
+        }
+
         // Set UID for new records
         if ($isNew && !$provider->uid) {
             $provider->uid = StringHelper::UUID();
-        }
-
-        // If setting as default, update the settings
-        if ($provider->isDefault) {
-            // Clear other defaults in database
-            ProviderRecord::updateAll(
-                ['isDefault' => false],
-                ['!=', 'id', $provider->id ?: 0]
-            );
-
-            // Update settings if not controlled by config
-            if (!$this->isDefaultProviderFromConfig()) {
-                $settings = SmsManager::$plugin->getSettings();
-                $settings->defaultProviderHandle = $provider->handle;
-                $settings->saveToDatabase();
-            }
         }
 
         $saved = $provider->save(false);

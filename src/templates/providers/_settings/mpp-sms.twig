@@ -23,15 +23,16 @@
     class: 'code',
     suggestEnvVars: true,
     tip: 'This can begin with an environment variable. <a href="https://craftcms.com/docs/5.x/configure.html#control-panel-settings" target="_blank" rel="noopener">Learn more</a>'|t('sms-manager'),
+    errors: provider ? provider.getErrors('providerSettings.apiKey') : [],
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'Test API Key'|t('sms-manager'),
-    instructions: 'Your MPP-SMS test API key. When a sender ID is marked as "Test", this key will be used instead of the main API key. Leave blank to always use the main API key.'|t('sms-manager'),
-    id: 'providerSettings-testApiKey',
-    name: 'providerSettings[testApiKey]',
-    value: providerSettings.testApiKey ?? '',
-    placeholder: '$MPP_SMS_TEST_API_KEY',
+    label: 'Development API Key'|t('sms-manager'),
+    instructions: 'Your MPP-SMS development API key. When a sender ID is marked as "Development", this key will be used instead of the main API key. Leave blank to always use the main API key.'|t('sms-manager'),
+    id: 'providerSettings-devApiKey',
+    name: 'providerSettings[devApiKey]',
+    value: providerSettings.devApiKey ?? '',
+    placeholder: '$MPP_SMS_DEV_API_KEY',
     class: 'code',
     suggestEnvVars: true,
 }) }}

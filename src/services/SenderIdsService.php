@@ -97,8 +97,7 @@ class SenderIdsService extends Component
     /**
      * Get the default sender ID
      *
-     * Uses defaultSenderIdHandle from settings, falls back to isDefault flag,
-     * then first enabled sender ID.
+     * Uses defaultSenderIdHandle from settings, falls back to first enabled sender ID.
      *
      * @param int|string|null $providerIdOrHandle Optional provider ID or handle to filter by
      * @return SenderIdRecord|null
@@ -123,16 +122,6 @@ class SenderIdsService extends Component
             }
         }
 
-        // Fall back to isDefault flag in database
-        $conditions = ['isDefault' => true, 'enabled' => true];
-        if ($providerIdOrHandle !== null && is_int($providerIdOrHandle)) {
-            $conditions['providerId'] = $providerIdOrHandle;
-        }
-        $senderId = SenderIdRecord::findOne($conditions);
-        if ($senderId) {
-            return $senderId;
-        }
-
         // Fall back to first enabled sender ID
         if ($providerIdOrHandle !== null) {
             $senderIds = $this->getSenderIdsByProvider($providerIdOrHandle, true);
@@ -149,14 +138,11 @@ class SenderIdsService extends Component
     {
         if (is_string($providerIdOrHandle)) {
             // Compare by handle
-            if ($senderId->isFromConfig() && $senderId->providerHandle !== null) {
-                return $senderId->providerHandle === $providerIdOrHandle;
-            }
-            $provider = SmsManager::$plugin->providers->getProviderByHandle($providerIdOrHandle);
-            return $provider && $senderId->providerId === $provider->id;
+            return $senderId->providerHandle === $providerIdOrHandle;
         }
-        // Compare by ID
-        return $senderId->providerId === $providerIdOrHandle;
+        // Compare by ID - resolve to handle first
+        $provider = SmsManager::$plugin->providers->getProviderById($providerIdOrHandle);
+        return $provider && $senderId->providerHandle === $provider->handle;
     }
 
     /**
@@ -178,15 +164,7 @@ class SenderIdsService extends Component
     public function getDefaultSenderIdHandle(): ?string
     {
         $settings = SmsManager::$plugin->getSettings();
-
-        // Check handle-based default
-        if (!empty($settings->defaultSenderIdHandle)) {
-            return $settings->defaultSenderIdHandle;
-        }
-
-        // Fall back to isDefault flag
-        $senderId = SenderIdRecord::findOne(['isDefault' => true, 'enabled' => true]);
-        return $senderId?->handle;
+        return $settings->defaultSenderIdHandle ?: null;
     }
 
     /**
@@ -210,12 +188,6 @@ class SenderIdsService extends Component
 
         $settings = SmsManager::$plugin->getSettings();
         $settings->defaultSenderIdHandle = $handle;
-
-        // Also update isDefault flag in database for backward compatibility
-        SenderIdRecord::updateAll(['isDefault' => false]);
-        if ($senderId->id) {
-            SenderIdRecord::updateAll(['isDefault' => true], ['id' => $senderId->id]);
-        }
 
         return $settings->saveToDatabase();
     }
@@ -245,22 +217,6 @@ class SenderIdsService extends Component
         // Set UID for new records
         if ($isNew && !$senderId->uid) {
             $senderId->uid = StringHelper::UUID();
-        }
-
-        // If setting as default, update the settings
-        if ($senderId->isDefault) {
-            // Clear other defaults in database
-            SenderIdRecord::updateAll(
-                ['isDefault' => false],
-                ['!=', 'id', $senderId->id ?: 0]
-            );
-
-            // Update settings if not controlled by config
-            if (!$this->isDefaultSenderIdFromConfig()) {
-                $settings = SmsManager::$plugin->getSettings();
-                $settings->defaultSenderIdHandle = $senderId->handle;
-                $settings->saveToDatabase();
-            }
         }
 
         $saved = $senderId->save(false);
@@ -348,7 +304,7 @@ class SenderIdsService extends Component
         foreach ($senderIds as $senderId) {
             $options[] = [
                 'label' => $senderId->name,
-                'value' => $senderId->id,
+                'value' => $senderId->handle,
             ];
         }
 

@@ -192,14 +192,20 @@ class ProvidersController extends Controller
         $provider->handle = $request->getBodyParam('handle') ?: StringHelper::toHandle($provider->name);
         $provider->type = $request->getBodyParam('type');
         $provider->enabled = (bool)$request->getBodyParam('enabled', true);
-        $provider->isDefault = (bool)$request->getBodyParam('isDefault', false);
         $provider->sortOrder = (int)$request->getBodyParam('sortOrder', 0);
+
+        // Handle isDefault via settings, not on the record
+        $setAsDefault = (bool)$request->getBodyParam('isDefault', false);
 
         // Set provider-specific settings
         $providerSettings = $request->getBodyParam('providerSettings', []);
         $provider->settings = json_encode($providerSettings) ?: '{}';
 
         if (SmsManager::$plugin->providers->saveProvider($provider)) {
+            // Set as default if requested (and not controlled by config)
+            if ($setAsDefault && !SmsManager::$plugin->providers->isDefaultProviderFromConfig()) {
+                SmsManager::$plugin->providers->setDefaultProviderByHandle($provider->handle);
+            }
             Craft::$app->getSession()->setNotice(Craft::t('sms-manager', 'Provider saved.'));
             return $this->redirectToPostedUrl($provider);
         }
@@ -238,7 +244,17 @@ class ProvidersController extends Controller
 
         $result = SmsManager::$plugin->providers->deleteProvider($providerId);
 
-        return $this->asJson($result);
+        if (Craft::$app->getRequest()->getAcceptsJson()) {
+            return $this->asJson($result);
+        }
+
+        if ($result['success']) {
+            Craft::$app->getSession()->setNotice(Craft::t('sms-manager', 'Provider deleted.'));
+        } else {
+            Craft::$app->getSession()->setError($result['error'] ?? Craft::t('sms-manager', 'Could not delete provider.'));
+        }
+
+        return $this->redirect('sms-manager/providers');
     }
 
     /**

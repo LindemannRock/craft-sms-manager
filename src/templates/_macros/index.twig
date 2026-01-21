@@ -104,15 +104,33 @@
 {% endmacro %}
 
 {# =========================================================================
-   TEST BADGE
-   Renders a Test badge for test sender IDs
+   TYPE BADGE
+   Renders a Development or Production badge for sender IDs
+   Development: pink/magenta, Production: cyan/sky blue
 
-   @param bool isTest - true if test
+   @param bool isDev - true for Development, false for Production
    ========================================================================= #}
 
-{% macro testBadge(isTest) %}
-	{% if isTest %}
-		<span class="status-label orange"><span class="status orange"></span><span class="status-label-text">{{ 'Test'|t('sms-manager') }}</span></span>
+{% macro typeBadge(isDev) %}
+	{% if isDev %}
+		{% set color = '#ec4899' %}
+		{% set rgb = '236, 72, 153' %}
+		{% set textColor = '#9d174d' %}
+		{% set label = 'Development'|t('sms-manager') %}
+	{% else %}
+		{% set color = '#0ea5e9' %}
+		{% set rgb = '14, 165, 233' %}
+		{% set textColor = '#0369a1' %}
+		{% set label = 'Production'|t('sms-manager') %}
+	{% endif %}
+	<span class="status-label" style="background: rgba({{ rgb }}, 0.12);"><span class="status" style="background: {{ color }};"></span><span class="status-label-text" style="color: {{ textColor }};">{{ label }}</span></span>
+{% endmacro %}
+
+{# Alias for backward compatibility #}
+{% macro testBadge(isDev) %}
+	{% import _self as self %}
+	{% if isDev %}
+		{{ self.typeBadge(true) }}
 	{% endif %}
 {% endmacro %}
 

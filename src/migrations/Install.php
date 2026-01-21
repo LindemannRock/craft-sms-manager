@@ -114,7 +114,6 @@ class Install extends Migration
             'handle' => $this->string(64)->notNull(),
             'type' => $this->string(64)->notNull(), // Provider class type (e.g., 'mpp-sms', 'twilio')
             'enabled' => $this->boolean()->notNull()->defaultValue(true),
-            'isDefault' => $this->boolean()->notNull()->defaultValue(false),
             'sortOrder' => $this->integer()->notNull()->defaultValue(0),
             'source' => $this->string(20)->notNull()->defaultValue('database'), // 'config' or 'database'
             // Provider-specific settings (JSON)
@@ -129,7 +128,6 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_providers}}', ['handle'], true);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['type'], false);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['enabled'], false);
-        $this->createIndex(null, '{{%smsmanager_providers}}', ['isDefault'], false);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['sortOrder'], false);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['source'], false);
     }
@@ -145,14 +143,14 @@ class Install extends Migration
 
         $this->createTable('{{%smsmanager_senderids}}', [
             'id' => $this->primaryKey(),
-            'providerId' => $this->integer()->notNull(),
+            'providerId' => $this->integer()->null(), // Nullable for config-based provider references
+            'providerHandle' => $this->string(64)->notNull(), // Provider handle (works for both config and database)
             'name' => $this->string(255)->notNull(), // Display name (e.g., "A. Alghanim")
             'handle' => $this->string(64)->notNull(), // Internal handle (e.g., "alghanim")
             'senderId' => $this->string(64)->notNull(), // Actual sender ID for API (e.g., "AliAlghanim")
             'description' => $this->text()->null(), // Optional description
             'enabled' => $this->boolean()->notNull()->defaultValue(true),
-            'isDefault' => $this->boolean()->notNull()->defaultValue(false),
-            'isTest' => $this->boolean()->notNull()->defaultValue(false),
+            'isDev' => $this->boolean()->notNull()->defaultValue(false),
             'sortOrder' => $this->integer()->notNull()->defaultValue(0),
             'source' => $this->string(20)->notNull()->defaultValue('database'), // 'config' or 'database'
             // Standard columns
@@ -163,21 +161,21 @@ class Install extends Migration
 
         // Indexes
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['providerId'], false);
+        $this->createIndex(null, '{{%smsmanager_senderids}}', ['providerHandle'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['handle'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['enabled'], false);
-        $this->createIndex(null, '{{%smsmanager_senderids}}', ['isDefault'], false);
-        $this->createIndex(null, '{{%smsmanager_senderids}}', ['isTest'], false);
+        $this->createIndex(null, '{{%smsmanager_senderids}}', ['isDev'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['sortOrder'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['source'], false);
 
-        // Foreign key to providers
+        // Foreign key to providers (nullable - config providers don't have database IDs)
         $this->addForeignKey(
             null,
             '{{%smsmanager_senderids}}',
             ['providerId'],
             '{{%smsmanager_providers}}',
             ['id'],
-            'CASCADE',
+            'SET NULL',
             'CASCADE'
         );
     }

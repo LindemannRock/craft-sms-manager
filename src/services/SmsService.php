@@ -128,9 +128,9 @@ class SmsService extends Component
             return false;
         }
 
-        // Send via provider - include isTest flag in settings
+        // Send via provider - include isDev flag in settings
         $providerSettings = $provider->getSettingsArray();
-        $providerSettings['isTest'] = (bool)$senderId->isTest;
+        $providerSettings['isDev'] = (bool)$senderId->isDev;
 
         $result = $providerInstance->send(
             $to,
@@ -329,9 +329,9 @@ class SmsService extends Component
             ];
         }
 
-        // Send via provider - include isTest flag in settings
+        // Send via provider - include isDev flag in settings
         $providerSettings = $provider->getSettingsArray();
-        $providerSettings['isTest'] = (bool)$senderId->isTest;
+        $providerSettings['isDev'] = (bool)$senderId->isDev;
 
         $result = $providerInstance->send(
             $to,

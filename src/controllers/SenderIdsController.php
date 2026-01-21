@@ -117,11 +117,11 @@ class SenderIdsController extends Controller
         }
 
         $providers = SmsManager::$plugin->providers->getAllProviders(true);
-        $providerOptions = [];
+        $providerOptions = [['label' => Craft::t('sms-manager', 'Select a provider...'), 'value' => '']];
         foreach ($providers as $provider) {
             $providerOptions[] = [
                 'label' => $provider->name,
-                'value' => $provider->id,
+                'value' => $provider->handle,
             ];
         }
         $senderIdCount = SenderIdRecord::find()->count();
@@ -158,11 +158,11 @@ class SenderIdsController extends Controller
         }
 
         $providers = SmsManager::$plugin->providers->getAllProviders(true);
-        $providerOptions = [];
+        $providerOptions = [['label' => Craft::t('sms-manager', 'Select a provider...'), 'value' => '']];
         foreach ($providers as $provider) {
             $providerOptions[] = [
                 'label' => $provider->name,
-                'value' => $provider->id,
+                'value' => $provider->handle,
             ];
         }
         $senderIdCount = SenderIdRecord::find()->count();
@@ -199,17 +199,31 @@ class SenderIdsController extends Controller
         }
 
         // Set attributes
-        $senderId->providerId = (int)$request->getBodyParam('providerId');
+        $providerHandle = $request->getBodyParam('providerHandle');
+        $senderId->providerHandle = $providerHandle;
+
+        // Resolve provider ID from handle (for database providers)
+        if ($providerHandle) {
+            $provider = SmsManager::$plugin->providers->getProviderByHandle($providerHandle);
+            $senderId->providerId = $provider?->id;
+        }
+
         $senderId->name = $request->getBodyParam('name');
         $senderId->handle = $request->getBodyParam('handle') ?: StringHelper::toHandle($senderId->name);
         $senderId->senderId = $request->getBodyParam('senderId');
         $senderId->description = $request->getBodyParam('description');
         $senderId->enabled = (bool)$request->getBodyParam('enabled', true);
-        $senderId->isDefault = (bool)$request->getBodyParam('isDefault', false);
-        $senderId->isTest = (bool)$request->getBodyParam('isTest', false);
+        $senderId->isDev = (bool)$request->getBodyParam('isDev', false);
         $senderId->sortOrder = (int)$request->getBodyParam('sortOrder', 0);
 
+        // Handle isDefault via settings, not on the record
+        $setAsDefault = (bool)$request->getBodyParam('isDefault', false);
+
         if (SmsManager::$plugin->senderIds->saveSenderId($senderId)) {
+            // Set as default if requested (and not controlled by config)
+            if ($setAsDefault && !SmsManager::$plugin->senderIds->isDefaultSenderIdFromConfig()) {
+                SmsManager::$plugin->senderIds->setDefaultSenderIdByHandle($senderId->handle);
+            }
             Craft::$app->getSession()->setNotice(Craft::t('sms-manager', 'Sender ID saved.'));
             return $this->redirectToPostedUrl($senderId);
         }
@@ -218,11 +232,11 @@ class SenderIdsController extends Controller
 
         // Re-render edit form with submitted data
         $providers = SmsManager::$plugin->providers->getAllProviders(true);
-        $providerOptions = [];
+        $providerOptions = [['label' => Craft::t('sms-manager', 'Select a provider...'), 'value' => '']];
         foreach ($providers as $provider) {
             $providerOptions[] = [
                 'label' => $provider->name,
-                'value' => $provider->id,
+                'value' => $provider->handle,
             ];
         }
         $senderIdCount = SenderIdRecord::find()->count();
@@ -252,7 +266,17 @@ class SenderIdsController extends Controller
 
         $result = SmsManager::$plugin->senderIds->deleteSenderId($senderIdId);
 
-        return $this->asJson($result);
+        if (Craft::$app->getRequest()->getAcceptsJson()) {
+            return $this->asJson($result);
+        }
+
+        if ($result['success']) {
+            Craft::$app->getSession()->setNotice(Craft::t('sms-manager', 'Sender ID deleted.'));
+        } else {
+            Craft::$app->getSession()->setError($result['error'] ?? Craft::t('sms-manager', 'Could not delete sender ID.'));
+        }
+
+        return $this->redirect('sms-manager/sender-ids');
     }
 
     /**
@@ -356,6 +380,7 @@ class SenderIdsController extends Controller
         }
 
         $senderIds = SmsManager::$plugin->senderIds->getSenderIdsByProvider((int)$providerId, true);
+        $defaultHandle = SmsManager::$plugin->getSettings()->defaultSenderIdHandle;
         $options = [];
 
         foreach ($senderIds as $senderId) {
@@ -364,7 +389,7 @@ class SenderIdsController extends Controller
                 'name' => $senderId->name,
                 'handle' => $senderId->handle,
                 'senderId' => $senderId->senderId,
-                'isDefault' => $senderId->isDefault,
+                'isDefault' => $senderId->handle === $defaultHandle,
             ];
         }
 

@@ -152,8 +152,8 @@ const smsCount = document.getElementById('sms-count');
 // Sender IDs by provider for filtering
 const senderIdsByProvider = {{ senderIdsByProvider|json_encode|raw }};
 
-// Providers with test API key configured
-const providersWithTestKey = {{ providersWithTestKey|json_encode|raw }};
+// Providers with dev API key configured
+const providersWithDevKey = {{ providersWithDevKey|json_encode|raw }};
 
 // Provider API keys (masked)
 const providerApiKeys = {{ providerApiKeys|json_encode|raw }};
@@ -171,8 +171,8 @@ function updateApiKeyInfo() {
     const senderIdId = testSenderIdSelect.value;
     const senderIds = senderIdsByProvider[providerId] || [];
     const selectedSenderId = senderIds.find(s => s.id == senderIdId);
-    const hasTestKey = providersWithTestKey[providerId] || false;
-    const apiKeys = providerApiKeys[providerId] || { main: '', test: '' };
+    const hasDevKey = providersWithDevKey[providerId] || false;
+    const apiKeys = providerApiKeys[providerId] || { main: '', dev: '' };
     const allowedCountries = providerAllowedCountries[providerId] || [];
 
     if (selectedSenderId) {
@@ -180,11 +180,11 @@ function updateApiKeyInfo() {
         let message = '';
 
         // API key info
-        if (selectedSenderId.isTest) {
-            if (hasTestKey) {
-                message = '<strong>{{ 'Using Test API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.test) + '</code>';
+        if (selectedSenderId.isDev) {
+            if (hasDevKey) {
+                message = '<strong>{{ 'Using Development API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.dev) + '</code>';
             } else {
-                message = '<strong>{{ 'Using Main API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.main) + '</code> — {{ 'No test API key configured'|t('sms-manager') }}';
+                message = '<strong>{{ 'Using Main API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.main) + '</code> — {{ 'No development API key configured'|t('sms-manager') }}';
             }
         } else {
             message = '<strong>{{ 'Using Main API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.main) + '</code>';
@@ -213,7 +213,7 @@ if (testProviderSelect) {
         senderIds.forEach(function(senderId) {
             const option = document.createElement('option');
             option.value = senderId.id;
-            option.textContent = senderId.name + (senderId.isDefault ? ' (Default)' : '') + (senderId.isTest ? ' [Test]' : '');
+            option.textContent = senderId.name + (senderId.isDefault ? ' (Default)' : '') + (senderId.isDev ? ' [Dev]' : '');
             testSenderIdSelect.appendChild(option);
         });
 

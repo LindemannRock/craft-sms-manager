@@ -100,24 +100,26 @@ class SettingsController extends Controller
         $providers = $plugin->providers->getAllProviders(true);
         $senderIds = $plugin->senderIds->getAllSenderIds(true);
 
-        // Build provider options and track which have test API keys
+        // Build provider options and track which have dev API keys
         $providerOptions = [];
-        $providersWithTestKey = [];
+        $providersWithDevKey = [];
         $providerApiKeys = [];
         $providerAllowedCountries = [];
+        $defaultProviderHandle = $settings->defaultProviderHandle;
         foreach ($providers as $provider) {
+            $isDefault = $provider->handle === $defaultProviderHandle;
             $providerOptions[] = [
-                'label' => $provider->name . ($provider->isDefault ? ' (Default)' : ''),
+                'label' => $provider->name . ($isDefault ? ' (Default)' : ''),
                 'value' => $provider->id,
             ];
-            // Check if provider has a test API key configured and get masked keys
+            // Check if provider has a dev API key configured and get masked keys
             $providerSettings = $provider->getSettingsArray();
             $mainKey = App::parseEnv($providerSettings['apiKey'] ?? '');
-            $testKey = App::parseEnv($providerSettings['testApiKey'] ?? '');
-            $providersWithTestKey[$provider->id] = !empty($testKey);
+            $devKey = App::parseEnv($providerSettings['devApiKey'] ?? '');
+            $providersWithDevKey[$provider->id] = !empty($devKey);
             $providerApiKeys[$provider->id] = [
                 'main' => $this->maskApiKey($mainKey),
-                'test' => $this->maskApiKey($testKey),
+                'dev' => $this->maskApiKey($devKey),
             ];
             // Get allowed countries for this provider
             $allowedCountries = $providerSettings['allowedCountries'] ?? [];
@@ -146,16 +148,18 @@ class SettingsController extends Controller
         }
 
         // Group sender IDs by provider for JS
+        $defaultSenderIdHandle = $settings->defaultSenderIdHandle;
         foreach ($providers as $provider) {
             $senderIdsByProvider[$provider->id] = [];
             foreach ($senderIds as $senderId) {
-                if ($senderId->providerId === $provider->id) {
+                if ($senderId->providerHandle === $provider->handle) {
                     $senderIdsByProvider[$provider->id][] = [
                         'id' => $senderId->id,
+                        'handle' => $senderId->handle,
                         'name' => $senderId->name,
                         'senderId' => $senderId->senderId,
-                        'isDefault' => $senderId->isDefault,
-                        'isTest' => $senderId->isTest,
+                        'isDefault' => $senderId->handle === $defaultSenderIdHandle,
+                        'isDev' => $senderId->isDev,
                     ];
                 }
             }
@@ -169,8 +173,8 @@ class SettingsController extends Controller
                     $label .= ' (Default)';
                     $defaultSenderIdId = $senderId['id'];
                 }
-                if ($senderId['isTest']) {
-                    $label .= ' [Test]';
+                if ($senderId['isDev']) {
+                    $label .= ' [Dev]';
                 }
                 $senderIdOptions[] = [
                     'label' => $label,
@@ -186,7 +190,7 @@ class SettingsController extends Controller
             'providerOptions' => $providerOptions,
             'senderIdOptions' => $senderIdOptions,
             'senderIdsByProvider' => $senderIdsByProvider,
-            'providersWithTestKey' => $providersWithTestKey,
+            'providersWithDevKey' => $providersWithDevKey,
             'providerApiKeys' => $providerApiKeys,
             'providerAllowedCountries' => $providerAllowedCountries,
             'defaultProviderId' => $defaultProviderId,

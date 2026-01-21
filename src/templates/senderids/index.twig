@@ -45,14 +45,14 @@
 
 {# Provider filter #}
 {% if providerFilter != 'all' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => s.providerId == providerFilter or s.providerHandle == providerFilter) %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => s.providerHandle == providerFilter) %}
 {% endif %}
 
-{# Test filter #}
+{# Type filter (Test/Production) #}
 {% if testFilter == 'test' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => s.isTest) %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => s.isDev) %}
 {% elseif testFilter == 'production' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => not s.isTest) %}
+    {% set filteredSenderIds = filteredSenderIds|filter(s => not s.isDev) %}
 {% endif %}
 
 {# Search filter #}
@@ -69,8 +69,8 @@
     {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.senderId|lower <=> b.senderId|lower : b.senderId|lower <=> a.senderId|lower) %}
 {% elseif sort == 'source' %}
     {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? (a.source ?? '') <=> (b.source ?? '') : (b.source ?? '') <=> (a.source ?? '')) %}
-{% elseif sort == 'isTest' %}
-    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.isTest <=> b.isTest : b.isTest <=> a.isTest) %}
+{% elseif sort == 'isDev' %}
+    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.isDev <=> b.isDev : b.isDev <=> a.isDev) %}
 {% elseif sort == 'enabled' %}
     {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.enabled <=> b.enabled : b.enabled <=> a.enabled) %}
 {% endif %}
@@ -121,8 +121,8 @@
                                 </li>
                                 {% for provider in providers %}
                                     <li>
-                                        <a class="{{ providerFilter == provider.id or providerFilter == provider.handle ? 'sel' : '' }}" href="?status={{ statusFilter }}&source={{ sourceFilter }}&provider={{ provider.id ?: provider.handle }}&test={{ testFilter }}&search={{ search }}">
-                                            <span class="status" style="background: {{ providerFilter == provider.id or providerFilter == provider.handle ? '#6366f1' : '#aab6c1' }};"></span>{{ provider.name }}
+                                        <a class="{{ providerFilter == provider.handle ? 'sel' : '' }}" href="?status={{ statusFilter }}&source={{ sourceFilter }}&provider={{ provider.handle }}&test={{ testFilter }}&search={{ search }}">
+                                            <span class="status" style="background: {{ providerFilter == provider.handle ? '#6366f1' : '#aab6c1' }};"></span>{{ provider.name }}
                                         </a>
                                     </li>
                                 {% endfor %}
@@ -135,12 +135,12 @@
                                 </li>
                                 <li>
                                     <a class="{{ testFilter == 'production' ? 'sel' : '' }}" href="?status={{ statusFilter }}&source={{ sourceFilter }}&provider={{ providerFilter }}&test=production&search={{ search }}">
-                                        <span class="status" style="background: {{ testFilter == 'production' ? '#6366f1' : '#aab6c1' }};"></span>{{ 'Production'|t('sms-manager') }}
+                                        <span class="status" style="background: {{ testFilter == 'production' ? '#0ea5e9' : '#aab6c1' }};"></span>{{ 'Production'|t('sms-manager') }}
                                     </a>
                                 </li>
                                 <li>
                                     <a class="{{ testFilter == 'test' ? 'sel' : '' }}" href="?status={{ statusFilter }}&source={{ sourceFilter }}&provider={{ providerFilter }}&test=test&search={{ search }}">
-                                        <span class="status" style="background: {{ testFilter == 'test' ? '#ec4899' : '#aab6c1' }};"></span>{{ 'Test'|t('sms-manager') }}
+                                        <span class="status" style="background: {{ testFilter == 'test' ? '#ec4899' : '#aab6c1' }};"></span>{{ 'Development'|t('sms-manager') }}
                                     </a>
                                 </li>
                             </ul>
@@ -258,11 +258,11 @@
                             <button type="button" data-sort="senderId">{{ 'Sender ID'|t('sms-manager') }}</button>
                         </th>
                         <th scope="col">{{ 'Provider'|t('sms-manager') }}</th>
+                        <th scope="col" data-attribute="isDev" class="orderable {{ sort == 'isDev' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="isDev">{{ 'Type'|t('sms-manager') }}</button>
+                        </th>
                         <th scope="col" data-attribute="source" class="orderable {{ sort == 'source' ? 'ordered ' ~ dir : '' }}">
                             <button type="button" data-sort="source">{{ 'Source'|t('sms-manager') }}</button>
-                        </th>
-                        <th scope="col" data-attribute="isTest" class="orderable {{ sort == 'isTest' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="isTest">{{ 'Test'|t('sms-manager') }}</button>
                         </th>
                         <th scope="col" data-attribute="enabled" class="orderable {{ sort == 'enabled' ? 'ordered ' ~ dir : '' }}">
                             <button type="button" data-sort="enabled">{{ 'Status'|t('sms-manager') }}</button>
@@ -279,7 +279,7 @@
                             {% set isConfig = senderId.isFromConfig() %}
                             {% set provider = null %}
                             {% for p in providers %}
-                                {% if p.id == senderId.providerId or p.handle == senderId.providerHandle %}
+                                {% if p.handle == senderId.providerHandle %}
                                     {% set provider = p %}
                                 {% endif %}
                             {% endfor %}
@@ -307,19 +307,19 @@
                                 <td><code>{{ senderId.senderId }}</code></td>
                                 <td>
                                     {% if provider %}
-                                        {{ indexMacros.providerTypeBadge(provider.type, provider.name) }}
+                                        {% set providerUrl = provider.canEdit() ? url('sms-manager/providers/' ~ provider.id) : url('sms-manager/providers/view/' ~ provider.handle) %}
+                                        <a href="{{ providerUrl }}" style="text-decoration: none;">
+                                            {{ indexMacros.providerTypeBadge(provider.type) }}
+                                        </a>
                                     {% else %}
                                         <span class="light">{{ 'Unknown'|t('sms-manager') }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {{ indexMacros.sourceBadge(senderId.source) }}
+                                    {{ indexMacros.typeBadge(senderId.isDev) }}
                                 </td>
                                 <td>
-                                    {{ indexMacros.testBadge(senderId.isTest) }}
-                                    {% if not senderId.isTest %}
-                                        <span class="light">-</span>
-                                    {% endif %}
+                                    {{ indexMacros.sourceBadge(senderId.source) }}
                                 </td>
                                 <td>
                                     {{ indexMacros.statusBadge(senderId.enabled) }}

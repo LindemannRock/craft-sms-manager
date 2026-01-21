@@ -152,21 +152,19 @@ return [
             //     'settings' => [
             //         'apiUrl' => App::env('MPP_SMS_API_URL'),
             //         'apiKey' => App::env('MPP_SMS_API_KEY'),
-            //         'testMode' => false,
-            //         'testApiKey' => App::env('MPP_SMS_TEST_API_KEY'),
+            //         'devApiKey' => App::env('MPP_SMS_DEV_API_KEY'),
             //     ],
             // ],
 
-            // Example: Test provider
-            // 'test-provider' => [
-            //     'name' => 'Test Provider',
+            // Example: Development provider
+            // 'dev-provider' => [
+            //     'name' => 'Development Provider',
             //     'type' => 'mpp-sms',
             //     'enabled' => true,
             //     'sortOrder' => 2,
             //     'settings' => [
             //         'apiUrl' => App::env('MPP_SMS_API_URL'),
-            //         'apiKey' => App::env('MPP_SMS_TEST_API_KEY'),
-            //         'testMode' => true,
+            //         'apiKey' => App::env('MPP_SMS_DEV_API_KEY'),
             //     ],
             // ],
         ],
@@ -186,7 +184,7 @@ return [
          * - senderId: The actual sender ID string (alphanumeric, max 11 chars)
          * - description: Optional description
          * - enabled: Whether the sender ID is active
-         * - isTest: Mark as test-only sender ID
+         * - isDev: Mark as development-only sender ID
          * - sortOrder: Display order (optional)
          */
         'senderIds' => [
@@ -197,7 +195,7 @@ return [
             //     'senderId' => 'MYCOMPANY',
             //     'description' => 'Primary production sender ID',
             //     'enabled' => true,
-            //     'isTest' => false,
+            //     'isDev' => false,
             //     'sortOrder' => 1,
             // ],
 
@@ -208,18 +206,18 @@ return [
             //     'senderId' => 'MYMARKET',
             //     'description' => 'For marketing campaigns',
             //     'enabled' => true,
-            //     'isTest' => false,
+            //     'isDev' => false,
             //     'sortOrder' => 2,
             // ],
 
-            // Example: Test sender
-            // 'test-sender' => [
-            //     'name' => 'Test Sender',
-            //     'provider' => 'test-provider',
-            //     'senderId' => 'TEST',
-            //     'description' => 'For testing only',
+            // Example: Development sender
+            // 'dev-sender' => [
+            //     'name' => 'Development Sender',
+            //     'provider' => 'dev-provider',
+            //     'senderId' => 'DEV',
+            //     'description' => 'For development only',
             //     'enabled' => true,
-            //     'isTest' => true,
+            //     'isDev' => true,
             //     'sortOrder' => 99,
             // ],
         ],

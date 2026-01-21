@@ -2,7 +2,7 @@
 {% import "_includes/forms" as forms %}
 
 {% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
-{% set canEdit = provider.canEdit() ?? true %}
+{% set canEdit = provider ? provider.canEdit() : true %}
 {% set title = isNew ? 'New Provider'|t('sms-manager') : provider.name %}
 {% set fullPageForm = canEdit %}
 {% set selectedSubnavItem = 'providers' %}
@@ -41,13 +41,13 @@
                 </ul>
             </div>
         </div>
-        {% set isDefault = defaultProviderHandle == provider.handle %}
+        {% set isDefault = provider and defaultProviderHandle == provider.handle %}
         {% if not isNew and currentUser.can('smsManager:deleteProviders') and not isDefault %}
             <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('app') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('app') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
             <div id="action-menu" class="menu menu--disclosure">
                 <ul>
                     <li>
-                        <button class="menu-item error formsubmit" data-destructive data-action="sms-manager/providers/delete" data-params='{"providerId":{{ provider.id }}}' data-confirm="{{ 'Are you sure you want to delete this provider?'|t('sms-manager') }}" data-redirect="{{ 'sms-manager/providers'|hash }}" data-headers='{"Accept":"application/json"}'>
+                        <button class="menu-item error formsubmit" data-destructive data-action="sms-manager/providers/delete" data-params='{"providerId":{{ provider.id }}}' data-confirm="{{ 'Are you sure you want to delete this provider?'|t('sms-manager') }}" data-redirect="{{ 'sms-manager/providers'|hash }}">
                             <span class="icon">{{ svg('@app/icons/trash.svg') }}</span>
                             <span class="menu-item-label">{{ "Delete"|t('app') }}</span>
                         </button>
@@ -169,7 +169,7 @@
 {% endblock %}
 
 {% block details %}
-    {% set isDefault = defaultProviderHandle == provider.handle %}
+    {% set isDefault = provider and defaultProviderHandle == provider.handle %}
     {% set isFirstProvider = isNew and (providerCount ?? 0) == 0 %}
 
     <div class="meta">
@@ -261,6 +261,7 @@
         {% endif %}
     </div>
 
+    {% if not isNew %}
     <fieldset>
         <dl class="meta read-only">
             <div class="data">
@@ -316,6 +317,7 @@
             {% endif %}
         </dl>
     </fieldset>
+    {% endif %}
 {% endblock %}
 
 {% if canEdit %}

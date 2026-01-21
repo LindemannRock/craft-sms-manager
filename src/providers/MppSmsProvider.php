@@ -123,17 +123,17 @@ class MppSmsProvider extends BaseProvider
             ];
         }
 
-        // Check if this is a test sender ID and if a test API key is configured
-        $isTest = $settings['isTest'] ?? false;
-        $testApiKey = App::parseEnv($settings['testApiKey'] ?? '');
+        // Check if this is a development sender ID and if a dev API key is configured
+        $isDev = $settings['isDev'] ?? false;
+        $devApiKey = App::parseEnv($settings['devApiKey'] ?? '');
         $mainApiKey = App::parseEnv($settings['apiKey'] ?? '');
 
-        // Use test API key if sender is marked as test and test key is configured
-        $apiKey = ($isTest && !empty($testApiKey)) ? $testApiKey : $mainApiKey;
-        $usingTestKey = $isTest && !empty($testApiKey);
+        // Use dev API key if sender is marked as development and dev key is configured
+        $apiKey = ($isDev && !empty($devApiKey)) ? $devApiKey : $mainApiKey;
+        $usingDevKey = $isDev && !empty($devApiKey);
 
-        if ($usingTestKey) {
-            $this->logInfo('MPP-SMS: Using test API key for test sender ID');
+        if ($usingDevKey) {
+            $this->logInfo('MPP-SMS: Using development API key for development sender ID');
         }
 
         if (empty($apiKey)) {

@@ -20,14 +20,14 @@ use lindemannrock\smsmanager\traits\ConfigSourceTrait;
  * @since     5.0.0
  *
  * @property int $id
- * @property int $providerId
+ * @property int|null $providerId
+ * @property string $providerHandle
  * @property string $name
  * @property string $handle
  * @property string $senderId
  * @property string|null $description
  * @property bool $enabled
- * @property bool $isDefault
- * @property bool $isTest
+ * @property bool $isDev
  * @property int $sortOrder
  * @property string $source
  * @property \DateTime $dateCreated
@@ -44,16 +44,26 @@ class SenderIdRecord extends ActiveRecord
     public ?string $rawConfigDisplay = null;
 
     /**
-     * @var string|null Provider handle (for config-based sender IDs)
-     */
-    public ?string $providerHandle = null;
-
-    /**
      * @inheritdoc
      */
     public static function tableName(): string
     {
         return '{{%smsmanager_senderids}}';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules(): array
+    {
+        return [
+            [['name', 'handle', 'senderId', 'providerHandle'], 'required'],
+            [['name', 'handle', 'senderId', 'providerHandle'], 'string', 'max' => 255],
+            [['description'], 'string'],
+            [['enabled', 'isDev'], 'boolean'],
+            [['sortOrder', 'providerId'], 'integer'],
+            [['handle'], 'unique', 'targetClass' => self::class, 'message' => 'This handle is already in use.'],
+        ];
     }
 
     /**
@@ -64,6 +74,20 @@ class SenderIdRecord extends ActiveRecord
     public function getProvider(): \yii\db\ActiveQuery
     {
         return $this->hasOne(ProviderRecord::class, ['id' => 'providerId']);
+    }
+
+    /**
+     * Get the provider record by handle (works for both config and database providers)
+     *
+     * @return ProviderRecord|null
+     */
+    public function getProviderByHandle(): ?ProviderRecord
+    {
+        if (!$this->providerHandle) {
+            return null;
+        }
+
+        return ProviderRecord::findByHandleWithConfig($this->providerHandle);
     }
 
     // =========================================================================
@@ -133,28 +157,17 @@ class SenderIdRecord extends ActiveRecord
     {
         $allSenderIds = self::findAllWithConfig();
 
-        // If it's a string, it's a handle - resolve to ID if needed
+        // Resolve handle if needed
         $providerHandle = null;
-        $providerId = null;
 
         if (is_string($providerIdOrHandle)) {
             $providerHandle = $providerIdOrHandle;
-            $provider = ProviderRecord::findByHandleWithConfig($providerIdOrHandle);
-            $providerId = $provider?->id;
         } else {
-            $providerId = $providerIdOrHandle;
-            $provider = ProviderRecord::findOne($providerId);
+            $provider = ProviderRecord::findOne($providerIdOrHandle);
             $providerHandle = $provider?->handle;
         }
 
-        return array_filter($allSenderIds, function($senderId) use ($providerId, $providerHandle) {
-            // Config-based sender IDs use providerHandle
-            if ($senderId->isFromConfig() && $senderId->providerHandle !== null) {
-                return $senderId->providerHandle === $providerHandle;
-            }
-            // Database sender IDs use providerId
-            return $senderId->providerId === $providerId;
-        });
+        return array_filter($allSenderIds, fn($senderId) => $senderId->providerHandle === $providerHandle);
     }
 
     /**
@@ -185,8 +198,8 @@ class SenderIdRecord extends ActiveRecord
         $model->senderId = $config['senderId'] ?? '';
         $model->description = $config['description'] ?? null;
         $model->enabled = $config['enabled'] ?? true;
-        $model->isDefault = false; // Default is managed via settings
-        $model->isTest = $config['isTest'] ?? false;
+        // Note: Default is managed via settings (defaultSenderIdHandle)
+        $model->isDev = $config['isDev'] ?? false;
         $model->sortOrder = $config['sortOrder'] ?? 0;
         $model->source = 'config';
 

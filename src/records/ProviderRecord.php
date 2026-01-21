@@ -24,7 +24,6 @@ use lindemannrock\smsmanager\traits\ConfigSourceTrait;
  * @property string $handle
  * @property string $type
  * @property bool $enabled
- * @property bool $isDefault
  * @property int $sortOrder
  * @property string|null $settings
  * @property string $source
@@ -46,6 +45,21 @@ class ProviderRecord extends ActiveRecord
     public static function tableName(): string
     {
         return '{{%smsmanager_providers}}';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules(): array
+    {
+        return [
+            [['name', 'handle', 'type'], 'required'],
+            [['name', 'handle', 'type'], 'string', 'max' => 255],
+            [['settings'], 'string'],
+            [['enabled'], 'boolean'],
+            [['sortOrder'], 'integer'],
+            [['handle'], 'unique', 'targetClass' => self::class, 'message' => 'This handle is already in use.'],
+        ];
     }
 
     /**
@@ -167,12 +181,12 @@ class ProviderRecord extends ActiveRecord
         $model->type = $config['type'] ?? 'mpp-sms';
         $model->settings = json_encode($config['settings'] ?? []);
         $model->enabled = $config['enabled'] ?? true;
-        $model->isDefault = false; // Default is managed via settings
+        // Note: Default is managed via settings (defaultProviderHandle)
         $model->sortOrder = $config['sortOrder'] ?? 0;
         $model->source = 'config';
 
         // Build raw config display for tooltip
-        $model->rawConfigDisplay = $model->formatConfigDisplay($config, $handle, ['apiKey', 'password', 'testApiKey']);
+        $model->rawConfigDisplay = $model->formatConfigDisplay($config, $handle, ['apiKey', 'password', 'devApiKey']);
 
         return $model;
     }
