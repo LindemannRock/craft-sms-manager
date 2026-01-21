@@ -91,11 +91,13 @@ class SenderIdsController extends Controller
                 'value' => $provider->id,
             ];
         }
+        $senderIdCount = SenderIdRecord::find()->count();
 
         return $this->renderTemplate('sms-manager/senderids/edit', [
             'senderId' => $senderId,
             'providerOptions' => $providerOptions,
             'isNew' => $senderId === null,
+            'senderIdCount' => $senderIdCount,
         ]);
     }
 
@@ -146,11 +148,13 @@ class SenderIdsController extends Controller
                 'value' => $provider->id,
             ];
         }
+        $senderIdCount = SenderIdRecord::find()->count();
 
         return $this->renderTemplate('sms-manager/senderids/edit', [
             'senderId' => $senderId,
             'providerOptions' => $providerOptions,
             'isNew' => !$senderIdId,
+            'senderIdCount' => $senderIdCount,
         ]);
     }
 
@@ -267,10 +271,16 @@ class SenderIdsController extends Controller
 
         $senderIdIds = Craft::$app->getRequest()->getRequiredBodyParam('senderIdIds');
         $count = 0;
+        $errors = [];
 
         foreach ($senderIdIds as $id) {
             $senderId = SenderIdRecord::findOne($id);
             if ($senderId) {
+                // Cannot disable default sender ID
+                if ($senderId->isDefault) {
+                    $errors[] = Craft::t('sms-manager', 'Cannot disable default sender ID "{name}".', ['name' => $senderId->name]);
+                    continue;
+                }
                 $senderId->enabled = false;
                 if ($senderId->save(false)) {
                     $count++;
@@ -278,7 +288,15 @@ class SenderIdsController extends Controller
             }
         }
 
-        return $this->asJson(['success' => true, 'count' => $count]);
+        if ($count > 0 && empty($errors)) {
+            return $this->asJson(['success' => true, 'count' => $count]);
+        }
+
+        if ($count > 0) {
+            return $this->asJson(['success' => true, 'count' => $count, 'errors' => $errors]);
+        }
+
+        return $this->asJson(['success' => false, 'errors' => $errors]);
     }
 
     /**

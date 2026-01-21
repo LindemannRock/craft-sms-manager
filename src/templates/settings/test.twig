@@ -60,6 +60,15 @@
                 value: defaultSenderIdId,
             }) }}
 
+            <div id="apiKeyInfo" style="display: none;">
+                {% include 'lindemannrock-base/_components/info-box' with {
+                    message: '<span id="apiKeyInfoMessage"></span>',
+                    type: 'info',
+                    margin: 'none',
+                    bg: 'white'
+                } %}
+            </div>
+
             {{ forms.textField({
                 label: 'Recipient Phone Number'|t('sms-manager'),
                 instructions: 'Enter the phone number to send the test SMS to (international format, e.g. +1234567890)'|t('sms-manager'),
@@ -143,6 +152,56 @@ const smsCount = document.getElementById('sms-count');
 // Sender IDs by provider for filtering
 const senderIdsByProvider = {{ senderIdsByProvider|json_encode|raw }};
 
+// Providers with test API key configured
+const providersWithTestKey = {{ providersWithTestKey|json_encode|raw }};
+
+// Provider API keys (masked)
+const providerApiKeys = {{ providerApiKeys|json_encode|raw }};
+
+// Provider allowed countries
+const providerAllowedCountries = {{ providerAllowedCountries|json_encode|raw }};
+
+// API key info elements
+const apiKeyInfo = document.getElementById('apiKeyInfo');
+const apiKeyInfoMessage = document.getElementById('apiKeyInfoMessage');
+
+// Update API key info based on selected sender ID
+function updateApiKeyInfo() {
+    const providerId = testProviderSelect.value;
+    const senderIdId = testSenderIdSelect.value;
+    const senderIds = senderIdsByProvider[providerId] || [];
+    const selectedSenderId = senderIds.find(s => s.id == senderIdId);
+    const hasTestKey = providersWithTestKey[providerId] || false;
+    const apiKeys = providerApiKeys[providerId] || { main: '', test: '' };
+    const allowedCountries = providerAllowedCountries[providerId] || [];
+
+    if (selectedSenderId) {
+        apiKeyInfo.style.display = 'block';
+        let message = '';
+
+        // API key info
+        if (selectedSenderId.isTest) {
+            if (hasTestKey) {
+                message = '<strong>{{ 'Using Test API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.test) + '</code>';
+            } else {
+                message = '<strong>{{ 'Using Main API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.main) + '</code> — {{ 'No test API key configured'|t('sms-manager') }}';
+            }
+        } else {
+            message = '<strong>{{ 'Using Main API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.main) + '</code>';
+        }
+
+        // Allowed countries info
+        if (allowedCountries.length > 0) {
+            const countriesList = allowedCountries.filter(c => c).join(', ');
+            message += '<br><strong>{{ 'Allowed Countries'|t('sms-manager') }}:</strong> ' + Craft.escapeHtml(countriesList);
+        }
+
+        apiKeyInfoMessage.innerHTML = message;
+    } else {
+        apiKeyInfo.style.display = 'none';
+    }
+}
+
 // Update sender ID dropdown when provider changes
 if (testProviderSelect) {
     testProviderSelect.addEventListener('change', function() {
@@ -162,6 +221,47 @@ if (testProviderSelect) {
         const defaultSenderId = senderIds.find(s => s.isDefault);
         if (defaultSenderId) {
             testSenderIdSelect.value = defaultSenderId.id;
+        }
+
+        // Update API key info
+        updateApiKeyInfo();
+    });
+}
+
+// Update API key info when sender ID changes
+if (testSenderIdSelect) {
+    testSenderIdSelect.addEventListener('change', updateApiKeyInfo);
+}
+
+// Initialize API key info on page load
+updateApiKeyInfo();
+
+// Sanitize phone number - remove invisible characters and formatting
+function sanitizePhoneNumber(value) {
+    // Remove zero-width spaces, non-breaking spaces, directional marks, BOM, etc.
+    value = value.replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u202A-\u202E\u2066-\u2069]/g, '');
+    // Preserve leading + if present, then keep only digits
+    const hasPlus = value.startsWith('+');
+    value = value.replace(/[^0-9]/g, '');
+    return hasPlus ? '+' + value : value;
+}
+
+// Sanitize phone input on paste and input
+if (testRecipientInput) {
+    testRecipientInput.addEventListener('paste', function(e) {
+        // Let the paste happen, then sanitize
+        setTimeout(() => {
+            this.value = sanitizePhoneNumber(this.value);
+        }, 0);
+    });
+
+    testRecipientInput.addEventListener('input', function() {
+        const sanitized = sanitizePhoneNumber(this.value);
+        if (sanitized !== this.value) {
+            const cursorPos = this.selectionStart;
+            const diff = this.value.length - sanitized.length;
+            this.value = sanitized;
+            this.setSelectionRange(cursorPos - diff, cursorPos - diff);
         }
     });
 }

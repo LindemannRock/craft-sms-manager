@@ -18,6 +18,8 @@
 {% set statusFilter = craft.app.request.getParam('status', 'all') %}
 {% set providerFilter = craft.app.request.getParam('provider', 'all') %}
 {% set testFilter = craft.app.request.getParam('test', 'all') %}
+{% set sort = craft.app.request.getParam('sort', 'name') %}
+{% set dir = craft.app.request.getParam('dir', 'asc') %}
 {% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
 {% set limit = settings.itemsPerPage ?? 50 %}
 {% set offset = (page - 1) * limit %}
@@ -47,6 +49,23 @@
 {# Search filter #}
 {% if search %}
     {% set filteredSenderIds = filteredSenderIds|filter(s => search|lower in s.name|lower or search|lower in s.handle|lower or search|lower in s.senderId|lower) %}
+{% endif %}
+
+{# Sort sender IDs #}
+{% if sort == 'name' %}
+    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.name|lower <=> b.name|lower : b.name|lower <=> a.name|lower) %}
+{% elseif sort == 'handle' %}
+    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.handle|lower <=> b.handle|lower : b.handle|lower <=> a.handle|lower) %}
+{% elseif sort == 'senderId' %}
+    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.senderId|lower <=> b.senderId|lower : b.senderId|lower <=> a.senderId|lower) %}
+{% elseif sort == 'providerId' %}
+    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.providerId <=> b.providerId : b.providerId <=> a.providerId) %}
+{% elseif sort == 'isDefault' %}
+    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.isDefault <=> b.isDefault : b.isDefault <=> a.isDefault) %}
+{% elseif sort == 'isTest' %}
+    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.isTest <=> b.isTest : b.isTest <=> a.isTest) %}
+{% elseif sort == 'enabled' %}
+    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.enabled <=> b.enabled : b.enabled <=> a.enabled) %}
 {% endif %}
 
 {% set totalCount = filteredSenderIds|length %}
@@ -88,30 +107,30 @@
                         <div class="menu">
                             <ul>
                                 <li>
-                                    <a class="{{ statusFilter == 'all' ? 'sel' : '' }}" href="?status=all&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}">
+                                    <a class="{{ statusFilter == 'all' ? 'sel' : '' }}" href="?status=all&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">
                                         <span class="status all"></span>{{ 'All'|t('sms-manager') }}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="{{ statusFilter == 'enabled' ? 'sel' : '' }}" href="?status=enabled&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}">
+                                    <a class="{{ statusFilter == 'enabled' ? 'sel' : '' }}" href="?status=enabled&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">
                                         <span class="status green"></span>{{ 'Enabled'|t('sms-manager') }}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="{{ statusFilter == 'disabled' ? 'sel' : '' }}" href="?status=disabled&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}">
+                                    <a class="{{ statusFilter == 'disabled' ? 'sel' : '' }}" href="?status=disabled&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">
                                         <span class="status disabled"></span>{{ 'Disabled'|t('sms-manager') }}
                                     </a>
                                 </li>
                                 <li><hr class="padded"></li>
                                 <li class="menu-header">{{ 'Provider'|t('sms-manager') }}</li>
                                 <li>
-                                    <a class="{{ providerFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider=all&test={{ testFilter }}&search={{ search }}">
+                                    <a class="{{ providerFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider=all&test={{ testFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">
                                         <span class="status all"></span>{{ 'All Providers'|t('sms-manager') }}
                                     </a>
                                 </li>
                                 {% for provider in providers %}
                                     <li>
-                                        <a class="{{ providerFilter == provider.id ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ provider.id }}&test={{ testFilter }}&search={{ search }}">
+                                        <a class="{{ providerFilter == provider.id ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ provider.id }}&test={{ testFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">
                                             <span class="status" style="background: {{ providerFilter == provider.id ? '#6366f1' : '#aab6c1' }};"></span>{{ provider.name }}
                                         </a>
                                     </li>
@@ -119,17 +138,17 @@
                                 <li><hr class="padded"></li>
                                 <li class="menu-header">{{ 'Type'|t('sms-manager') }}</li>
                                 <li>
-                                    <a class="{{ testFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=all&search={{ search }}">
+                                    <a class="{{ testFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=all&search={{ search }}&sort={{ sort }}&dir={{ dir }}">
                                         <span class="status all"></span>{{ 'All Types'|t('sms-manager') }}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="{{ testFilter == 'production' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=production&search={{ search }}">
+                                    <a class="{{ testFilter == 'production' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=production&search={{ search }}&sort={{ sort }}&dir={{ dir }}">
                                         <span class="status" style="background: {{ testFilter == 'production' ? '#6366f1' : '#aab6c1' }};"></span>{{ 'Production'|t('sms-manager') }}
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="{{ testFilter == 'test' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=test&search={{ search }}">
+                                    <a class="{{ testFilter == 'test' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&test=test&search={{ search }}&sort={{ sort }}&dir={{ dir }}">
                                         <span class="status" style="background: {{ testFilter == 'test' ? '#ec4899' : '#aab6c1' }};"></span>{{ 'Test'|t('sms-manager') }}
                                     </a>
                                 </li>
@@ -143,6 +162,8 @@
                         <input type="hidden" name="status" value="{{ statusFilter }}">
                         <input type="hidden" name="provider" value="{{ providerFilter }}">
                         <input type="hidden" name="test" value="{{ testFilter }}">
+                        <input type="hidden" name="sort" value="{{ sort }}">
+                        <input type="hidden" name="dir" value="{{ dir }}">
                     </div>
                 </div>
             </form>
@@ -179,13 +200,27 @@
                         <th class="checkbox-cell selectallcontainer">
                             <div class="checkbox" role="checkbox" tabindex="0" aria-checked="false" aria-label="Select all"></div>
                         </th>
-                        <th scope="col">{{ 'Name'|t('sms-manager') }}</th>
-                        <th scope="col">{{ 'Handle'|t('sms-manager') }}</th>
-                        <th scope="col">{{ 'Sender ID'|t('sms-manager') }}</th>
-                        <th scope="col">{{ 'Provider'|t('sms-manager') }}</th>
-                        <th scope="col">{{ 'Default'|t('sms-manager') }}</th>
-                        <th scope="col">{{ 'Test'|t('sms-manager') }}</th>
-                        <th scope="col">{{ 'Enabled'|t('sms-manager') }}</th>
+                        <th scope="col" data-attribute="name" class="orderable {{ sort == 'name' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="name">{{ 'Name'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="handle" class="orderable {{ sort == 'handle' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="handle">{{ 'Handle'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="senderId" class="orderable {{ sort == 'senderId' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="senderId">{{ 'Sender ID'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="providerId" class="orderable {{ sort == 'providerId' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="providerId">{{ 'Provider'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="isTest" class="orderable {{ sort == 'isTest' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="isTest">{{ 'Test'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="enabled" class="orderable {{ sort == 'enabled' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="enabled">{{ 'Enabled'|t('sms-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="isDefault" class="orderable {{ sort == 'isDefault' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="isDefault">{{ 'Default'|t('sms-manager') }}</button>
+                        </th>
                         {% if showActionsColumn %}
                             <th class="thin">{{ 'Actions'|t('sms-manager') }}</th>
                         {% endif %}
@@ -226,23 +261,13 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if senderId.isDefault %}
-                                        <span class="status-label" style="background: rgba(245, 158, 11, 0.12);">
-                                            <span class="status" style="background: #f59e0b;"></span>
-                                            <span class="status-label-text" style="color: #78350f;">{{ 'Default'|t('sms-manager') }}</span>
-                                        </span>
-                                    {% else %}
-                                        <span class="light">–</span>
-                                    {% endif %}
-                                </td>
-                                <td>
                                     {% if senderId.isTest %}
                                         <span class="status-label" style="background: rgba(236, 72, 153, 0.12);">
                                             <span class="status" style="background: #ec4899;"></span>
                                             <span class="status-label-text" style="color: #9d174d;">{{ 'Test'|t('sms-manager') }}</span>
                                         </span>
                                     {% else %}
-                                        <span class="light">–</span>
+                                        <span class="light">-</span>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -258,6 +283,16 @@
                                         </span>
                                     {% endif %}
                                 </td>
+                                <td>
+                                    {% if senderId.isDefault %}
+                                        <span class="status-label green">
+                                            <span class="status green"></span>
+                                            <span class="status-label-text">{{ 'Yes'|t('sms-manager') }}</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="light">-</span>
+                                    {% endif %}
+                                </td>
                                 {% if showActionsColumn %}
                                     <td class="thin" style="text-align: right;">
                                         <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('sms-manager') }}"></button>
@@ -270,7 +305,7 @@
                                                         </a>
                                                     </li>
                                                 {% endif %}
-                                                {% if canDelete %}
+                                                {% if canDelete and not senderId.isDefault %}
                                                     <li><hr class="padded"></li>
                                                     <li>
                                                         <a class="sender-id-action error" data-action="delete" data-id="{{ senderId.id }}" data-name="{{ senderId.name }}">
@@ -367,13 +402,29 @@
             });
         }
 
+        // Sort buttons
+        document.querySelectorAll('th.orderable button').forEach(button => {
+            button.addEventListener('click', function() {
+                const sortField = this.dataset.sort;
+                const currentSort = '{{ sort }}';
+                const currentDir = '{{ dir }}';
+                let newDir = 'asc';
+
+                if (sortField === currentSort) {
+                    newDir = currentDir === 'asc' ? 'desc' : 'asc';
+                }
+
+                window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&sort=' + sortField + '&dir=' + newDir + '&page=1';
+            });
+        });
+
         // Pagination
         document.querySelector('.prev-page:not(.disabled)')?.addEventListener('click', function() {
-            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&page={{ page - 1 }}';
+            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page - 1 }}';
         });
 
         document.querySelector('.next-page:not(.disabled)')?.addEventListener('click', function() {
-            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&page={{ page + 1 }}';
+            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&test={{ testFilter }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page + 1 }}';
         });
 
         // Checkbox functionality
@@ -477,8 +528,15 @@
             Craft.sendActionRequest('POST', 'sms-manager/sender-ids/bulk-disable', {
                 data: { senderIdIds: ids }
             }).then(function(response) {
-                if (response.data.success) {
+                if (response.data.count > 0) {
                     Craft.cp.displayNotice(`{{ 'Disabled'|t('sms-manager') }} ${response.data.count} {{ 'sender IDs'|t('sms-manager') }}`);
+                }
+                if (response.data.errors && response.data.errors.length > 0) {
+                    response.data.errors.forEach(err => Craft.cp.displayError(err));
+                } else if (response.data.error) {
+                    Craft.cp.displayError(response.data.error);
+                }
+                if (response.data.count > 0 && (!response.data.errors || response.data.errors.length === 0)) {
                     setTimeout(() => window.location.reload(), 1000);
                 }
             }).catch(function(error) {
@@ -494,8 +552,15 @@
             Craft.sendActionRequest('POST', 'sms-manager/sender-ids/bulk-delete', {
                 data: { senderIdIds: ids }
             }).then(function(response) {
-                if (response.data.success) {
+                if (response.data.count > 0) {
                     Craft.cp.displayNotice(`{{ 'Deleted'|t('sms-manager') }} ${response.data.count} {{ 'sender IDs'|t('sms-manager') }}`);
+                }
+                if (response.data.errors && response.data.errors.length > 0) {
+                    response.data.errors.forEach(err => Craft.cp.displayError(err));
+                } else if (response.data.error) {
+                    Craft.cp.displayError(response.data.error);
+                }
+                if (response.data.count > 0 && (!response.data.errors || response.data.errors.length === 0)) {
                     setTimeout(() => window.location.reload(), 1000);
                 }
             }).catch(function(error) {
@@ -520,6 +585,8 @@
                             if (response.data.success) {
                                 Craft.cp.displayNotice('{{ 'Sender ID deleted'|t('sms-manager') }}');
                                 setTimeout(() => window.location.reload(), 1000);
+                            } else if (response.data.error) {
+                                Craft.cp.displayError(response.data.error);
                             }
                         }).catch(function(error) {
                             Craft.cp.displayError('{{ 'Failed to delete sender ID'|t('sms-manager') }}');

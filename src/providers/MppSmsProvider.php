@@ -10,6 +10,7 @@ namespace lindemannrock\smsmanager\providers;
 
 use Craft;
 use craft\helpers\App;
+use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\smsmanager\records\ProviderRecord;
 
 /**
@@ -99,8 +100,41 @@ class MppSmsProvider extends BaseProvider
      */
     public function send(string $to, string $message, string $senderId, string $language, array $settings): array
     {
-        // Get API key from settings (supports env vars)
-        $apiKey = App::parseEnv($settings['apiKey'] ?? '');
+        // Validate phone number against allowed countries
+        $allowedCountries = $settings['allowedCountries'] ?? [];
+        if (!empty($allowedCountries) && !GeoHelper::isPhoneNumberAllowed($to, $allowedCountries)) {
+            // Build list of allowed country names for error message
+            $allowedNames = array_map(
+                fn($code) => GeoHelper::getCountryWithDialCode($code),
+                $allowedCountries
+            );
+            $allowedList = implode(', ', array_filter($allowedNames));
+
+            $this->logError('MPP-SMS: Phone number not allowed for this provider', [
+                'to' => $to,
+                'allowedCountries' => $allowedCountries,
+            ]);
+
+            return [
+                'success' => false,
+                'messageId' => null,
+                'response' => null,
+                'error' => Craft::t('sms-manager', 'This provider only supports: {countries}', ['countries' => $allowedList]),
+            ];
+        }
+
+        // Check if this is a test sender ID and if a test API key is configured
+        $isTest = $settings['isTest'] ?? false;
+        $testApiKey = App::parseEnv($settings['testApiKey'] ?? '');
+        $mainApiKey = App::parseEnv($settings['apiKey'] ?? '');
+
+        // Use test API key if sender is marked as test and test key is configured
+        $apiKey = ($isTest && !empty($testApiKey)) ? $testApiKey : $mainApiKey;
+        $usingTestKey = $isTest && !empty($testApiKey);
+
+        if ($usingTestKey) {
+            $this->logInfo('MPP-SMS: Using test API key for test sender ID');
+        }
 
         if (empty($apiKey)) {
             $this->logError('MPP-SMS: API key not configured');

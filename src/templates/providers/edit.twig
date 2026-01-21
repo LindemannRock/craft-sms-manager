@@ -37,7 +37,7 @@
             </ul>
         </div>
     </div>
-    {% if not isNew and currentUser.can('smsManager:deleteProviders') %}
+    {% if not isNew and currentUser.can('smsManager:deleteProviders') and not (provider.isDefault ?? false) %}
         <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('app') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('app') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
         <div id="action-menu" class="menu menu--disclosure">
             <ul>
@@ -150,20 +150,69 @@
 
 {% block details %}
     <div class="meta">
-        {{ forms.lightswitchField({
-            label: 'Enabled'|t('sms-manager'),
-            id: 'enabled',
-            name: 'enabled',
-            on: provider.enabled ?? true
-        }) }}
+        {# Check if this is the first provider being created #}
+        {% set isFirstProvider = isNew and (providerCount ?? 0) == 0 %}
 
-        {{ forms.lightswitchField({
-            label: 'Default Provider'|t('sms-manager'),
-            instructions: 'Use this provider when no specific provider is specified.'|t('sms-manager'),
-            id: 'isDefault',
-            name: 'isDefault',
-            on: provider.isDefault ?? false
-        }) }}
+        {# Enabled toggle #}
+        {% if provider.isDefault ?? false %}
+            {{ forms.lightswitchField({
+                label: 'Enabled'|t('sms-manager'),
+                instructions: 'Default provider cannot be disabled.'|t('sms-manager'),
+                id: 'enabled',
+                name: 'enabled',
+                on: true,
+                disabled: true
+            }) }}
+            <input type="hidden" name="enabled" value="1">
+        {% elseif isFirstProvider %}
+            {{ forms.lightswitchField({
+                label: 'Enabled'|t('sms-manager'),
+                instructions: 'First provider must be enabled.'|t('sms-manager'),
+                id: 'enabled',
+                name: 'enabled',
+                on: true,
+                disabled: true
+            }) }}
+            <input type="hidden" name="enabled" value="1">
+        {% else %}
+            {{ forms.lightswitchField({
+                label: 'Enabled'|t('sms-manager'),
+                id: 'enabled',
+                name: 'enabled',
+                on: provider.enabled ?? true
+            }) }}
+        {% endif %}
+
+        {# Default toggle #}
+        {% if provider.isDefault ?? false %}
+            {{ forms.lightswitchField({
+                label: 'Default Provider'|t('sms-manager'),
+                instructions: 'To change, set another provider as default first.'|t('sms-manager'),
+                id: 'isDefault',
+                name: 'isDefault',
+                on: true,
+                disabled: true
+            }) }}
+            <input type="hidden" name="isDefault" value="1">
+        {% elseif isFirstProvider %}
+            {{ forms.lightswitchField({
+                label: 'Default Provider'|t('sms-manager'),
+                instructions: 'First provider is automatically set as default.'|t('sms-manager'),
+                id: 'isDefault',
+                name: 'isDefault',
+                on: true,
+                disabled: true
+            }) }}
+            <input type="hidden" name="isDefault" value="1">
+        {% else %}
+            {{ forms.lightswitchField({
+                label: 'Default Provider'|t('sms-manager'),
+                instructions: 'Use this provider when no specific provider is specified.'|t('sms-manager'),
+                id: 'isDefault',
+                name: 'isDefault',
+                on: provider.isDefault ?? false
+            }) }}
+        {% endif %}
     </div>
 
     {% if not isNew %}

@@ -128,13 +128,16 @@ class SmsService extends Component
             return false;
         }
 
-        // Send via provider
+        // Send via provider - include isTest flag in settings
+        $providerSettings = $provider->getSettingsArray();
+        $providerSettings['isTest'] = (bool)$senderId->isTest;
+
         $result = $providerInstance->send(
             $to,
             $message,
             $senderId->senderId,
             $language,
-            $provider->getSettingsArray()
+            $providerSettings
         );
 
         // Update log with result
@@ -326,13 +329,16 @@ class SmsService extends Component
             ];
         }
 
-        // Send via provider
+        // Send via provider - include isTest flag in settings
+        $providerSettings = $provider->getSettingsArray();
+        $providerSettings['isTest'] = (bool)$senderId->isTest;
+
         $result = $providerInstance->send(
             $to,
             $message,
             $senderId->senderId,
             $language,
-            $provider->getSettingsArray()
+            $providerSettings
         );
 
         $executionTime = (int)round((microtime(true) - $startTime) * 1000);

@@ -9,7 +9,9 @@
 namespace lindemannrock\smsmanager\controllers;
 
 use Craft;
+use craft\helpers\App;
 use craft\web\Controller;
+use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -98,13 +100,35 @@ class SettingsController extends Controller
         $providers = $plugin->providers->getAllProviders(true);
         $senderIds = $plugin->senderIds->getAllSenderIds(true);
 
-        // Build provider options
+        // Build provider options and track which have test API keys
         $providerOptions = [];
+        $providersWithTestKey = [];
+        $providerApiKeys = [];
+        $providerAllowedCountries = [];
         foreach ($providers as $provider) {
             $providerOptions[] = [
                 'label' => $provider->name . ($provider->isDefault ? ' (Default)' : ''),
                 'value' => $provider->id,
             ];
+            // Check if provider has a test API key configured and get masked keys
+            $providerSettings = $provider->getSettingsArray();
+            $mainKey = App::parseEnv($providerSettings['apiKey'] ?? '');
+            $testKey = App::parseEnv($providerSettings['testApiKey'] ?? '');
+            $providersWithTestKey[$provider->id] = !empty($testKey);
+            $providerApiKeys[$provider->id] = [
+                'main' => $this->maskApiKey($mainKey),
+                'test' => $this->maskApiKey($testKey),
+            ];
+            // Get allowed countries for this provider
+            $allowedCountries = $providerSettings['allowedCountries'] ?? [];
+            if (in_array('*', $allowedCountries, true)) {
+                $providerAllowedCountries[$provider->id] = ['All Countries'];
+            } else {
+                $providerAllowedCountries[$provider->id] = array_map(
+                    fn($code) => GeoHelper::getCountryWithDialCode($code),
+                    $allowedCountries
+                );
+            }
         }
 
         // Build sender ID options (initially for first/default provider)
@@ -162,6 +186,9 @@ class SettingsController extends Controller
             'providerOptions' => $providerOptions,
             'senderIdOptions' => $senderIdOptions,
             'senderIdsByProvider' => $senderIdsByProvider,
+            'providersWithTestKey' => $providersWithTestKey,
+            'providerApiKeys' => $providerApiKeys,
+            'providerAllowedCountries' => $providerAllowedCountries,
             'defaultProviderId' => $defaultProviderId,
             'defaultSenderIdId' => $defaultSenderIdId,
         ]);
@@ -258,5 +285,18 @@ class SettingsController extends Controller
         Craft::$app->getSession()->setNotice(Craft::t('sms-manager', 'Settings saved.'));
 
         return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Mask an API key for display (show first 8 chars + XXX)
+     */
+    private function maskApiKey(string $key): string
+    {
+        if (empty($key)) {
+            return '';
+        }
+
+        $visibleLength = min(8, strlen($key));
+        return substr($key, 0, $visibleLength) . 'XXX';
     }
 }

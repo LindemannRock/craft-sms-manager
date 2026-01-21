@@ -2,17 +2,6 @@
 {% import "_includes/forms" as forms %}
 
 {{ forms.autosuggestField({
-    label: 'API Key'|t('sms-manager'),
-    instructions: 'Your MPP-SMS API key.'|t('sms-manager'),
-    id: 'providerSettings-apiKey',
-    name: 'providerSettings[apiKey]',
-    value: providerSettings.apiKey ?? '',
-    required: true,
-    class: 'code',
-    suggestEnvVars: true,
-}) }}
-
-{{ forms.autosuggestField({
     label: 'API URL'|t('sms-manager'),
     instructions: 'The API endpoint URL. Leave blank to use the default.'|t('sms-manager'),
     id: 'providerSettings-apiUrl',
@@ -21,6 +10,47 @@
     placeholder: 'https://api.mpp-sms.com/api/send.aspx',
     class: 'code',
     suggestEnvVars: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'API Key'|t('sms-manager'),
+    instructions: 'Your MPP-SMS API key.'|t('sms-manager'),
+    id: 'providerSettings-apiKey',
+    name: 'providerSettings[apiKey]',
+    value: providerSettings.apiKey ?? '',
+    required: true,
+    placeholder: '$MPP_SMS_API_KEY',
+    class: 'code',
+    suggestEnvVars: true,
+    tip: 'This can begin with an environment variable. <a href="https://craftcms.com/docs/5.x/configure.html#control-panel-settings" target="_blank" rel="noopener">Learn more</a>'|t('sms-manager'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Test API Key'|t('sms-manager'),
+    instructions: 'Your MPP-SMS test API key. When a sender ID is marked as "Test", this key will be used instead of the main API key. Leave blank to always use the main API key.'|t('sms-manager'),
+    id: 'providerSettings-testApiKey',
+    name: 'providerSettings[testApiKey]',
+    value: providerSettings.testApiKey ?? '',
+    placeholder: '$MPP_SMS_TEST_API_KEY',
+    class: 'code',
+    suggestEnvVars: true,
+}) }}
+
+<hr>
+
+<h3>{{ 'Country Restrictions'|t('sms-manager') }}</h3>
+
+{{ forms.selectizeField({
+    label: 'Allowed Countries'|t('sms-manager'),
+    instructions: 'Select which countries this provider can send SMS to. Leave empty to allow all countries.'|t('sms-manager'),
+    id: 'providerSettings-allowedCountries',
+    name: 'providerSettings[allowedCountries]',
+    values: providerSettings.allowedCountries ?? (isNew ? ['KW'] : []),
+    options: countryOptions,
+    multi: true,
+    selectizeOptions: {
+        placeholder: 'Select countries...'|t('sms-manager'),
+    },
 }) }}
 
 {% include 'lindemannrock-base/_components/info-box' with {

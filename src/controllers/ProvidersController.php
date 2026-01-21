@@ -11,6 +11,7 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\helpers\StringHelper;
 use craft\web\Controller;
+use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\SmsManager;
@@ -79,12 +80,16 @@ class ProvidersController extends Controller
         }
 
         $providerTypes = SmsManager::$plugin->providers->getProviderTypeOptions();
+        $countryOptions = GeoHelper::getCountryDialCodeOptions(true);
+        $providerCount = ProviderRecord::find()->count();
 
         return $this->renderTemplate('sms-manager/providers/edit', [
             'provider' => $provider,
             'providerSettings' => $providerSettings,
             'providerTypes' => $providerTypes,
+            'countryOptions' => $countryOptions,
             'isNew' => $provider === null,
+            'providerCount' => $providerCount,
         ]);
     }
 
@@ -129,12 +134,16 @@ class ProvidersController extends Controller
 
         // Re-render edit form with submitted data
         $providerTypes = SmsManager::$plugin->providers->getProviderTypeOptions();
+        $countryOptions = GeoHelper::getCountryDialCodeOptions(true);
+        $providerCount = ProviderRecord::find()->count();
 
         return $this->renderTemplate('sms-manager/providers/edit', [
             'provider' => $provider,
             'providerSettings' => $providerSettings,
             'providerTypes' => $providerTypes,
+            'countryOptions' => $countryOptions,
             'isNew' => !$providerId,
+            'providerCount' => $providerCount,
         ]);
     }
 
@@ -248,10 +257,16 @@ class ProvidersController extends Controller
 
         $providerIds = Craft::$app->getRequest()->getRequiredBodyParam('providerIds');
         $count = 0;
+        $errors = [];
 
         foreach ($providerIds as $id) {
             $provider = ProviderRecord::findOne($id);
             if ($provider) {
+                // Cannot disable default provider
+                if ($provider->isDefault) {
+                    $errors[] = Craft::t('sms-manager', 'Cannot disable default provider "{name}".', ['name' => $provider->name]);
+                    continue;
+                }
                 $provider->enabled = false;
                 if ($provider->save(false)) {
                     $count++;
@@ -259,7 +274,15 @@ class ProvidersController extends Controller
             }
         }
 
-        return $this->asJson(['success' => true, 'count' => $count]);
+        if ($count > 0 && empty($errors)) {
+            return $this->asJson(['success' => true, 'count' => $count]);
+        }
+
+        if ($count > 0) {
+            return $this->asJson(['success' => true, 'count' => $count, 'errors' => $errors]);
+        }
+
+        return $this->asJson(['success' => false, 'errors' => $errors]);
     }
 
     /**

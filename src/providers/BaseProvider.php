@@ -67,6 +67,18 @@ abstract class BaseProvider implements ProviderInterface
      */
     protected function normalizePhoneNumber(string $number): string
     {
+        // Remove invisible Unicode characters (zero-width spaces, formatting marks, etc.)
+        // Common hidden characters from copy/paste:
+        // - \xC2\xA0: Non-breaking space
+        // - \xE2\x80\x8B: Zero-width space
+        // - \xE2\x80\x8C: Zero-width non-joiner
+        // - \xE2\x80\x8D: Zero-width joiner
+        // - \xE2\x80\x8E: Left-to-right mark
+        // - \xE2\x80\x8F: Right-to-left mark
+        // - \xE2\x80\xAA-\xE2\x80\xAE: Directional formatting
+        // - \xEF\xBB\xBF: BOM
+        $number = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\x{00A0}\x{2060}\x{202A}-\x{202E}]/u', '', $number);
+
         // Arabic numerals
         $number = str_replace('٠', '0', $number);
         $number = str_replace('١', '1', $number);
