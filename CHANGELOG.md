@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.3.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.5...v5.3.0) (2026-01-21)
+
+
+### Features
+
+* Add config file support for providers and sender IDs ([49a4cb5](https://github.com/LindemannRock/craft-sms-manager/commit/49a4cb5257e9cd1b7a0beb98246cb0597ee3bea0))
+* Enhance MPP-SMS Provider with country restrictions, test API key support, and improved default item handling ([e4f1129](https://github.com/LindemannRock/craft-sms-manager/commit/e4f1129d35c305566b97150fe33c825cba3b150f))
+* refactor provider/sender ID to use handles and remove isDefault columns ([e514a95](https://github.com/LindemannRock/craft-sms-manager/commit/e514a958d1b281d6f46d59f74eb4108cc8d29896))
+
 ## [5.2.5](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.4...v5.2.5) (2026-01-20)
 
 
