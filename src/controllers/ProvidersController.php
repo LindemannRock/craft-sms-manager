@@ -49,10 +49,81 @@ class ProvidersController extends Controller
 
         $settings = SmsManager::$plugin->getSettings();
         $providers = SmsManager::$plugin->providers->getAllProviders();
+        $isDefaultFromConfig = SmsManager::$plugin->providers->isDefaultProviderFromConfig();
+
+        // Auto-assign default if needed (only if not set via config file)
+        if (!$isDefaultFromConfig) {
+            $defaultHandle = $settings->defaultProviderHandle;
+            $needsReassign = false;
+
+            if (empty($defaultHandle)) {
+                $needsReassign = true;
+            } else {
+                $defaultProvider = SmsManager::$plugin->providers->getProviderByHandle($defaultHandle);
+                if (!$defaultProvider || !$defaultProvider->enabled) {
+                    $needsReassign = true;
+                }
+            }
+
+            if ($needsReassign && !empty($providers)) {
+                foreach ($providers as $provider) {
+                    if ($provider->enabled) {
+                        $settings->defaultProviderHandle = $provider->handle;
+                        $settings->saveToDatabase();
+
+                        $this->logInfo('Auto-assigned default provider', [
+                            'handle' => $provider->handle,
+                            'reason' => empty($defaultHandle) ? 'no default set' : 'previous default invalid',
+                        ]);
+                        break;
+                    }
+                }
+            }
+        }
 
         return $this->renderTemplate('sms-manager/providers/index', [
             'providers' => $providers,
             'settings' => $settings,
+            'defaultProviderHandle' => $settings->defaultProviderHandle,
+            'isDefaultFromConfig' => $isDefaultFromConfig,
+        ]);
+    }
+
+    /**
+     * View a provider (read-only, works for both config and database providers)
+     *
+     * @param string|null $handle Provider handle
+     * @return Response
+     */
+    public function actionView(?string $handle = null): Response
+    {
+        $this->requirePermission('smsManager:viewProviders');
+
+        if (!$handle) {
+            throw new NotFoundHttpException('Provider handle required');
+        }
+
+        $provider = ProviderRecord::findByHandleWithConfig($handle);
+
+        if (!$provider) {
+            throw new NotFoundHttpException('Provider not found');
+        }
+
+        $providerSettings = $provider->getSettingsArray();
+        $providerTypes = SmsManager::$plugin->providers->getProviderTypeOptions();
+        $countryOptions = GeoHelper::getCountryDialCodeOptions(true);
+        $settings = SmsManager::$plugin->getSettings();
+        $providerCount = ProviderRecord::find()->count();
+
+        return $this->renderTemplate('sms-manager/providers/edit', [
+            'provider' => $provider,
+            'providerSettings' => $providerSettings,
+            'providerTypes' => $providerTypes,
+            'countryOptions' => $countryOptions,
+            'isNew' => false,
+            'providerCount' => $providerCount,
+            'defaultProviderHandle' => $settings->defaultProviderHandle,
+            'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
         ]);
     }
 
@@ -82,6 +153,7 @@ class ProvidersController extends Controller
         $providerTypes = SmsManager::$plugin->providers->getProviderTypeOptions();
         $countryOptions = GeoHelper::getCountryDialCodeOptions(true);
         $providerCount = ProviderRecord::find()->count();
+        $settings = SmsManager::$plugin->getSettings();
 
         return $this->renderTemplate('sms-manager/providers/edit', [
             'provider' => $provider,
@@ -90,6 +162,8 @@ class ProvidersController extends Controller
             'countryOptions' => $countryOptions,
             'isNew' => $provider === null,
             'providerCount' => $providerCount,
+            'defaultProviderHandle' => $settings->defaultProviderHandle,
+            'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
         ]);
     }
 
@@ -136,6 +210,7 @@ class ProvidersController extends Controller
         $providerTypes = SmsManager::$plugin->providers->getProviderTypeOptions();
         $countryOptions = GeoHelper::getCountryDialCodeOptions(true);
         $providerCount = ProviderRecord::find()->count();
+        $settings = SmsManager::$plugin->getSettings();
 
         return $this->renderTemplate('sms-manager/providers/edit', [
             'provider' => $provider,
@@ -144,6 +219,8 @@ class ProvidersController extends Controller
             'countryOptions' => $countryOptions,
             'isNew' => !$providerId,
             'providerCount' => $providerCount,
+            'defaultProviderHandle' => $settings->defaultProviderHandle,
+            'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
         ]);
     }
 
@@ -183,6 +260,11 @@ class ProvidersController extends Controller
             return $this->asJson(['success' => false, 'error' => 'Provider not found']);
         }
 
+        // Cannot toggle config providers
+        if ($provider->isFromConfig()) {
+            return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Cannot modify config-based provider.')]);
+        }
+
         $provider->enabled = $enabled;
         if ($provider->save(false)) {
             return $this->asJson(['success' => true]);
@@ -204,7 +286,13 @@ class ProvidersController extends Controller
         $request = Craft::$app->getRequest();
         $providerId = $request->getRequiredBodyParam('providerId');
 
-        $provider = ProviderRecord::findOne($providerId);
+        // Try by ID first, then by handle (for config providers)
+        if (is_numeric($providerId)) {
+            $provider = ProviderRecord::findOne((int)$providerId);
+        } else {
+            $provider = ProviderRecord::findByHandleWithConfig((string)$providerId);
+        }
+
         if (!$provider) {
             return $this->asJson(['success' => false, 'error' => 'Provider not found']);
         }
@@ -220,6 +308,59 @@ class ProvidersController extends Controller
     }
 
     /**
+     * Set a provider as the default
+     *
+     * @return Response
+     */
+    public function actionSetDefault(): Response
+    {
+        $this->requirePostRequest();
+        $this->requirePermission('smsManager:editProviders');
+        $this->requireAcceptsJson();
+
+        // Check if default is set via config
+        if (SmsManager::$plugin->providers->isDefaultProviderFromConfig()) {
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('sms-manager', 'Default provider is set via config file and cannot be changed here.'),
+            ]);
+        }
+
+        $providerId = Craft::$app->getRequest()->getBodyParam('providerId');
+
+        // Find the provider - try by ID first, then by handle
+        if (is_numeric($providerId)) {
+            $provider = ProviderRecord::findOne((int)$providerId);
+        } else {
+            $provider = ProviderRecord::findByHandleWithConfig((string)$providerId);
+        }
+
+        if (!$provider) {
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('sms-manager', 'Provider not found.'),
+            ]);
+        }
+
+        if (SmsManager::$plugin->providers->setDefaultProviderByHandle($provider->handle)) {
+            $this->logInfo('Default provider changed', [
+                'handle' => $provider->handle,
+                'name' => $provider->name,
+            ]);
+
+            return $this->asJson([
+                'success' => true,
+                'message' => Craft::t('sms-manager', 'Default provider updated.'),
+            ]);
+        }
+
+        return $this->asJson([
+            'success' => false,
+            'error' => Craft::t('sms-manager', 'Failed to update default provider.'),
+        ]);
+    }
+
+    /**
      * Bulk enable providers
      *
      * @return Response
@@ -231,10 +372,16 @@ class ProvidersController extends Controller
 
         $providerIds = Craft::$app->getRequest()->getRequiredBodyParam('providerIds');
         $count = 0;
+        $errors = [];
 
         foreach ($providerIds as $id) {
             $provider = ProviderRecord::findOne($id);
             if ($provider) {
+                // Cannot modify config providers
+                if ($provider->isFromConfig()) {
+                    $errors[] = Craft::t('sms-manager', 'Cannot modify config-based provider "{name}".', ['name' => $provider->name]);
+                    continue;
+                }
                 $provider->enabled = true;
                 if ($provider->save(false)) {
                     $count++;
@@ -242,7 +389,15 @@ class ProvidersController extends Controller
             }
         }
 
-        return $this->asJson(['success' => true, 'count' => $count]);
+        if ($count > 0 && empty($errors)) {
+            return $this->asJson(['success' => true, 'count' => $count]);
+        }
+
+        if ($count > 0) {
+            return $this->asJson(['success' => true, 'count' => $count, 'errors' => $errors]);
+        }
+
+        return $this->asJson(['success' => false, 'errors' => $errors]);
     }
 
     /**
@@ -256,14 +411,20 @@ class ProvidersController extends Controller
         $this->requirePermission('smsManager:editProviders');
 
         $providerIds = Craft::$app->getRequest()->getRequiredBodyParam('providerIds');
+        $settings = SmsManager::$plugin->getSettings();
         $count = 0;
         $errors = [];
 
         foreach ($providerIds as $id) {
             $provider = ProviderRecord::findOne($id);
             if ($provider) {
+                // Cannot modify config providers
+                if ($provider->isFromConfig()) {
+                    $errors[] = Craft::t('sms-manager', 'Cannot modify config-based provider "{name}".', ['name' => $provider->name]);
+                    continue;
+                }
                 // Cannot disable default provider
-                if ($provider->isDefault) {
+                if ($provider->handle === $settings->defaultProviderHandle) {
                     $errors[] = Craft::t('sms-manager', 'Cannot disable default provider "{name}".', ['name' => $provider->name]);
                     continue;
                 }

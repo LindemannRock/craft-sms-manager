@@ -67,6 +67,9 @@ class Install extends Migration
             'pluginName' => $this->string(255)->notNull()->defaultValue('SMS Manager'),
             'defaultProviderId' => $this->integer()->null(),
             'defaultSenderIdId' => $this->integer()->null(),
+            // Handle-based defaults (for config file support)
+            'defaultProviderHandle' => $this->string(64)->null(),
+            'defaultSenderIdHandle' => $this->string(64)->null(),
             // Analytics settings
             'enableAnalytics' => $this->boolean()->notNull()->defaultValue(true),
             'analyticsLimit' => $this->integer()->notNull()->defaultValue(1000),
@@ -113,6 +116,7 @@ class Install extends Migration
             'enabled' => $this->boolean()->notNull()->defaultValue(true),
             'isDefault' => $this->boolean()->notNull()->defaultValue(false),
             'sortOrder' => $this->integer()->notNull()->defaultValue(0),
+            'source' => $this->string(20)->notNull()->defaultValue('database'), // 'config' or 'database'
             // Provider-specific settings (JSON)
             'settings' => $this->text()->null()->comment('JSON provider settings'),
             // Standard columns
@@ -127,6 +131,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_providers}}', ['enabled'], false);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['isDefault'], false);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['sortOrder'], false);
+        $this->createIndex(null, '{{%smsmanager_providers}}', ['source'], false);
     }
 
     /**
@@ -149,6 +154,7 @@ class Install extends Migration
             'isDefault' => $this->boolean()->notNull()->defaultValue(false),
             'isTest' => $this->boolean()->notNull()->defaultValue(false),
             'sortOrder' => $this->integer()->notNull()->defaultValue(0),
+            'source' => $this->string(20)->notNull()->defaultValue('database'), // 'config' or 'database'
             // Standard columns
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -162,6 +168,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['isDefault'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['isTest'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['sortOrder'], false);
+        $this->createIndex(null, '{{%smsmanager_senderids}}', ['source'], false);
 
         // Foreign key to providers
         $this->addForeignKey(

@@ -117,50 +117,91 @@ Navigate to **SMS Manager → Settings** in the control panel to configure:
 
 ### Config File
 
-Create a `config/sms-manager.php` file to override default settings:
+Create a `config/sms-manager.php` file to override default settings and define providers/sender IDs:
 
 ```bash
 cp vendor/lindemannrock/craft-sms-manager/src/config.php config/sms-manager.php
 ```
 
+The config file supports multi-environment configuration with `*` for global settings and environment-specific overrides:
+
 ```php
 <?php
+
+use craft\helpers\App;
+
 return [
-    // Plugin Settings
-    'pluginName' => 'SMS Manager',
+    // Global settings (all environments)
+    '*' => [
+        // Plugin Settings
+        'pluginName' => 'SMS Manager',
+        'logLevel' => 'error',
 
-    // Logging Settings
-    'logLevel' => 'error', // error, warning, info, or debug (debug requires devMode)
+        // Default Provider & Sender ID (by handle)
+        'defaultProviderHandle' => 'production-provider',
+        'defaultSenderIdHandle' => 'main-sender',
 
-    // Analytics Settings
-    'enableAnalytics' => true,
-    'analyticsLimit' => 1000,
-    'analyticsRetention' => 30, // days (0 for unlimited)
-    'autoTrimAnalytics' => true,
+        // Analytics Settings
+        'enableAnalytics' => true,
+        'analyticsLimit' => 1000,
+        'analyticsRetention' => 30,
+        'autoTrimAnalytics' => true,
 
-    // Logs Settings
-    'enableLogs' => true,
-    'logsLimit' => 10000,
-    'logsRetention' => 30, // days (0 for unlimited)
-    'autoTrimLogs' => true,
+        // Logs Settings
+        'enableLogs' => true,
+        'logsLimit' => 10000,
+        'logsRetention' => 30,
+        'autoTrimLogs' => true,
 
-    // Interface Settings
-    'itemsPerPage' => 100,
-    'refreshIntervalSecs' => 30,
+        // Interface Settings
+        'itemsPerPage' => 100,
+        'refreshIntervalSecs' => 30,
 
-    // Multi-environment support
-    'dev' => [
-        'logLevel' => 'debug', // More verbose in dev
-        'analyticsRetention' => 7,
-        'logsRetention' => 7,
+        // Provider Configuration (read-only in CP)
+        'providers' => [
+            'production-provider' => [
+                'name' => 'Production MPP-SMS',
+                'type' => 'mpp-sms',
+                'enabled' => true,
+                'settings' => [
+                    'apiUrl' => App::env('MPP_SMS_API_URL'),
+                    'apiKey' => App::env('MPP_SMS_API_KEY'),
+                ],
+            ],
+        ],
+
+        // Sender ID Configuration (read-only in CP)
+        'senderIds' => [
+            'main-sender' => [
+                'name' => 'Main Sender',
+                'provider' => 'production-provider', // Reference by handle
+                'senderId' => 'MYCOMPANY',
+                'enabled' => true,
+                'isTest' => false,
+            ],
+        ],
     ],
+
+    // Development environment
+    'dev' => [
+        'logLevel' => 'debug',
+        'defaultProviderHandle' => 'test-provider',
+        'defaultSenderIdHandle' => 'test-sender',
+    ],
+
+    // Production environment
     'production' => [
-        'logLevel' => 'error', // Only errors in production
-        'analyticsRetention' => 90,
-        'logsRetention' => 90,
+        'logLevel' => 'error',
     ],
 ];
 ```
+
+**Config File Behavior:**
+- Settings defined in the config file are **read-only** in the Control Panel
+- Providers and sender IDs from config are displayed with a "Config" badge
+- Config items cannot be edited or deleted via CP (only through the config file)
+- Config items take precedence over database items with the same handle
+- A warning is shown in CP when defaults are set via config file
 
 ## Usage
 

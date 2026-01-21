@@ -111,21 +111,20 @@ class ProvidersService extends Component
     }
 
     /**
-     * Get all providers
+     * Get all providers (config + database merged)
      *
      * @param bool $enabledOnly Only return enabled providers
-     * @return array
+     * @return ProviderRecord[]
      */
     public function getAllProviders(bool $enabledOnly = false): array
     {
-        $query = ProviderRecord::find()
-            ->orderBy(['sortOrder' => SORT_ASC, 'name' => SORT_ASC]);
+        $providers = ProviderRecord::findAllWithConfig();
 
         if ($enabledOnly) {
-            $query->where(['enabled' => true]);
+            $providers = array_filter($providers, fn($p) => $p->enabled);
         }
 
-        return $query->all();
+        return $providers;
     }
 
     /**
@@ -140,24 +139,106 @@ class ProvidersService extends Component
     }
 
     /**
-     * Get provider by handle
+     * Get provider by handle (checks config first, then database)
      *
      * @param string $handle Provider handle
      * @return ProviderRecord|null
      */
     public function getProviderByHandle(string $handle): ?ProviderRecord
     {
-        return ProviderRecord::findOne(['handle' => $handle]);
+        return ProviderRecord::findByHandleWithConfig($handle);
     }
 
     /**
      * Get the default provider
      *
+     * Uses defaultProviderHandle from settings, falls back to isDefault flag,
+     * then first enabled provider.
+     *
      * @return ProviderRecord|null
      */
     public function getDefaultProvider(): ?ProviderRecord
     {
-        return ProviderRecord::findOne(['isDefault' => true, 'enabled' => true]);
+        $settings = SmsManager::$plugin->getSettings();
+
+        // First, check handle-based default from settings
+        if (!empty($settings->defaultProviderHandle)) {
+            $provider = $this->getProviderByHandle($settings->defaultProviderHandle);
+            if ($provider && $provider->enabled) {
+                return $provider;
+            }
+        }
+
+        // Fall back to isDefault flag in database
+        $provider = ProviderRecord::findOne(['isDefault' => true, 'enabled' => true]);
+        if ($provider) {
+            return $provider;
+        }
+
+        // Fall back to first enabled provider
+        $providers = $this->getAllProviders(true);
+        return $providers[0] ?? null;
+    }
+
+    /**
+     * Check if the default provider is set from config file
+     *
+     * @return bool
+     */
+    public function isDefaultProviderFromConfig(): bool
+    {
+        $settings = SmsManager::$plugin->getSettings();
+        return $settings->isOverriddenByConfig('defaultProviderHandle');
+    }
+
+    /**
+     * Get the default provider handle
+     *
+     * @return string|null
+     */
+    public function getDefaultProviderHandle(): ?string
+    {
+        $settings = SmsManager::$plugin->getSettings();
+
+        // Check handle-based default
+        if (!empty($settings->defaultProviderHandle)) {
+            return $settings->defaultProviderHandle;
+        }
+
+        // Fall back to isDefault flag
+        $provider = ProviderRecord::findOne(['isDefault' => true, 'enabled' => true]);
+        return $provider?->handle;
+    }
+
+    /**
+     * Set the default provider by handle
+     *
+     * @param string $handle Provider handle
+     * @return bool
+     */
+    public function setDefaultProviderByHandle(string $handle): bool
+    {
+        $provider = $this->getProviderByHandle($handle);
+        if (!$provider) {
+            return false;
+        }
+
+        // Cannot set default if controlled by config
+        if ($this->isDefaultProviderFromConfig()) {
+            $this->logWarning('Cannot set default provider - controlled by config file');
+            return false;
+        }
+
+        $settings = SmsManager::$plugin->getSettings();
+        $settings->defaultProviderHandle = $handle;
+
+        // Also update isDefault flag in database for backward compatibility
+        ProviderRecord::updateAll(['isDefault' => false]);
+        if ($provider->id) {
+            ProviderRecord::updateAll(['isDefault' => true], ['id' => $provider->id]);
+        }
+
+        return $settings->saveToDatabase();
     }
 
     /**
@@ -169,6 +250,12 @@ class ProvidersService extends Component
      */
     public function saveProvider(ProviderRecord $provider, bool $runValidation = true): bool
     {
+        // Cannot save config-based providers
+        if ($provider->isFromConfig()) {
+            $this->logWarning('Cannot save config-based provider', ['handle' => $provider->handle]);
+            return false;
+        }
+
         $isNew = !$provider->id;
 
         if ($runValidation && !$provider->validate()) {
@@ -181,12 +268,20 @@ class ProvidersService extends Component
             $provider->uid = StringHelper::UUID();
         }
 
-        // If this is the default, unset other defaults
+        // If setting as default, update the settings
         if ($provider->isDefault) {
+            // Clear other defaults in database
             ProviderRecord::updateAll(
                 ['isDefault' => false],
                 ['!=', 'id', $provider->id ?: 0]
             );
+
+            // Update settings if not controlled by config
+            if (!$this->isDefaultProviderFromConfig()) {
+                $settings = SmsManager::$plugin->getSettings();
+                $settings->defaultProviderHandle = $provider->handle;
+                $settings->saveToDatabase();
+            }
         }
 
         $saved = $provider->save(false);
@@ -217,8 +312,14 @@ class ProvidersService extends Component
             return ['success' => false, 'error' => Craft::t('sms-manager', 'Provider not found.')];
         }
 
+        // Cannot delete config-based providers
+        if ($provider->isFromConfig()) {
+            return ['success' => false, 'error' => Craft::t('sms-manager', 'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.')];
+        }
+
         // Check if default
-        if ($provider->isDefault) {
+        $defaultHandle = $this->getDefaultProviderHandle();
+        if ($provider->handle === $defaultHandle) {
             return ['success' => false, 'error' => Craft::t('sms-manager', 'Cannot delete the default provider. Set another provider as default first.')];
         }
 

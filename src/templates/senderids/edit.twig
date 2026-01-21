@@ -2,8 +2,9 @@
 {% import "_includes/forms" as forms %}
 
 {% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
-{% set title = isNew ? 'New Sender ID'|t('sms-manager') : 'Edit Sender ID'|t('sms-manager') %}
-{% set fullPageForm = true %}
+{% set canEdit = senderId.canEdit() ?? true %}
+{% set title = isNew ? 'New Sender ID'|t('sms-manager') : senderId.name %}
+{% set fullPageForm = canEdit %}
 {% set selectedSubnavItem = 'sender-ids' %}
 {% set saveShortcutRedirect = cpUrl('sms-manager/sender-ids/{id}') %}
 {% set retainScrollOnSaveShortcut = true %}
@@ -15,152 +16,205 @@
 ] %}
 
 {# Set up tabs #}
-{% set tabs = {
-    fields: {
-        label: 'Settings'|t('sms-manager'),
-        url: '#fields',
-    },
-} %}
+{% if canEdit %}
+    {% set tabs = {
+        fields: {
+            label: 'Settings'|t('sms-manager'),
+            url: '#fields',
+        },
+    } %}
+{% endif %}
 
 {% block actionButton %}
-    <div class="btngroup submit">
-        <button type="submit" class="btn submit">{{ "Save"|t('app') }}</button>
-        <button type="button" class="btn submit menubtn"></button>
-        <div class="menu">
-            <ul role="listbox">
-                <li>
-                    <a class="formsubmit" role="option" tabindex="0" data-redirect="{{ cpUrl('sms-manager/sender-ids/{id}')|hash }}">
-                        <span class="label">{{ 'Save and continue editing'|t('app') }}</span>
-                        <span class="shortcut" id="save-shortcut"></span>
-                    </a>
-                </li>
-            </ul>
+    {% if canEdit %}
+        <div class="btngroup submit">
+            <button type="submit" class="btn submit">{{ "Save"|t('app') }}</button>
+            <button type="button" class="btn submit menubtn"></button>
+            <div class="menu">
+                <ul role="listbox">
+                    <li>
+                        <a class="formsubmit" role="option" tabindex="0" data-redirect="{{ cpUrl('sms-manager/sender-ids/{id}')|hash }}">
+                            <span class="label">{{ 'Save and continue editing'|t('app') }}</span>
+                            <span class="shortcut" id="save-shortcut"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-    {% if not isNew and currentUser.can('smsManager:deleteSenderIds') and not (senderId.isDefault ?? false) %}
-        <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('app') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('app') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
-        <div id="action-menu" class="menu menu--disclosure">
-            <ul>
-                <li>
-                    <button class="menu-item error formsubmit" data-destructive data-action="sms-manager/sender-ids/delete" data-params='{"senderIdId":{{ senderId.id }}}' data-confirm="{{ 'Are you sure you want to delete this sender ID?'|t('sms-manager') }}" data-redirect="{{ 'sms-manager/sender-ids'|hash }}" data-headers='{"Accept":"application/json"}'>
-                        <span class="icon">{{ svg('@app/icons/trash.svg') }}</span>
-                        <span class="menu-item-label">{{ "Delete"|t('app') }}</span>
-                    </button>
-                </li>
-            </ul>
-        </div>
+        {% set isDefault = defaultSenderIdHandle == senderId.handle %}
+        {% if not isNew and currentUser.can('smsManager:deleteSenderIds') and not isDefault %}
+            <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('app') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('app') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
+            <div id="action-menu" class="menu menu--disclosure">
+                <ul>
+                    <li>
+                        <button class="menu-item error formsubmit" data-destructive data-action="sms-manager/sender-ids/delete" data-params='{"senderIdId":{{ senderId.id }}}' data-confirm="{{ 'Are you sure you want to delete this sender ID?'|t('sms-manager') }}" data-redirect="{{ 'sms-manager/sender-ids'|hash }}" data-headers='{"Accept":"application/json"}'>
+                            <span class="icon">{{ svg('@app/icons/trash.svg') }}</span>
+                            <span class="menu-item-label">{{ "Delete"|t('app') }}</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        {% endif %}
     {% endif %}
 {% endblock %}
 
 {% block content %}
-    <input type="hidden" name="action" value="sms-manager/sender-ids/save">
-    <input type="hidden" name="redirect" value="{{ 'sms-manager/sender-ids'|hash }}">
-    {% if not isNew %}
-        <input type="hidden" name="senderIdId" value="{{ senderId.id }}">
+    {% if canEdit %}
+        {# Editable form for database sender IDs #}
+        <input type="hidden" name="action" value="sms-manager/sender-ids/save">
+        <input type="hidden" name="redirect" value="{{ 'sms-manager/sender-ids'|hash }}">
+        {% if not isNew %}
+            <input type="hidden" name="senderIdId" value="{{ senderId.id }}">
+        {% endif %}
+        {{ csrfInput() }}
+
+        <div id="fields">
+            {{ forms.selectField({
+                first: true,
+                label: 'Provider'|t('sms-manager'),
+                instructions: 'The provider this sender ID belongs to'|t('sms-manager'),
+                id: 'providerId',
+                name: 'providerId',
+                value: senderId.providerId ?? '',
+                options: providerOptions,
+                required: true,
+                errors: senderId ? senderId.getErrors('providerId') : [],
+            }) }}
+
+            {{ forms.textField({
+                label: 'Name'|t('sms-manager'),
+                instructions: 'A friendly name for this sender ID'|t('sms-manager'),
+                id: 'name',
+                name: 'name',
+                value: senderId.name ?? '',
+                required: true,
+                errors: senderId ? senderId.getErrors('name') : [],
+            }) }}
+
+            {{ forms.textField({
+                label: 'Handle'|t('sms-manager'),
+                instructions: 'How you will refer to this sender ID in code'|t('sms-manager'),
+                id: 'handle',
+                name: 'handle',
+                class: 'code',
+                value: senderId.handle ?? '',
+                errors: senderId ? senderId.getErrors('handle') : [],
+            }) }}
+
+            {{ forms.textField({
+                label: 'Sender ID'|t('sms-manager'),
+                instructions: 'The actual sender ID value (e.g., phone number or alphanumeric ID)'|t('sms-manager'),
+                id: 'senderId',
+                name: 'senderId',
+                class: 'code',
+                value: senderId.senderId ?? '',
+                required: true,
+                errors: senderId ? senderId.getErrors('senderId') : [],
+            }) }}
+
+            {{ forms.textareaField({
+                label: 'Description'|t('sms-manager'),
+                instructions: 'Optional description for this sender ID'|t('sms-manager'),
+                id: 'description',
+                name: 'description',
+                value: senderId.description ?? '',
+                rows: 3,
+            }) }}
+        </div>
+    {% else %}
+        {# Read-only view for config sender IDs #}
+        <div class="pane">
+            <h2>{{ 'Configuration'|t('sms-manager') }}</h2>
+            <p class="light">{{ 'This sender ID is defined in your config file and cannot be edited here.'|t('sms-manager') }}</p>
+            {% if senderId.rawConfigDisplay %}
+                <pre style="background: #f3f7fc; padding: 14px; border-radius: 4px; overflow-x: auto; font-size: 12px;"><code>{{ senderId.rawConfigDisplay }}</code></pre>
+            {% endif %}
+        </div>
     {% endif %}
-    {{ csrfInput() }}
 
-    <div id="fields">
-        {{ forms.selectField({
-            first: true,
-            label: 'Provider'|t('sms-manager'),
-            instructions: 'The provider this sender ID belongs to'|t('sms-manager'),
-            id: 'providerId',
-            name: 'providerId',
-            value: senderId.providerId ?? '',
-            options: providerOptions,
-            required: true,
-            errors: senderId ? senderId.getErrors('providerId') : [],
-        }) }}
-
-        {{ forms.textField({
-            label: 'Name'|t('sms-manager'),
-            instructions: 'A friendly name for this sender ID'|t('sms-manager'),
-            id: 'name',
-            name: 'name',
-            value: senderId.name ?? '',
-            required: true,
-            errors: senderId ? senderId.getErrors('name') : [],
-        }) }}
-
-        {{ forms.textField({
-            label: 'Handle'|t('sms-manager'),
-            instructions: 'How you will refer to this sender ID in code'|t('sms-manager'),
-            id: 'handle',
-            name: 'handle',
-            class: 'code',
-            value: senderId.handle ?? '',
-            errors: senderId ? senderId.getErrors('handle') : [],
-        }) }}
-
-        {{ forms.textField({
-            label: 'Sender ID'|t('sms-manager'),
-            instructions: 'The actual sender ID value (e.g., phone number or alphanumeric ID)'|t('sms-manager'),
-            id: 'senderId',
-            name: 'senderId',
-            class: 'code',
-            value: senderId.senderId ?? '',
-            required: true,
-            errors: senderId ? senderId.getErrors('senderId') : [],
-        }) }}
-
-        {{ forms.textareaField({
-            label: 'Description'|t('sms-manager'),
-            instructions: 'Optional description for this sender ID'|t('sms-manager'),
-            id: 'description',
-            name: 'description',
-            value: senderId.description ?? '',
-            rows: 3,
-        }) }}
-    </div>
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}
 
 {% block details %}
-    <div class="meta">
-        {# Check if this is the first sender ID being created #}
-        {% set isFirstSenderId = isNew and (senderIdCount ?? 0) == 0 %}
+    {% set isDefault = defaultSenderIdHandle == senderId.handle %}
+    {% set isFirstSenderId = isNew and (senderIdCount ?? 0) == 0 %}
 
+    <div class="meta">
         {# Enabled toggle #}
-        {% if senderId.isDefault ?? false %}
-            {{ forms.lightswitchField({
-                label: 'Enabled'|t('sms-manager'),
-                instructions: 'Default sender ID cannot be disabled.'|t('sms-manager'),
-                id: 'enabled',
-                name: 'enabled',
-                on: true,
-                disabled: true
-            }) }}
-            <input type="hidden" name="enabled" value="1">
-        {% elseif isFirstSenderId %}
-            {{ forms.lightswitchField({
-                label: 'Enabled'|t('sms-manager'),
-                instructions: 'First sender ID must be enabled.'|t('sms-manager'),
-                id: 'enabled',
-                name: 'enabled',
-                on: true,
-                disabled: true
-            }) }}
-            <input type="hidden" name="enabled" value="1">
+        {% if canEdit %}
+            {% if isDefault %}
+                {{ forms.lightswitchField({
+                    label: 'Enabled'|t('sms-manager'),
+                    instructions: 'Default sender ID cannot be disabled.'|t('sms-manager'),
+                    id: 'enabled',
+                    name: 'enabled',
+                    on: true,
+                    disabled: true
+                }) }}
+                <input type="hidden" name="enabled" value="1">
+            {% elseif isFirstSenderId %}
+                {{ forms.lightswitchField({
+                    label: 'Enabled'|t('sms-manager'),
+                    instructions: 'First sender ID must be enabled.'|t('sms-manager'),
+                    id: 'enabled',
+                    name: 'enabled',
+                    on: true,
+                    disabled: true
+                }) }}
+                <input type="hidden" name="enabled" value="1">
+            {% else %}
+                {{ forms.lightswitchField({
+                    label: 'Enabled'|t('sms-manager'),
+                    id: 'enabled',
+                    name: 'enabled',
+                    on: senderId.enabled ?? true
+                }) }}
+            {% endif %}
         {% else %}
+            {# Config sender ID - show as read-only #}
             {{ forms.lightswitchField({
                 label: 'Enabled'|t('sms-manager'),
+                instructions: 'Set via config/sms-manager.php. Edit the file to change.'|t('sms-manager'),
                 id: 'enabled',
-                name: 'enabled',
-                on: senderId.enabled ?? true
+                on: senderId.enabled ?? true,
+                disabled: true
             }) }}
         {% endif %}
 
-        {# Default toggle #}
-        {% if senderId.isDefault ?? false %}
-            {{ forms.lightswitchField({
-                label: 'Default Sender ID'|t('sms-manager'),
-                instructions: 'To change, set another sender ID as default first.'|t('sms-manager'),
-                id: 'isDefault',
-                name: 'isDefault',
-                on: true,
-                disabled: true
-            }) }}
-            <input type="hidden" name="isDefault" value="1">
+        {# Default toggle - shown for all sender IDs (config or database) #}
+        {% if not isNew %}
+            {% if isDefaultFromConfig %}
+                {# Default is set via config - disable for ALL sender IDs #}
+                {{ forms.lightswitchField({
+                    label: 'Default Sender ID'|t('sms-manager'),
+                    instructions: 'Set via config/sms-manager.php. Edit the file to change.'|t('sms-manager'),
+                    id: 'isDefault',
+                    on: isDefault,
+                    disabled: true
+                }) }}
+            {% elseif isDefault %}
+                {# This is the current default (not from config) #}
+                {{ forms.lightswitchField({
+                    label: 'Default Sender ID'|t('sms-manager'),
+                    instructions: 'To change, set another sender ID as default first.'|t('sms-manager'),
+                    id: 'isDefault',
+                    name: 'isDefault',
+                    on: true,
+                    disabled: true
+                }) }}
+                {% if canEdit %}
+                    <input type="hidden" name="isDefault" value="1">
+                {% endif %}
+            {% elseif canEdit or currentUser.can('smsManager:editSenderIds') %}
+                {# Can toggle default: form submission for database, AJAX for config #}
+                {{ forms.lightswitchField({
+                    label: 'Default Sender ID'|t('sms-manager'),
+                    instructions: 'Use this sender ID when no specific sender is specified.'|t('sms-manager'),
+                    id: 'isDefault',
+                    name: 'isDefault',
+                    on: false
+                }) }}
+            {% endif %}
         {% elseif isFirstSenderId %}
             {{ forms.lightswitchField({
                 label: 'Default Sender ID'|t('sms-manager'),
@@ -171,52 +225,106 @@
                 disabled: true
             }) }}
             <input type="hidden" name="isDefault" value="1">
-        {% else %}
-            {{ forms.lightswitchField({
-                label: 'Default Sender ID'|t('sms-manager'),
-                instructions: 'Use this sender ID when no specific sender is specified.'|t('sms-manager'),
-                id: 'isDefault',
-                name: 'isDefault',
-                on: senderId.isDefault ?? false
-            }) }}
         {% endif %}
 
-        {{ forms.lightswitchField({
-            label: 'Test Sender ID'|t('sms-manager'),
-            instructions: 'Use this sender ID for test messages in development mode.'|t('sms-manager'),
-            id: 'isTest',
-            name: 'isTest',
-            on: senderId.isTest ?? false
-        }) }}
+        {# Test toggle #}
+        {% if canEdit %}
+            {{ forms.lightswitchField({
+                label: 'Test Sender ID'|t('sms-manager'),
+                instructions: 'Use this sender ID for test messages in development mode.'|t('sms-manager'),
+                id: 'isTest',
+                name: 'isTest',
+                on: senderId.isTest ?? false
+            }) }}
+        {% else %}
+            {{ forms.lightswitchField({
+                label: 'Test Sender ID'|t('sms-manager'),
+                instructions: 'Set via config/sms-manager.php. Edit the file to change.'|t('sms-manager'),
+                id: 'isTest',
+                on: senderId.isTest ?? false,
+                disabled: true
+            }) }}
+        {% endif %}
     </div>
 
-    {% if not isNew %}
-        <fieldset>
-            <dl class="meta read-only">
+    <fieldset>
+        <dl class="meta read-only">
+            <div class="data">
+                <dt class="heading">{{ 'Status'|t('sms-manager') }}</dt>
+                <dd class="value">
+                    <span class="status {{ senderId.enabled ? 'live' : 'disabled' }}"></span>
+                    <span>{{ senderId.enabled ? 'Enabled'|t('sms-manager') : 'Disabled'|t('sms-manager') }}</span>
+                </dd>
+            </div>
+            <div class="data">
+                <dt class="heading">{{ 'Handle'|t('sms-manager') }}</dt>
+                <dd class="value"><code>{{ senderId.handle }}</code></dd>
+            </div>
+            <div class="data">
+                <dt class="heading">{{ 'Sender ID'|t('sms-manager') }}</dt>
+                <dd class="value"><code>{{ senderId.senderId }}</code></dd>
+            </div>
+            <div class="data">
+                <dt class="heading">{{ 'Provider'|t('sms-manager') }}</dt>
+                <dd class="value">
+                    {% if senderId.providerHandle %}
+                        <code>{{ senderId.providerHandle }}</code>
+                    {% elseif senderId.providerId %}
+                        {% for option in providerOptions %}
+                            {% if option.value == senderId.providerId %}
+                                {{ option.label }}
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span class="light">—</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="data">
+                <dt class="heading">{{ 'Source'|t('sms-manager') }}</dt>
+                <dd class="value">
+                    {% if senderId.source == 'config' %}
+                        {{ 'Config File'|t('sms-manager') }}
+                    {% else %}
+                        {{ 'Database'|t('sms-manager') }}
+                    {% endif %}
+                </dd>
+            </div>
+            {% if isDefault %}
                 <div class="data">
-                    <dt class="heading">{{ 'Status'|t('sms-manager') }}</dt>
-                    <dd class="value">
-                        <span class="status {{ senderId.enabled ? 'live' : 'disabled' }}"></span>
-                        <span>{{ senderId.enabled ? 'Enabled'|t('sms-manager') : 'Disabled'|t('sms-manager') }}</span>
-                    </dd>
+                    <dt class="heading">{{ 'Default'|t('sms-manager') }}</dt>
+                    <dd class="value">{{ 'Yes'|t('sms-manager') }}</dd>
                 </div>
+            {% endif %}
+            {% if senderId.isTest %}
+                <div class="data">
+                    <dt class="heading">{{ 'Test'|t('sms-manager') }}</dt>
+                    <dd class="value">{{ 'Yes'|t('sms-manager') }}</dd>
+                </div>
+            {% endif %}
+            {% if canEdit %}
                 <div class="data">
                     <dt class="heading">{{ 'ID'|t('app') }}</dt>
                     <dd class="value">{{ senderId.id }}</dd>
                 </div>
-                <div class="data">
-                    <dt class="heading">{{ 'Created'|t('app') }}</dt>
-                    <dd class="value">{{ senderId.dateCreated|datetime('short') }}</dd>
-                </div>
-                <div class="data">
-                    <dt class="heading">{{ 'Updated'|t('app') }}</dt>
-                    <dd class="value">{{ senderId.dateUpdated|datetime('short') }}</dd>
-                </div>
-            </dl>
-        </fieldset>
-    {% endif %}
+                {% if senderId.dateCreated %}
+                    <div class="data">
+                        <dt class="heading">{{ 'Created'|t('app') }}</dt>
+                        <dd class="value">{{ senderId.dateCreated|datetime('short') }}</dd>
+                    </div>
+                {% endif %}
+                {% if senderId.dateUpdated %}
+                    <div class="data">
+                        <dt class="heading">{{ 'Updated'|t('app') }}</dt>
+                        <dd class="value">{{ senderId.dateUpdated|datetime('short') }}</dd>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </dl>
+    </fieldset>
 {% endblock %}
 
+{% if canEdit %}
 {% js %}
 // Auto-generate handle from name
 const nameField = document.getElementById('name');
@@ -243,3 +351,4 @@ if (saveShortcut) {
     saveShortcut.textContent = isMac ? '⌘S' : 'Ctrl+S';
 }
 {% endjs %}
+{% endif %}

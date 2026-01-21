@@ -48,6 +48,7 @@ class SenderIdsController extends Controller
 
         $request = Craft::$app->getRequest();
         $settings = SmsManager::$plugin->getSettings();
+        $isDefaultFromConfig = SmsManager::$plugin->senderIds->isDefaultSenderIdFromConfig();
 
         // Get filter parameters
         $providerFilter = $request->getQueryParam('provider', 'all');
@@ -55,11 +56,84 @@ class SenderIdsController extends Controller
         $senderIds = SmsManager::$plugin->senderIds->getAllSenderIds();
         $providers = SmsManager::$plugin->providers->getAllProviders();
 
+        // Auto-assign default if needed (only if not set via config file)
+        if (!$isDefaultFromConfig) {
+            $defaultHandle = $settings->defaultSenderIdHandle;
+            $needsReassign = false;
+
+            if (empty($defaultHandle)) {
+                $needsReassign = true;
+            } else {
+                $defaultSenderId = SmsManager::$plugin->senderIds->getSenderIdByHandle($defaultHandle);
+                if (!$defaultSenderId || !$defaultSenderId->enabled) {
+                    $needsReassign = true;
+                }
+            }
+
+            if ($needsReassign && !empty($senderIds)) {
+                foreach ($senderIds as $senderId) {
+                    if ($senderId->enabled) {
+                        $settings->defaultSenderIdHandle = $senderId->handle;
+                        $settings->saveToDatabase();
+
+                        $this->logInfo('Auto-assigned default sender ID', [
+                            'handle' => $senderId->handle,
+                            'reason' => empty($defaultHandle) ? 'no default set' : 'previous default invalid',
+                        ]);
+                        break;
+                    }
+                }
+            }
+        }
+
         return $this->renderTemplate('sms-manager/senderids/index', [
             'senderIds' => $senderIds,
             'providers' => $providers,
             'settings' => $settings,
             'providerFilter' => $providerFilter,
+            'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
+            'isDefaultFromConfig' => $isDefaultFromConfig,
+        ]);
+    }
+
+    /**
+     * View a sender ID (read-only, works for both config and database sender IDs)
+     *
+     * @param string|null $handle Sender ID handle
+     * @return Response
+     */
+    public function actionView(?string $handle = null): Response
+    {
+        $this->requirePermission('smsManager:viewSenderIds');
+
+        if (!$handle) {
+            throw new NotFoundHttpException('Sender ID handle required');
+        }
+
+        $senderId = SenderIdRecord::findByHandleWithConfig($handle);
+
+        if (!$senderId) {
+            throw new NotFoundHttpException('Sender ID not found');
+        }
+
+        $providers = SmsManager::$plugin->providers->getAllProviders(true);
+        $providerOptions = [];
+        foreach ($providers as $provider) {
+            $providerOptions[] = [
+                'label' => $provider->name,
+                'value' => $provider->id,
+            ];
+        }
+        $senderIdCount = SenderIdRecord::find()->count();
+        $settings = SmsManager::$plugin->getSettings();
+
+        return $this->renderTemplate('sms-manager/senderids/edit', [
+            'senderId' => $senderId,
+            'providerOptions' => $providerOptions,
+            'isNew' => false,
+            'senderIdCount' => $senderIdCount,
+            'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
+            'isDefaultFromConfig' => SmsManager::$plugin->senderIds->isDefaultSenderIdFromConfig(),
         ]);
     }
 
@@ -92,12 +166,15 @@ class SenderIdsController extends Controller
             ];
         }
         $senderIdCount = SenderIdRecord::find()->count();
+        $settings = SmsManager::$plugin->getSettings();
 
         return $this->renderTemplate('sms-manager/senderids/edit', [
             'senderId' => $senderId,
             'providerOptions' => $providerOptions,
             'isNew' => $senderId === null,
             'senderIdCount' => $senderIdCount,
+            'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
+            'isDefaultFromConfig' => SmsManager::$plugin->senderIds->isDefaultSenderIdFromConfig(),
         ]);
     }
 
@@ -149,12 +226,15 @@ class SenderIdsController extends Controller
             ];
         }
         $senderIdCount = SenderIdRecord::find()->count();
+        $settings = SmsManager::$plugin->getSettings();
 
         return $this->renderTemplate('sms-manager/senderids/edit', [
             'senderId' => $senderId,
             'providerOptions' => $providerOptions,
             'isNew' => !$senderIdId,
             'senderIdCount' => $senderIdCount,
+            'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
+            'isDefaultFromConfig' => SmsManager::$plugin->senderIds->isDefaultSenderIdFromConfig(),
         ]);
     }
 
@@ -194,12 +274,70 @@ class SenderIdsController extends Controller
             return $this->asJson(['success' => false, 'error' => 'Sender ID not found']);
         }
 
+        // Cannot toggle config sender IDs
+        if ($senderId->isFromConfig()) {
+            return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Cannot modify config-based sender ID.')]);
+        }
+
         $senderId->enabled = $enabled;
         if ($senderId->save(false)) {
             return $this->asJson(['success' => true]);
         }
 
         return $this->asJson(['success' => false, 'error' => 'Could not update sender ID']);
+    }
+
+    /**
+     * Set a sender ID as the default
+     *
+     * @return Response
+     */
+    public function actionSetDefault(): Response
+    {
+        $this->requirePostRequest();
+        $this->requirePermission('smsManager:editSenderIds');
+        $this->requireAcceptsJson();
+
+        // Check if default is set via config
+        if (SmsManager::$plugin->senderIds->isDefaultSenderIdFromConfig()) {
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('sms-manager', 'Default sender ID is set via config file and cannot be changed here.'),
+            ]);
+        }
+
+        $senderIdId = Craft::$app->getRequest()->getBodyParam('senderIdId');
+
+        // Find the sender ID - try by ID first, then by handle
+        if (is_numeric($senderIdId)) {
+            $senderId = SenderIdRecord::findOne((int)$senderIdId);
+        } else {
+            $senderId = SenderIdRecord::findByHandleWithConfig((string)$senderIdId);
+        }
+
+        if (!$senderId) {
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('sms-manager', 'Sender ID not found.'),
+            ]);
+        }
+
+        if (SmsManager::$plugin->senderIds->setDefaultSenderIdByHandle($senderId->handle)) {
+            $this->logInfo('Default sender ID changed', [
+                'handle' => $senderId->handle,
+                'name' => $senderId->name,
+            ]);
+
+            return $this->asJson([
+                'success' => true,
+                'message' => Craft::t('sms-manager', 'Default sender ID updated.'),
+            ]);
+        }
+
+        return $this->asJson([
+            'success' => false,
+            'error' => Craft::t('sms-manager', 'Failed to update default sender ID.'),
+        ]);
     }
 
     /**
@@ -245,10 +383,16 @@ class SenderIdsController extends Controller
 
         $senderIdIds = Craft::$app->getRequest()->getRequiredBodyParam('senderIdIds');
         $count = 0;
+        $errors = [];
 
         foreach ($senderIdIds as $id) {
             $senderId = SenderIdRecord::findOne($id);
             if ($senderId) {
+                // Cannot modify config sender IDs
+                if ($senderId->isFromConfig()) {
+                    $errors[] = Craft::t('sms-manager', 'Cannot modify config-based sender ID "{name}".', ['name' => $senderId->name]);
+                    continue;
+                }
                 $senderId->enabled = true;
                 if ($senderId->save(false)) {
                     $count++;
@@ -256,7 +400,15 @@ class SenderIdsController extends Controller
             }
         }
 
-        return $this->asJson(['success' => true, 'count' => $count]);
+        if ($count > 0 && empty($errors)) {
+            return $this->asJson(['success' => true, 'count' => $count]);
+        }
+
+        if ($count > 0) {
+            return $this->asJson(['success' => true, 'count' => $count, 'errors' => $errors]);
+        }
+
+        return $this->asJson(['success' => false, 'errors' => $errors]);
     }
 
     /**
@@ -270,14 +422,20 @@ class SenderIdsController extends Controller
         $this->requirePermission('smsManager:editSenderIds');
 
         $senderIdIds = Craft::$app->getRequest()->getRequiredBodyParam('senderIdIds');
+        $settings = SmsManager::$plugin->getSettings();
         $count = 0;
         $errors = [];
 
         foreach ($senderIdIds as $id) {
             $senderId = SenderIdRecord::findOne($id);
             if ($senderId) {
+                // Cannot modify config sender IDs
+                if ($senderId->isFromConfig()) {
+                    $errors[] = Craft::t('sms-manager', 'Cannot modify config-based sender ID "{name}".', ['name' => $senderId->name]);
+                    continue;
+                }
                 // Cannot disable default sender ID
-                if ($senderId->isDefault) {
+                if ($senderId->handle === $settings->defaultSenderIdHandle) {
                     $errors[] = Craft::t('sms-manager', 'Cannot disable default sender ID "{name}".', ['name' => $senderId->name]);
                     continue;
                 }

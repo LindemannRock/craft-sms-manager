@@ -38,41 +38,38 @@ class SenderIdsService extends Component
     }
 
     /**
-     * Get all sender IDs
+     * Get all sender IDs (config + database merged)
      *
      * @param bool $enabledOnly Only return enabled sender IDs
-     * @return array
+     * @return SenderIdRecord[]
      */
     public function getAllSenderIds(bool $enabledOnly = false): array
     {
-        $query = SenderIdRecord::find()
-            ->orderBy(['sortOrder' => SORT_ASC, 'name' => SORT_ASC]);
+        $senderIds = SenderIdRecord::findAllWithConfig();
 
         if ($enabledOnly) {
-            $query->where(['enabled' => true]);
+            $senderIds = array_filter($senderIds, fn($s) => $s->enabled);
         }
 
-        return $query->all();
+        return $senderIds;
     }
 
     /**
-     * Get sender IDs by provider
+     * Get sender IDs by provider (config + database merged)
      *
-     * @param int $providerId Provider ID
+     * @param int|string $providerIdOrHandle Provider ID or handle
      * @param bool $enabledOnly Only return enabled sender IDs
-     * @return array
+     * @return SenderIdRecord[]
      */
-    public function getSenderIdsByProvider(int $providerId, bool $enabledOnly = false): array
+    public function getSenderIdsByProvider(int|string $providerIdOrHandle, bool $enabledOnly = false): array
     {
-        $query = SenderIdRecord::find()
-            ->where(['providerId' => $providerId])
-            ->orderBy(['sortOrder' => SORT_ASC, 'name' => SORT_ASC]);
+        $senderIds = SenderIdRecord::findAllByProviderWithConfig($providerIdOrHandle);
 
         if ($enabledOnly) {
-            $query->andWhere(['enabled' => true]);
+            $senderIds = array_filter($senderIds, fn($s) => $s->enabled);
         }
 
-        return $query->all();
+        return array_values($senderIds);
     }
 
     /**
@@ -87,31 +84,140 @@ class SenderIdsService extends Component
     }
 
     /**
-     * Get sender ID by handle
+     * Get sender ID by handle (checks config first, then database)
      *
      * @param string $handle Sender ID handle
      * @return SenderIdRecord|null
      */
     public function getSenderIdByHandle(string $handle): ?SenderIdRecord
     {
-        return SenderIdRecord::findOne(['handle' => $handle]);
+        return SenderIdRecord::findByHandleWithConfig($handle);
     }
 
     /**
      * Get the default sender ID
      *
-     * @param int|null $providerId Optional provider ID to filter by
+     * Uses defaultSenderIdHandle from settings, falls back to isDefault flag,
+     * then first enabled sender ID.
+     *
+     * @param int|string|null $providerIdOrHandle Optional provider ID or handle to filter by
      * @return SenderIdRecord|null
      */
-    public function getDefaultSenderId(?int $providerId = null): ?SenderIdRecord
+    public function getDefaultSenderId(int|string|null $providerIdOrHandle = null): ?SenderIdRecord
     {
-        $conditions = ['isDefault' => true, 'enabled' => true];
+        $settings = SmsManager::$plugin->getSettings();
 
-        if ($providerId !== null) {
-            $conditions['providerId'] = $providerId;
+        // First, check handle-based default from settings
+        if (!empty($settings->defaultSenderIdHandle)) {
+            $senderId = $this->getSenderIdByHandle($settings->defaultSenderIdHandle);
+            if ($senderId && $senderId->enabled) {
+                // If filtering by provider, make sure it matches
+                if ($providerIdOrHandle !== null) {
+                    $matchesProvider = $this->senderIdMatchesProvider($senderId, $providerIdOrHandle);
+                    if ($matchesProvider) {
+                        return $senderId;
+                    }
+                } else {
+                    return $senderId;
+                }
+            }
         }
 
-        return SenderIdRecord::findOne($conditions);
+        // Fall back to isDefault flag in database
+        $conditions = ['isDefault' => true, 'enabled' => true];
+        if ($providerIdOrHandle !== null && is_int($providerIdOrHandle)) {
+            $conditions['providerId'] = $providerIdOrHandle;
+        }
+        $senderId = SenderIdRecord::findOne($conditions);
+        if ($senderId) {
+            return $senderId;
+        }
+
+        // Fall back to first enabled sender ID
+        if ($providerIdOrHandle !== null) {
+            $senderIds = $this->getSenderIdsByProvider($providerIdOrHandle, true);
+        } else {
+            $senderIds = $this->getAllSenderIds(true);
+        }
+        return $senderIds[0] ?? null;
+    }
+
+    /**
+     * Check if a sender ID matches a provider
+     */
+    private function senderIdMatchesProvider(SenderIdRecord $senderId, int|string $providerIdOrHandle): bool
+    {
+        if (is_string($providerIdOrHandle)) {
+            // Compare by handle
+            if ($senderId->isFromConfig() && $senderId->providerHandle !== null) {
+                return $senderId->providerHandle === $providerIdOrHandle;
+            }
+            $provider = SmsManager::$plugin->providers->getProviderByHandle($providerIdOrHandle);
+            return $provider && $senderId->providerId === $provider->id;
+        }
+        // Compare by ID
+        return $senderId->providerId === $providerIdOrHandle;
+    }
+
+    /**
+     * Check if the default sender ID is set from config file
+     *
+     * @return bool
+     */
+    public function isDefaultSenderIdFromConfig(): bool
+    {
+        $settings = SmsManager::$plugin->getSettings();
+        return $settings->isOverriddenByConfig('defaultSenderIdHandle');
+    }
+
+    /**
+     * Get the default sender ID handle
+     *
+     * @return string|null
+     */
+    public function getDefaultSenderIdHandle(): ?string
+    {
+        $settings = SmsManager::$plugin->getSettings();
+
+        // Check handle-based default
+        if (!empty($settings->defaultSenderIdHandle)) {
+            return $settings->defaultSenderIdHandle;
+        }
+
+        // Fall back to isDefault flag
+        $senderId = SenderIdRecord::findOne(['isDefault' => true, 'enabled' => true]);
+        return $senderId?->handle;
+    }
+
+    /**
+     * Set the default sender ID by handle
+     *
+     * @param string $handle Sender ID handle
+     * @return bool
+     */
+    public function setDefaultSenderIdByHandle(string $handle): bool
+    {
+        $senderId = $this->getSenderIdByHandle($handle);
+        if (!$senderId) {
+            return false;
+        }
+
+        // Cannot set default if controlled by config
+        if ($this->isDefaultSenderIdFromConfig()) {
+            $this->logWarning('Cannot set default sender ID - controlled by config file');
+            return false;
+        }
+
+        $settings = SmsManager::$plugin->getSettings();
+        $settings->defaultSenderIdHandle = $handle;
+
+        // Also update isDefault flag in database for backward compatibility
+        SenderIdRecord::updateAll(['isDefault' => false]);
+        if ($senderId->id) {
+            SenderIdRecord::updateAll(['isDefault' => true], ['id' => $senderId->id]);
+        }
+
+        return $settings->saveToDatabase();
     }
 
     /**
@@ -123,6 +229,12 @@ class SenderIdsService extends Component
      */
     public function saveSenderId(SenderIdRecord $senderId, bool $runValidation = true): bool
     {
+        // Cannot save config-based sender IDs
+        if ($senderId->isFromConfig()) {
+            $this->logWarning('Cannot save config-based sender ID', ['handle' => $senderId->handle]);
+            return false;
+        }
+
         $isNew = !$senderId->id;
 
         if ($runValidation && !$senderId->validate()) {
@@ -135,16 +247,20 @@ class SenderIdsService extends Component
             $senderId->uid = StringHelper::UUID();
         }
 
-        // If this is the default for this provider, unset other defaults
+        // If setting as default, update the settings
         if ($senderId->isDefault) {
+            // Clear other defaults in database
             SenderIdRecord::updateAll(
                 ['isDefault' => false],
-                [
-                    'and',
-                    ['providerId' => $senderId->providerId],
-                    ['!=', 'id', $senderId->id ?: 0],
-                ]
+                ['!=', 'id', $senderId->id ?: 0]
             );
+
+            // Update settings if not controlled by config
+            if (!$this->isDefaultSenderIdFromConfig()) {
+                $settings = SmsManager::$plugin->getSettings();
+                $settings->defaultSenderIdHandle = $senderId->handle;
+                $settings->saveToDatabase();
+            }
         }
 
         $saved = $senderId->save(false);
@@ -175,8 +291,14 @@ class SenderIdsService extends Component
             return ['success' => false, 'error' => Craft::t('sms-manager', 'Sender ID not found.')];
         }
 
+        // Cannot delete config-based sender IDs
+        if ($senderId->isFromConfig()) {
+            return ['success' => false, 'error' => Craft::t('sms-manager', 'Cannot delete config-based sender ID. Remove it from config/sms-manager.php instead.')];
+        }
+
         // Check if default
-        if ($senderId->isDefault) {
+        $defaultHandle = $this->getDefaultSenderIdHandle();
+        if ($senderId->handle === $defaultHandle) {
             return ['success' => false, 'error' => Craft::t('sms-manager', 'Cannot delete the default sender ID. Set another sender ID as default first.')];
         }
 
@@ -209,14 +331,14 @@ class SenderIdsService extends Component
     /**
      * Get sender ID options for select fields
      *
-     * @param int|null $providerId Optional provider ID to filter by
+     * @param int|string|null $providerIdOrHandle Optional provider ID or handle to filter by
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return array
      */
-    public function getSenderIdOptions(?int $providerId = null, bool $enabledOnly = true): array
+    public function getSenderIdOptions(int|string|null $providerIdOrHandle = null, bool $enabledOnly = true): array
     {
-        if ($providerId !== null) {
-            $senderIds = $this->getSenderIdsByProvider($providerId, $enabledOnly);
+        if ($providerIdOrHandle !== null) {
+            $senderIds = $this->getSenderIdsByProvider($providerIdOrHandle, $enabledOnly);
         } else {
             $senderIds = $this->getAllSenderIds($enabledOnly);
         }
@@ -238,14 +360,14 @@ class SenderIdsService extends Component
      *
      * Returns array with handle as key and name as value.
      *
-     * @param int|null $providerId Optional provider ID to filter by
+     * @param int|string|null $providerIdOrHandle Optional provider ID or handle to filter by
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return array
      */
-    public function getSenderIdOptionsArray(?int $providerId = null, bool $enabledOnly = true): array
+    public function getSenderIdOptionsArray(int|string|null $providerIdOrHandle = null, bool $enabledOnly = true): array
     {
-        if ($providerId !== null) {
-            $senderIds = $this->getSenderIdsByProvider($providerId, $enabledOnly);
+        if ($providerIdOrHandle !== null) {
+            $senderIds = $this->getSenderIdsByProvider($providerIdOrHandle, $enabledOnly);
         } else {
             $senderIds = $this->getAllSenderIds($enabledOnly);
         }

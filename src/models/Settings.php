@@ -39,14 +39,26 @@ class Settings extends Model
     public string $pluginName = 'SMS Manager';
 
     /**
-     * @var int|null Default provider ID
+     * @var int|null Default provider ID (deprecated, use defaultProviderHandle)
+     * @deprecated Use defaultProviderHandle instead
      */
     public ?int $defaultProviderId = null;
 
     /**
-     * @var int|null Default sender ID
+     * @var int|null Default sender ID (deprecated, use defaultSenderIdHandle)
+     * @deprecated Use defaultSenderIdHandle instead
      */
     public ?int $defaultSenderIdId = null;
+
+    /**
+     * @var string|null Default provider handle
+     */
+    public ?string $defaultProviderHandle = null;
+
+    /**
+     * @var string|null Default sender ID handle
+     */
+    public ?string $defaultSenderIdHandle = null;
 
     // =========================================================================
     // ANALYTICS SETTINGS
@@ -186,6 +198,19 @@ class Settings extends Model
         return [];
     }
 
+    /**
+     * @inheritdoc
+     */
+    protected static function stringFields(): array
+    {
+        return [
+            'pluginName',
+            'logLevel',
+            'defaultProviderHandle',
+            'defaultSenderIdHandle',
+        ];
+    }
+
     // =========================================================================
     // VALIDATION
     // =========================================================================
@@ -208,6 +233,7 @@ class Settings extends Model
                 'boolean',
             ],
             [['defaultProviderId', 'defaultSenderIdId'], 'integer'],
+            [['defaultProviderHandle', 'defaultSenderIdHandle'], 'string', 'max' => 64],
             ['analyticsLimit', 'integer', 'min' => 1],
             ['analyticsLimit', 'default', 'value' => 1000],
             ['analyticsRetention', 'integer', 'min' => 0],

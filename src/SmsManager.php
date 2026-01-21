@@ -283,11 +283,13 @@ class SmsManager extends Plugin
             // Providers
             'sms-manager/providers' => 'sms-manager/providers/index',
             'sms-manager/providers/new' => 'sms-manager/providers/edit',
+            'sms-manager/providers/view/<handle:[^\/]+>' => 'sms-manager/providers/view',
             'sms-manager/providers/<providerId:\d+>' => 'sms-manager/providers/edit',
 
             // Sender IDs
             'sms-manager/sender-ids' => 'sms-manager/sender-ids/index',
             'sms-manager/sender-ids/new' => 'sms-manager/sender-ids/edit',
+            'sms-manager/sender-ids/view/<handle:[^\/]+>' => 'sms-manager/sender-ids/view',
             'sms-manager/sender-ids/<senderIdId:\d+>' => 'sms-manager/sender-ids/edit',
 
             // Analytics

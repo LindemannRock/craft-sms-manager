@@ -42,42 +42,87 @@
                 "This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
         }) }}
 
-        {# TODO: Decide whether to keep default provider/sender ID in settings or only use isDefault toggle on records.
-           Currently the isDefault toggle on provider/sender ID records is what SmsService actually uses.
-           These settings dropdowns are not used - hidden until decision is made. #}
-        {#
         <hr>
 
         <h2>{{ "Default Provider & Sender ID"|t('sms-manager') }}</h2>
+        <p class="light">{{ "Select which configured provider and sender ID to use as the system defaults."|t('sms-manager') }}</p>
 
-        {% set providerOptions = craft.app.plugins.getPlugin('sms-manager').providers.getProviderOptions() %}
-        {{ forms.selectField({
-            label: 'Default Provider'|t('sms-manager'),
-            instructions: 'The default provider to use for sending SMS messages'|t('sms-manager'),
-            id: 'defaultProviderId',
-            name: 'settings[defaultProviderId]',
-            value: settings.defaultProviderId,
-            options: [{label: 'Select a provider'|t('sms-manager'), value: ''}]|merge(providerOptions),
-            disabled: settings.isOverriddenByConfig('defaultProviderId'),
-            warning: settings.isOverriddenByConfig('defaultProviderId') ?
-                "This is being overridden by the <code>defaultProviderId</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
-        }) }}
+        {% set enabledProviders = craft.app.plugins.getPlugin('sms-manager').providers.getAllProviders(true) %}
+        {% set enabledSenderIds = craft.app.plugins.getPlugin('sms-manager').senderIds.getAllSenderIds(true) %}
 
-        {% set senderIdOptions = craft.app.plugins.getPlugin('sms-manager').senderIds.getSenderIdOptions() %}
-        {{ forms.selectField({
-            label: 'Default Sender ID'|t('sms-manager'),
-            instructions: 'The default sender ID to use for sending SMS messages'|t('sms-manager'),
-            id: 'defaultSenderIdId',
-            name: 'settings[defaultSenderIdId]',
-            value: settings.defaultSenderIdId,
-            options: [{label: 'Select a sender ID'|t('sms-manager'), value: ''}]|merge(senderIdOptions),
-            disabled: settings.isOverriddenByConfig('defaultSenderIdId'),
-            warning: settings.isOverriddenByConfig('defaultSenderIdId') ?
-                "This is being overridden by the <code>defaultSenderIdId</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
-        }) }}
+        <div class="field">
+            <div class="heading">
+                <label>{{ 'Default Provider'|t('sms-manager') }}</label>
+            </div>
+            <div class="instructions">
+                <p>{{ 'The provider that will be used when no specific provider is specified.'|t('sms-manager') }}</p>
+            </div>
+        </div>
+        {% if enabledProviders|length == 0 %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                type: 'notice',
+                message: 'No enabled providers. <a href="' ~ url('sms-manager/providers/new') ~ '">Create a provider</a> to use as the default.'
+            } %}
+        {% else %}
+            {% set providerOptions = [{ label: 'Select a default provider...', value: '' }] %}
+            {% for provider in enabledProviders %}
+                {% set providerOptions = providerOptions|merge([{
+                    label: provider.name ~ ' (' ~ provider.type|upper ~ ')',
+                    value: provider.handle
+                }]) %}
+            {% endfor %}
+
+            <div class="input">
+                {{ forms.select({
+                    id: 'defaultProviderHandle',
+                    name: 'settings[defaultProviderHandle]',
+                    value: settings.defaultProviderHandle,
+                    options: providerOptions,
+                    disabled: settings.isOverriddenByConfig('defaultProviderHandle'),
+                }) }}
+            </div>
+            {% if settings.isOverriddenByConfig('defaultProviderHandle') %}
+                <p class="warning with-icon">{{ "This is being overridden by the <code>defaultProviderHandle</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw }}</p>
+            {% endif %}
+        {% endif %}
+
+        <div class="field" style="margin-top: 24px;">
+            <div class="heading">
+                <label>{{ 'Default Sender ID'|t('sms-manager') }}</label>
+            </div>
+            <div class="instructions">
+                <p>{{ 'The sender ID that will be used when no specific sender ID is specified.'|t('sms-manager') }}</p>
+            </div>
+        </div>
+        {% if enabledSenderIds|length == 0 %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                type: 'notice',
+                message: 'No enabled sender IDs. <a href="' ~ url('sms-manager/sender-ids/new') ~ '">Create a sender ID</a> to use as the default.'
+            } %}
+        {% else %}
+            {% set senderIdOptions = [{ label: 'Select a default sender ID...', value: '' }] %}
+            {% for senderId in enabledSenderIds %}
+                {% set senderIdOptions = senderIdOptions|merge([{
+                    label: senderId.name ~ ' (' ~ senderId.senderId ~ ')',
+                    value: senderId.handle
+                }]) %}
+            {% endfor %}
+
+            <div class="input">
+                {{ forms.select({
+                    id: 'defaultSenderIdHandle',
+                    name: 'settings[defaultSenderIdHandle]',
+                    value: settings.defaultSenderIdHandle,
+                    options: senderIdOptions,
+                    disabled: settings.isOverriddenByConfig('defaultSenderIdHandle'),
+                }) }}
+            </div>
+            {% if settings.isOverriddenByConfig('defaultSenderIdHandle') %}
+                <p class="warning with-icon">{{ "This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw }}</p>
+            {% endif %}
+        {% endif %}
 
         <hr>
-        #}
 
 
         <h2>{{ "Logging Settings"|t('sms-manager') }}</h2>
