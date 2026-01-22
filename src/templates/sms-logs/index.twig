@@ -1,5 +1,6 @@
 {% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
+{% import 'sms-manager/_macros/index' as indexMacros %}
 
 {% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
 
@@ -28,13 +29,7 @@
     {% endif %}
 {% endfor %}
 
-{# Status colors #}
-{% set statusColors = {
-    'sent': { bg: 'rgba(16, 185, 129, 0.12)', text: '#059669' },
-    'delivered': { bg: 'rgba(16, 185, 129, 0.12)', text: '#059669' },
-    'failed': { bg: 'rgba(239, 68, 68, 0.12)', text: '#dc2626' },
-    'pending': { bg: 'rgba(245, 158, 11, 0.12)', text: '#d97706' },
-} %}
+{# Status filter uses Craft's built-in status classes: green, red, orange #}
 
 {% block toolbar %}
     <div id="toolbar" class="flex" style="align-items: flex-end;">
@@ -51,7 +46,6 @@
                             <ul>
                                 <li><a class="{{ statusFilter == 'all' ? 'sel' : '' }}" href="?status=all&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status all"></span>{{ 'All'|t('sms-manager') }}</a></li>
                                 <li><a class="{{ statusFilter == 'sent' ? 'sel' : '' }}" href="?status=sent&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status green"></span>{{ 'Sent'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ statusFilter == 'delivered' ? 'sel' : '' }}" href="?status=delivered&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status green"></span>{{ 'Delivered'|t('sms-manager') }}</a></li>
                                 <li><a class="{{ statusFilter == 'failed' ? 'sel' : '' }}" href="?status=failed&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status red"></span>{{ 'Failed'|t('sms-manager') }}</a></li>
                                 <li><a class="{{ statusFilter == 'pending' ? 'sel' : '' }}" href="?status=pending&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status orange"></span>{{ 'Pending'|t('sms-manager') }}</a></li>
                             </ul>
@@ -164,13 +158,6 @@
 
 {% block content %}
     <style>
-        .log-status {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: 500;
-        }
         .message-cell {
             max-width: 300px;
             overflow: hidden;
@@ -234,7 +221,7 @@
                 <thead>
                     <tr>
                         <th scope="col" data-attribute="dateCreated" class="orderable {{ sort == 'dateCreated' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="dateCreated">{{ 'Date'|t('sms-manager') }}</button>
+                            <button type="button" data-sort="dateCreated">{{ 'Sent'|t('sms-manager') }}</button>
                         </th>
                         <th scope="col" data-attribute="recipient" class="orderable {{ sort == 'recipient' ? 'ordered ' ~ dir : '' }}">
                             <button type="button" data-sort="recipient">{{ 'Recipient'|t('sms-manager') }}</button>
@@ -254,11 +241,10 @@
                 <tbody>
                     {% if logs|length %}
                         {% for log in logs %}
-                            {% set colors = statusColors[log.status] ?? { bg: '#f3f4f6', text: '#6b7280' } %}
                             {% set hasDetails = log.errorMessage or log.providerResponse or (log.message|length > 50) %}
                             {# Main log row - clickable #}
                             <tr class="clickable-row" data-id="{{ log.id }}" data-entry-id="{{ loop.index }}">
-                                <td class="light">{{ (log.dateCreated ~ ' UTC')|date('M j, H:i', craft.app.timezone) }}</td>
+                                <td class="light">{{ log.dateCreated|date('M j, Y') }}, {{ log.dateCreated|time('short') }}</td>
                                 <td><code>{{ log.recipient }}</code></td>
                                 <td class="message-cell" title="{{ log.message }}">
                                     {{ log.message|slice(0, 50) }}{% if log.message|length > 50 %}...{% endif %}
@@ -273,9 +259,7 @@
                                     <span class="light">{{ langLabel }}</span>
                                 </td>
                                 <td>
-                                    <span class="log-status" style="background: {{ colors.bg }}; color: {{ colors.text }};">
-                                        {{ log.status|capitalize }}
-                                    </span>
+                                    {{ indexMacros.logStatusBadge(log.status) }}
                                 </td>
                                 <td><span class="light">{{ log.providerName }}</span></td>
                                 <td><span class="light">{{ log.senderIdName }}</span></td>

@@ -255,3 +255,54 @@
 	} %}
 	{{- currentFilter == sourceType ? colors[sourceType]|default('#9aa5b1') : '#aab6c1' -}}
 {% endmacro %}
+
+{# =========================================================================
+   LOG STATUS BADGE
+   Renders SMS log status badge using Craft's built-in status classes
+   - sent = green (like Live)
+   - failed = red (like Expired)
+   - pending = orange (like Pending)
+
+   @param string status - 'sent', 'failed', 'pending'
+   ========================================================================= #}
+
+{% macro logStatusBadge(status) %}
+	{% set statusClass = status == 'sent' ? 'green' : (status == 'failed' ? 'red' : 'orange') %}
+	<span class="status-label {{ statusClass }}">
+		<span class="status {{ statusClass }}"></span>
+		<span class="status-label-text">{{ status|capitalize }}</span>
+	</span>
+{% endmacro %}
+
+{# =========================================================================
+   LOG STATUS FILTER MENU ITEMS
+   Renders the Status filter section for SMS logs dropdown menus
+   Uses Craft's built-in status classes: green, red, orange
+
+   @param string statusFilter - current filter value ('all', 'sent', 'failed', 'pending')
+   @param object extraParams - additional URL params { key: value }
+   ========================================================================= #}
+
+{% macro logStatusFilterMenu(statusFilter, extraParams) %}
+	<li>
+		<a class="{{ statusFilter == 'all' ? 'sel' : '' }}" href="?status=all{% for key, value in extraParams %}&{{ key }}={{ value }}{% endfor %}">
+			<span class="status all"></span>{{ 'All'|t('sms-manager') }}
+		</a>
+	</li>
+	<li>
+		<a class="{{ statusFilter == 'sent' ? 'sel' : '' }}" href="?status=sent{% for key, value in extraParams %}&{{ key }}={{ value }}{% endfor %}">
+			<span class="status green"></span>{{ 'Sent'|t('sms-manager') }}
+		</a>
+	</li>
+	<li>
+		<a class="{{ statusFilter == 'failed' ? 'sel' : '' }}" href="?status=failed{% for key, value in extraParams %}&{{ key }}={{ value }}{% endfor %}">
+			<span class="status red"></span>{{ 'Failed'|t('sms-manager') }}
+		</a>
+	</li>
+	<li>
+		<a class="{{ statusFilter == 'pending' ? 'sel' : '' }}" href="?status=pending{% for key, value in extraParams %}&{{ key }}={{ value }}{% endfor %}">
+			<span class="status orange"></span>{{ 'Pending'|t('sms-manager') }}
+		</a>
+	</li>
+{% endmacro %}
+
