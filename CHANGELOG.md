@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.4.0...v5.5.0) (2026-01-22)
+
+
+### Features
+
+* add phone number normalization and validation for MPP-SMS provider; enhance SMS log details display ([db3dea5](https://github.com/LindemannRock/craft-sms-manager/commit/db3dea53a7fc5f8f779faa5a20b9b1e48e0eaf64))
+
 ## [5.4.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.3.0...v5.4.0) (2026-01-22)
 
 
