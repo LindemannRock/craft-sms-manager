@@ -129,12 +129,13 @@ class LogsController extends Controller
         // Get logs
         $logs = $query->all();
 
-        // Enrich with provider/sender names
+        // Enrich with provider/sender names and actual sender ID
         foreach ($logs as &$log) {
             $provider = ProviderRecord::findOne($log['providerId']);
             $senderId = SenderIdRecord::findOne($log['senderIdId']);
             $log['providerName'] = $provider ? $provider->name : 'Unknown';
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
         }
 
         // Get providers for filter
@@ -225,12 +226,13 @@ class LogsController extends Controller
 
         $logs = $query->all();
 
-        // Enrich with provider/sender names
+        // Enrich with provider/sender names and actual sender ID
         foreach ($logs as &$log) {
             $provider = ProviderRecord::findOne($log['providerId']);
             $senderId = SenderIdRecord::findOne($log['senderIdId']);
             $log['providerName'] = $provider ? $provider->name : 'Unknown';
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
         }
 
         // Build filename with settings-based name
@@ -285,7 +287,7 @@ class LogsController extends Controller
                 $log['language'],
                 $log['status'],
                 $log['providerName'],
-                $log['senderIdName'],
+                $log['senderIdValue'],
                 $log['sourcePlugin'] ?? 'Direct',
                 $log['providerMessageId'],
                 $log['errorMessage'],

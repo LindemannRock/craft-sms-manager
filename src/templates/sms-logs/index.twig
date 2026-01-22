@@ -262,7 +262,7 @@
                                     {{ indexMacros.logStatusBadge(log.status) }}
                                 </td>
                                 <td><span class="light">{{ log.providerName }}</span></td>
-                                <td><span class="light">{{ log.senderIdName }}</span></td>
+                                <td><span class="light">{{ log.senderIdValue }}</span></td>
                                 <td>
                                     {% if log.sourcePlugin %}
                                         <span class="light">{{ log.sourcePlugin }}</span>
@@ -297,6 +297,11 @@
                                                         <div class="context-value">{{ log.providerResponse }}</div>
                                                     </div>
                                                 {% endif %}
+                                                {# Sender ID used (actual value sent to API) #}
+                                                <div>
+                                                    <div class="context-label">{{ 'Sender ID'|t('sms-manager') }}</div>
+                                                    <div class="context-value">{{ log.senderIdValue ?? 'Unknown' }}</div>
+                                                </div>
                                                 {# Provider Message ID #}
                                                 {% if log.providerMessageId %}
                                                     <div>
@@ -483,6 +488,13 @@
                         </div>`;
                 }
 
+                // Sender ID used (actual value sent to API)
+                contextContent += `
+                    <div>
+                        <div class="context-label">{{ "Sender ID"|t("sms-manager")|e("js") }}</div>
+                        <div class="context-value">${Craft.escapeHtml(log.senderIdValue || 'Unknown')}</div>
+                    </div>`;
+
                 // Provider Message ID
                 if (log.providerMessageId) {
                     contextContent += `
@@ -519,7 +531,7 @@
                         </span>
                     </td>
                     <td><span class="light">${Craft.escapeHtml(log.providerName)}</span></td>
-                    <td><span class="light">${Craft.escapeHtml(log.senderIdName)}</span></td>
+                    <td><span class="light">${Craft.escapeHtml(log.senderIdValue)}</span></td>
                     <td>
                         ${log.sourcePlugin
                             ? `<span class="light">${Craft.escapeHtml(log.sourcePlugin)}</span>`
