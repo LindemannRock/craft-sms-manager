@@ -114,7 +114,6 @@ class Install extends Migration
             'handle' => $this->string(64)->notNull(),
             'type' => $this->string(64)->notNull(), // Provider class type (e.g., 'mpp-sms', 'twilio')
             'enabled' => $this->boolean()->notNull()->defaultValue(true),
-            'sortOrder' => $this->integer()->notNull()->defaultValue(0),
             'source' => $this->string(20)->notNull()->defaultValue('database'), // 'config' or 'database'
             // Provider-specific settings (JSON)
             'settings' => $this->text()->null()->comment('JSON provider settings'),
@@ -128,7 +127,6 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_providers}}', ['handle'], true);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['type'], false);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['enabled'], false);
-        $this->createIndex(null, '{{%smsmanager_providers}}', ['sortOrder'], false);
         $this->createIndex(null, '{{%smsmanager_providers}}', ['source'], false);
     }
 
@@ -151,7 +149,6 @@ class Install extends Migration
             'description' => $this->text()->null(), // Optional description
             'enabled' => $this->boolean()->notNull()->defaultValue(true),
             'isDev' => $this->boolean()->notNull()->defaultValue(false),
-            'sortOrder' => $this->integer()->notNull()->defaultValue(0),
             'source' => $this->string(20)->notNull()->defaultValue('database'), // 'config' or 'database'
             // Standard columns
             'dateCreated' => $this->dateTime()->notNull(),
@@ -165,7 +162,6 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['handle'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['enabled'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['isDev'], false);
-        $this->createIndex(null, '{{%smsmanager_senderids}}', ['sortOrder'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['source'], false);
 
         // Foreign key to providers (nullable - config providers don't have database IDs)
@@ -328,7 +324,6 @@ class Install extends Migration
             'language' => $this->string(10)->notNull()->defaultValue('en'),
             'message' => $this->text()->notNull(),
             'enabled' => $this->boolean()->notNull()->defaultValue(true),
-            'sortOrder' => $this->integer()->notNull()->defaultValue(0),
             // Standard columns
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -339,6 +334,5 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_templates}}', ['handle'], true);
         $this->createIndex(null, '{{%smsmanager_templates}}', ['language'], false);
         $this->createIndex(null, '{{%smsmanager_templates}}', ['enabled'], false);
-        $this->createIndex(null, '{{%smsmanager_templates}}', ['sortOrder'], false);
     }
 }

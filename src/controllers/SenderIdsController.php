@@ -214,7 +214,6 @@ class SenderIdsController extends Controller
         $senderId->description = $request->getBodyParam('description');
         $senderId->enabled = (bool)$request->getBodyParam('enabled', true);
         $senderId->isDev = (bool)$request->getBodyParam('isDev', false);
-        $senderId->sortOrder = (int)$request->getBodyParam('sortOrder', 0);
 
         // Handle isDefault via settings, not on the record
         $setAsDefault = (bool)$request->getBodyParam('isDefault', false);

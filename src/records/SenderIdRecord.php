@@ -28,7 +28,6 @@ use lindemannrock\smsmanager\traits\ConfigSourceTrait;
  * @property string|null $description
  * @property bool $enabled
  * @property bool $isDev
- * @property int $sortOrder
  * @property string $source
  * @property \DateTime $dateCreated
  * @property \DateTime $dateUpdated
@@ -61,7 +60,7 @@ class SenderIdRecord extends ActiveRecord
             [['name', 'handle', 'senderId', 'providerHandle'], 'string', 'max' => 255],
             [['description'], 'string'],
             [['enabled', 'isDev'], 'boolean'],
-            [['sortOrder', 'providerId'], 'integer'],
+            [['providerId'], 'integer'],
             [['handle'], 'unique', 'targetClass' => self::class, 'message' => 'This handle is already in use.'],
         ];
     }
@@ -129,7 +128,7 @@ class SenderIdRecord extends ActiveRecord
         // Then, load sender IDs from database (excluding those defined in config)
         /** @var self[] $rows */
         $rows = self::find()
-            ->orderBy(['sortOrder' => SORT_ASC, 'name' => SORT_ASC])
+            ->orderBy(['name' => SORT_ASC])
             ->all();
 
         foreach ($rows as $row) {
@@ -200,7 +199,6 @@ class SenderIdRecord extends ActiveRecord
         $model->enabled = $config['enabled'] ?? true;
         // Note: Default is managed via settings (defaultSenderIdHandle)
         $model->isDev = $config['isDev'] ?? false;
-        $model->sortOrder = $config['sortOrder'] ?? 0;
         $model->source = 'config';
 
         // Store provider handle for config-based sender IDs

@@ -148,23 +148,23 @@ return [
             //     'name' => 'Production MPP-SMS',
             //     'type' => 'mpp-sms',
             //     'enabled' => true,
-            //     'sortOrder' => 1,
             //     'settings' => [
             //         'apiUrl' => App::env('MPP_SMS_API_URL'),
             //         'apiKey' => App::env('MPP_SMS_API_KEY'),
             //         'devApiKey' => App::env('MPP_SMS_DEV_API_KEY'),
+            //         'allowedCountries' => ['*'],  // ['*'] for all, or ['KW', 'SA', 'AE'] for specific
             //     ],
             // ],
 
-            // Example: Development provider
+            // Example: Development provider (restricted to specific countries)
             // 'dev-provider' => [
             //     'name' => 'Development Provider',
             //     'type' => 'mpp-sms',
             //     'enabled' => true,
-            //     'sortOrder' => 2,
             //     'settings' => [
             //         'apiUrl' => App::env('MPP_SMS_API_URL'),
             //         'apiKey' => App::env('MPP_SMS_DEV_API_KEY'),
+            //         'allowedCountries' => ['KW'],  // Kuwait only for dev
             //     ],
             // ],
         ],
@@ -185,7 +185,6 @@ return [
          * - description: Optional description
          * - enabled: Whether the sender ID is active
          * - isDev: Mark as development-only sender ID
-         * - sortOrder: Display order (optional)
          */
         'senderIds' => [
             // Example: Main production sender
@@ -196,7 +195,6 @@ return [
             //     'description' => 'Primary production sender ID',
             //     'enabled' => true,
             //     'isDev' => false,
-            //     'sortOrder' => 1,
             // ],
 
             // Example: Marketing sender
@@ -207,7 +205,6 @@ return [
             //     'description' => 'For marketing campaigns',
             //     'enabled' => true,
             //     'isDev' => false,
-            //     'sortOrder' => 2,
             // ],
 
             // Example: Development sender
@@ -218,7 +215,6 @@ return [
             //     'description' => 'For development only',
             //     'enabled' => true,
             //     'isDev' => true,
-            //     'sortOrder' => 99,
             // ],
         ],
     ],

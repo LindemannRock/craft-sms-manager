@@ -24,7 +24,6 @@ use lindemannrock\smsmanager\traits\ConfigSourceTrait;
  * @property string $handle
  * @property string $type
  * @property bool $enabled
- * @property int $sortOrder
  * @property string|null $settings
  * @property string $source
  * @property \DateTime $dateCreated
@@ -57,7 +56,6 @@ class ProviderRecord extends ActiveRecord
             [['name', 'handle', 'type'], 'string', 'max' => 255],
             [['settings'], 'string'],
             [['enabled'], 'boolean'],
-            [['sortOrder'], 'integer'],
             [['handle'], 'unique', 'targetClass' => self::class, 'message' => 'This handle is already in use.'],
         ];
     }
@@ -135,7 +133,7 @@ class ProviderRecord extends ActiveRecord
         // Then, load providers from database (excluding those defined in config)
         /** @var self[] $rows */
         $rows = self::find()
-            ->orderBy(['sortOrder' => SORT_ASC, 'name' => SORT_ASC])
+            ->orderBy(['name' => SORT_ASC])
             ->all();
 
         foreach ($rows as $row) {
@@ -182,7 +180,6 @@ class ProviderRecord extends ActiveRecord
         $model->settings = json_encode($config['settings'] ?? []);
         $model->enabled = $config['enabled'] ?? true;
         // Note: Default is managed via settings (defaultProviderHandle)
-        $model->sortOrder = $config['sortOrder'] ?? 0;
         $model->source = 'config';
 
         // Build raw config display for tooltip

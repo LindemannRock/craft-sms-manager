@@ -166,6 +166,7 @@ return [
                 'settings' => [
                     'apiUrl' => App::env('MPP_SMS_API_URL'),
                     'apiKey' => App::env('MPP_SMS_API_KEY'),
+                    'allowedCountries' => ['*'], // ['*'] for all, or ['KW', 'SA', 'AE'] for specific
                 ],
             ],
         ],
@@ -177,7 +178,7 @@ return [
                 'provider' => 'production-provider', // Reference by handle
                 'senderId' => 'MYCOMPANY',
                 'enabled' => true,
-                'isTest' => false,
+                'isDev' => false,
             ],
         ],
     ],

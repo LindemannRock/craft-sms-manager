@@ -192,7 +192,6 @@ class ProvidersController extends Controller
         $provider->handle = $request->getBodyParam('handle') ?: StringHelper::toHandle($provider->name);
         $provider->type = $request->getBodyParam('type');
         $provider->enabled = (bool)$request->getBodyParam('enabled', true);
-        $provider->sortOrder = (int)$request->getBodyParam('sortOrder', 0);
 
         // Handle isDefault via settings, not on the record
         $setAsDefault = (bool)$request->getBodyParam('isDefault', false);
