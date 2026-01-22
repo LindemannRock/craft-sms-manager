@@ -419,5 +419,196 @@
         document.querySelector('.next-page:not(.disabled)')?.addEventListener('click', function() {
             window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page + 1 }}';
         });
+
+        // Auto-refresh logs via AJAX (no full page reload)
+        {% if settings.refreshIntervalSecs > 0 %}
+        const refreshInterval = {{ settings.refreshIntervalSecs }} * 1000;
+        let refreshTimer;
+        let isRefreshing = false;
+
+        function getCurrentParams() {
+            const searchInput = document.querySelector('input[name="search"]');
+            return new URLSearchParams({
+                search: searchInput ? searchInput.value : '{{ search|e('js') }}',
+                status: '{{ statusFilter }}',
+                provider: '{{ providerFilter }}',
+                language: '{{ languageFilter }}',
+                source: '{{ sourceFilter }}',
+                dateRange: '{{ dateRange }}',
+                sort: '{{ sort }}',
+                dir: '{{ dir }}',
+                page: '{{ page }}'
+            });
+        }
+
+        function renderRow(log, index) {
+            const statusClass = log.status === 'sent' ? 'green' : (log.status === 'failed' ? 'red' : 'orange');
+            const hasDetails = log.errorMessage || log.providerResponse || (log.message && log.message.length > 50);
+
+            // Build language display
+            let langLabel = log.language || '-';
+            {% for site in craft.app.sites.getAllSites() %}
+            if (log.language === '{{ site.language }}') {
+                langLabel = '{{ site.language|upper[:2] }}';
+            }
+            {% endfor %}
+
+            return `
+                <tr class="clickable-row" data-id="${log.id}" data-entry-id="${index}">
+                    <td class="light">${log.dateFormatted}, ${log.timeFormatted}</td>
+                    <td><code>${Craft.escapeHtml(log.recipient)}</code></td>
+                    <td class="message-cell" title="${Craft.escapeHtml(log.message || '')}">
+                        ${Craft.escapeHtml((log.message || '').substring(0, 50))}${(log.message || '').length > 50 ? '...' : ''}
+                    </td>
+                    <td><span class="light">${langLabel}</span></td>
+                    <td>
+                        <span class="status-label ${statusClass}">
+                            <span class="status ${statusClass}"></span>
+                            <span class="status-label-text">${log.status.charAt(0).toUpperCase() + log.status.slice(1)}</span>
+                        </span>
+                    </td>
+                    <td><span class="light">${Craft.escapeHtml(log.providerName)}</span></td>
+                    <td><span class="light">${Craft.escapeHtml(log.senderIdName)}</span></td>
+                    <td>
+                        ${log.sourcePlugin
+                            ? `<span class="light">${Craft.escapeHtml(log.sourcePlugin)}</span>`
+                            : '<span class="light">{{ "Direct"|t("sms-manager")|e("js") }}</span>'}
+                    </td>
+                </tr>
+                ${hasDetails ? `
+                <tr class="context-row" data-entry-id="${index}" style="display: none;">
+                    <td colspan="8" style="background: #f8fafc; padding: 12px 16px; border-top: none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <strong>{{ "Full Message"|t("sms-manager")|e("js") }}</strong>
+                                <p style="margin: 4px 0; white-space: pre-wrap;">${Craft.escapeHtml(log.message || '')}</p>
+                            </div>
+                            <div>
+                                ${log.errorMessage ? `
+                                    <strong style="color: #dc2626;">{{ "Error"|t("sms-manager")|e("js") }}</strong>
+                                    <p style="margin: 4px 0; color: #dc2626;">${Craft.escapeHtml(log.errorMessage)}</p>
+                                ` : ''}
+                                ${log.providerResponse ? `
+                                    <strong>{{ "Provider Response"|t("sms-manager")|e("js") }}</strong>
+                                    <p style="margin: 4px 0;"><code>${Craft.escapeHtml(log.providerResponse)}</code></p>
+                                ` : ''}
+                                ${log.providerMessageId ? `
+                                    <strong>{{ "Message ID"|t("sms-manager")|e("js") }}</strong>
+                                    <p style="margin: 4px 0;"><code>${Craft.escapeHtml(log.providerMessageId)}</code></p>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                ` : ''}
+            `;
+        }
+
+        async function refreshLogs() {
+            if (isRefreshing) return;
+            isRefreshing = true;
+
+            try {
+                const params = getCurrentParams();
+                const baseUrl = '{{ actionUrl('sms-manager/logs/get-logs-data') }}';
+                const separator = baseUrl.includes('?') ? '&' : '?';
+                const response = await fetch(baseUrl + separator + params.toString(), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                if (!data.success) throw new Error('API returned error');
+
+                // Update table body
+                const tbody = document.querySelector('.tableview tbody');
+                if (tbody && data.logs) {
+                    if (data.logs.length > 0) {
+                        tbody.innerHTML = data.logs.map((log, i) => renderRow(log, i + 1)).join('');
+                        attachRowEventListeners();
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2em;">{{ 'No logs found.'|t('sms-manager')|e('js') }}</td></tr>`;
+                    }
+                }
+
+                // Update pagination info
+                const pageInfo = document.querySelector('.page-info');
+                if (pageInfo && data.totalCount !== undefined) {
+                    const endRange = Math.min(data.offset + data.limit, data.totalCount);
+                    if (data.totalCount === 0) {
+                        pageInfo.textContent = '{{ "No logs"|t("sms-manager")|e("js") }}';
+                    } else {
+                        pageInfo.textContent = `${data.offset + 1} – ${endRange} {{ "of"|t("sms-manager")|e("js") }} ${data.totalCount} {{ "logs"|t("sms-manager")|e("js") }}`;
+                    }
+                }
+
+                // Update pagination buttons
+                const prevBtn = document.querySelector('.prev-page');
+                const nextBtn = document.querySelector('.next-page');
+                if (prevBtn) {
+                    prevBtn.disabled = data.page <= 1;
+                    prevBtn.classList.toggle('disabled', data.page <= 1);
+                }
+                if (nextBtn) {
+                    nextBtn.disabled = data.page >= data.totalPages;
+                    nextBtn.classList.toggle('disabled', data.page >= data.totalPages);
+                }
+
+            } catch (error) {
+                console.error('Logs refresh failed:', error);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
+        function attachRowEventListeners() {
+            document.querySelectorAll('.clickable-row').forEach(row => {
+                row.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                        return;
+                    }
+                    const entryId = this.dataset.entryId;
+                    const contextRow = document.querySelector('.context-row[data-entry-id="' + entryId + '"]');
+                    if (contextRow) {
+                        const isVisible = contextRow.style.display !== 'none';
+                        contextRow.style.display = isVisible ? 'none' : 'table-row';
+                        this.style.background = isVisible ? '' : '#f0f4f8';
+                    }
+                });
+            });
+        }
+
+        function startAutoRefresh() {
+            refreshTimer = setInterval(refreshLogs, refreshInterval);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+                refreshTimer = null;
+            }
+        }
+
+        // Start auto-refresh on page load
+        startAutoRefresh();
+
+        // Pause auto-refresh when user interacts with the page
+        let pauseTimeout;
+        function resetAutoRefreshPause() {
+            stopAutoRefresh();
+            clearTimeout(pauseTimeout);
+            pauseTimeout = setTimeout(function() {
+                startAutoRefresh();
+            }, 5000); // Resume after 5 seconds of inactivity
+        }
+
+        document.addEventListener('click', resetAutoRefreshPause);
+        document.addEventListener('keydown', resetAutoRefreshPause);
+        document.addEventListener('scroll', resetAutoRefreshPause);
+        {% endif %}
     </script>
 {% endblock %}

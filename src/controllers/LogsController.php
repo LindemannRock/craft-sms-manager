@@ -356,6 +356,127 @@ class LogsController extends Controller
     }
 
     /**
+     * Get logs data for AJAX refresh
+     *
+     * @return Response
+     */
+    public function actionGetLogsData(): Response
+    {
+        $this->requirePermission('smsManager:viewLogs');
+
+        $request = Craft::$app->getRequest();
+        $settings = SmsManager::$plugin->getSettings();
+
+        // Get filter parameters
+        $search = $request->getQueryParam('search', '');
+        $statusFilter = $request->getQueryParam('status', 'all');
+        $providerFilter = $request->getQueryParam('provider', 'all');
+        $languageFilter = $request->getQueryParam('language', 'all');
+        $sourceFilter = $request->getQueryParam('source', 'all');
+        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $sort = $request->getQueryParam('sort', 'dateCreated');
+        $dir = $request->getQueryParam('dir', 'desc');
+        $page = max(1, (int)$request->getQueryParam('page', 1));
+        $limit = $settings->itemsPerPage ?? 100;
+        $offset = ($page - 1) * $limit;
+
+        // Build query
+        $query = (new Query())
+            ->from(LogRecord::tableName());
+
+        // Apply status filter
+        if ($statusFilter !== 'all') {
+            $query->andWhere(['status' => $statusFilter]);
+        }
+
+        // Apply provider filter
+        if ($providerFilter !== 'all') {
+            $query->andWhere(['providerId' => $providerFilter]);
+        }
+
+        // Apply language filter
+        if ($languageFilter !== 'all') {
+            $query->andWhere(['language' => $languageFilter]);
+        }
+
+        // Apply source filter
+        if ($sourceFilter !== 'all') {
+            if ($sourceFilter === 'direct') {
+                $query->andWhere(['or', ['sourcePlugin' => null], ['sourcePlugin' => '']]);
+            } else {
+                $query->andWhere(['sourcePlugin' => $sourceFilter]);
+            }
+        }
+
+        // Apply date range filter
+        if ($dateRange !== 'all') {
+            $dates = $this->getDateRangeFromParam($dateRange);
+            $query->andWhere(['>=', 'dateCreated', $dates['start']->format('Y-m-d 00:00:00')]);
+            $query->andWhere(['<=', 'dateCreated', $dates['end']->format('Y-m-d 23:59:59')]);
+        }
+
+        // Apply search
+        if (!empty($search)) {
+            $query->andWhere([
+                'or',
+                ['like', 'recipient', $search],
+                ['like', 'message', $search],
+                ['like', 'providerMessageId', $search],
+            ]);
+        }
+
+        // Apply sorting
+        $orderBy = match ($sort) {
+            'recipient' => "recipient $dir",
+            'status' => "status $dir",
+            'language' => "language $dir",
+            'providerId' => "providerId $dir",
+            default => "dateCreated $dir",
+        };
+        $query->orderBy($orderBy);
+
+        // Get total count for pagination
+        $totalCount = $query->count();
+        $totalPages = $totalCount > 0 ? (int)ceil($totalCount / $limit) : 1;
+
+        // Apply pagination
+        $query->limit($limit)->offset($offset);
+
+        // Get logs
+        $logs = $query->all();
+
+        // Enrich with provider/sender names and format dates
+        foreach ($logs as &$log) {
+            $provider = ProviderRecord::findOne($log['providerId']);
+            $senderId = SenderIdRecord::findOne($log['senderIdId']);
+            $log['providerName'] = $provider ? $provider->name : 'Unknown';
+            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            // Format date for display
+            $dateCreated = new \DateTime($log['dateCreated']);
+            $log['dateFormatted'] = $dateCreated->format('M j, Y');
+            $log['timeFormatted'] = $dateCreated->format('g:i A');
+        }
+
+        // Get status counts
+        $sentCount = (new Query())->from(LogRecord::tableName())->where(['status' => 'sent'])->count();
+        $failedCount = (new Query())->from(LogRecord::tableName())->where(['status' => 'failed'])->count();
+        $pendingCount = (new Query())->from(LogRecord::tableName())->where(['status' => 'pending'])->count();
+
+        return $this->asJson([
+            'success' => true,
+            'logs' => $logs,
+            'totalCount' => (int)$totalCount,
+            'totalPages' => $totalPages,
+            'page' => $page,
+            'limit' => $limit,
+            'offset' => $offset,
+            'sentCount' => (int)$sentCount,
+            'failedCount' => (int)$failedCount,
+            'pendingCount' => (int)$pendingCount,
+        ]);
+    }
+
+    /**
      * Get date range from parameter
      *
      * @param string $dateRange Date range parameter
