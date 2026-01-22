@@ -244,7 +244,7 @@
                             {% set hasDetails = log.errorMessage or log.providerResponse or (log.message|length > 50) %}
                             {# Main log row - clickable #}
                             <tr class="clickable-row" data-id="{{ log.id }}" data-entry-id="{{ loop.index }}">
-                                <td class="light">{{ log.dateCreated|date('M j, Y') }}, {{ log.dateCreated|time('short') }}</td>
+                                <td class="light">{{ craft.app.formatter.asDatetime(log.dateCreated, 'medium') }}</td>
                                 <td><code>{{ log.recipient }}</code></td>
                                 <td class="message-cell" title="{{ log.message }}">
                                     {{ log.message|slice(0, 50) }}{% if log.message|length > 50 %}...{% endif %}
@@ -506,7 +506,7 @@
 
             return `
                 <tr class="clickable-row" data-id="${log.id}" data-entry-id="${index}">
-                    <td class="light">${log.dateFormatted}, ${log.timeFormatted}</td>
+                    <td class="light">${log.datetimeFormatted}</td>
                     <td><code>${Craft.escapeHtml(log.recipient)}</code></td>
                     <td class="message-cell" title="${Craft.escapeHtml(log.message || '')}">
                         ${Craft.escapeHtml((log.message || '').substring(0, 50))}${(log.message || '').length > 50 ? '...' : ''}

@@ -446,15 +446,14 @@ class LogsController extends Controller
         $logs = $query->all();
 
         // Enrich with provider/sender names and format dates
+        $formatter = Craft::$app->getFormatter();
         foreach ($logs as &$log) {
             $provider = ProviderRecord::findOne($log['providerId']);
             $senderId = SenderIdRecord::findOne($log['senderIdId']);
             $log['providerName'] = $provider ? $provider->name : 'Unknown';
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
-            // Format date for display
-            $dateCreated = new \DateTime($log['dateCreated']);
-            $log['dateFormatted'] = $dateCreated->format('M j, Y');
-            $log['timeFormatted'] = $dateCreated->format('g:i A');
+            // Format date for display using Craft's formatter (respects timezone/locale)
+            $log['datetimeFormatted'] = $formatter->asDatetime($log['dateCreated'], 'medium');
         }
 
         // Get status counts
