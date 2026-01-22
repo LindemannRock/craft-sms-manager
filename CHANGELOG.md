@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.2](https://github.com/LindemannRock/craft-sms-manager/compare/v5.5.1...v5.5.2) (2026-01-22)
+
+
+### Bug Fixes
+
+* include actual sender ID in logs display ([2593115](https://github.com/LindemannRock/craft-sms-manager/commit/259311574008da804a3a6518f44da62306b6ab64))
+
 ## [5.5.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.5.0...v5.5.1) (2026-01-22)
 
 
