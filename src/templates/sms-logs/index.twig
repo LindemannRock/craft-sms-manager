@@ -443,15 +443,66 @@
 
         function renderRow(log, index) {
             const statusClass = log.status === 'sent' ? 'green' : (log.status === 'failed' ? 'red' : 'orange');
-            const hasDetails = log.errorMessage || log.providerResponse || (log.message && log.message.length > 50);
+            const hasDetails = log.errorMessage || log.providerResponse || log.providerMessageId || (log.message && log.message.length > 50);
+            const isRtl = log.language && log.language.substring(0, 2) === 'ar';
 
             // Build language display
             let langLabel = log.language || '-';
             {% for site in craft.app.sites.getAllSites() %}
-            if (log.language === '{{ site.language }}') {
-                langLabel = '{{ site.language|upper[:2] }}';
+            if (log.language === '{{ site.language|split('-')|first }}') {
+                langLabel = '{{ site.language }} ({{ site.name|e('js') }})';
             }
             {% endfor %}
+
+            let contextRowHtml = '';
+            if (hasDetails) {
+                let contextContent = '';
+
+                // Full message
+                contextContent += `
+                    <div>
+                        <div class="context-label">{{ "Full Message"|t("sms-manager")|e("js") }}</div>
+                        <div class="context-value"${isRtl ? ' dir="rtl"' : ''}>${Craft.escapeHtml(log.message || '')}</div>
+                    </div>`;
+
+                // Error message (if failed)
+                if (log.errorMessage) {
+                    contextContent += `
+                        <div>
+                            <div class="context-label" style="color: #dc2626;">{{ "Error"|t("sms-manager")|e("js") }}</div>
+                            <div class="context-value" style="border-color: #fecaca; background: #fef2f2;">${Craft.escapeHtml(log.errorMessage)}</div>
+                        </div>`;
+                }
+
+                // Provider response
+                if (log.providerResponse) {
+                    contextContent += `
+                        <div>
+                            <div class="context-label">{{ "Provider Response"|t("sms-manager")|e("js") }}</div>
+                            <div class="context-value">${Craft.escapeHtml(log.providerResponse)}</div>
+                        </div>`;
+                }
+
+                // Provider Message ID
+                if (log.providerMessageId) {
+                    contextContent += `
+                        <div>
+                            <div class="context-label">{{ "Message ID"|t("sms-manager")|e("js") }}</div>
+                            <div class="context-value">${Craft.escapeHtml(log.providerMessageId)}</div>
+                        </div>`;
+                }
+
+                contextRowHtml = `
+                    <tr class="context-row ${log.status === 'failed' ? 'error' : ''}" data-entry-id="${index}" style="display: none;">
+                        <td colspan="8">
+                            <div class="context-content">
+                                <div class="context-grid">
+                                    ${contextContent}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
 
             return `
                 <tr class="clickable-row" data-id="${log.id}" data-entry-id="${index}">
@@ -475,32 +526,7 @@
                             : '<span class="light">{{ "Direct"|t("sms-manager")|e("js") }}</span>'}
                     </td>
                 </tr>
-                ${hasDetails ? `
-                <tr class="context-row" data-entry-id="${index}" style="display: none;">
-                    <td colspan="8" style="background: #f8fafc; padding: 12px 16px; border-top: none;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                            <div>
-                                <strong>{{ "Full Message"|t("sms-manager")|e("js") }}</strong>
-                                <p style="margin: 4px 0; white-space: pre-wrap;">${Craft.escapeHtml(log.message || '')}</p>
-                            </div>
-                            <div>
-                                ${log.errorMessage ? `
-                                    <strong style="color: #dc2626;">{{ "Error"|t("sms-manager")|e("js") }}</strong>
-                                    <p style="margin: 4px 0; color: #dc2626;">${Craft.escapeHtml(log.errorMessage)}</p>
-                                ` : ''}
-                                ${log.providerResponse ? `
-                                    <strong>{{ "Provider Response"|t("sms-manager")|e("js") }}</strong>
-                                    <p style="margin: 4px 0;"><code>${Craft.escapeHtml(log.providerResponse)}</code></p>
-                                ` : ''}
-                                ${log.providerMessageId ? `
-                                    <strong>{{ "Message ID"|t("sms-manager")|e("js") }}</strong>
-                                    <p style="margin: 4px 0;"><code>${Craft.escapeHtml(log.providerMessageId)}</code></p>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-                ` : ''}
+                ${contextRowHtml}
             `;
         }
 

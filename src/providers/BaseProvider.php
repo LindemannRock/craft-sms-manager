@@ -57,6 +57,22 @@ abstract class BaseProvider implements ProviderInterface
     }
 
     /**
+     * Country dial codes and expected local number lengths
+     */
+    private const COUNTRY_PHONE_CONFIG = [
+        'KW' => ['dialCode' => '965', 'localLength' => 8],  // Kuwait: 965 + 8 digits
+        'SA' => ['dialCode' => '966', 'localLength' => 9],  // Saudi Arabia: 966 + 9 digits
+        'AE' => ['dialCode' => '971', 'localLength' => 9],  // UAE: 971 + 9 digits
+        'BH' => ['dialCode' => '973', 'localLength' => 8],  // Bahrain: 973 + 8 digits
+        'QA' => ['dialCode' => '974', 'localLength' => 8],  // Qatar: 974 + 8 digits
+        'OM' => ['dialCode' => '968', 'localLength' => 8],  // Oman: 968 + 8 digits
+        'EG' => ['dialCode' => '20', 'localLength' => 10],  // Egypt: 20 + 10 digits
+        'JO' => ['dialCode' => '962', 'localLength' => 9],  // Jordan: 962 + 9 digits
+        'LB' => ['dialCode' => '961', 'localLength' => 8],  // Lebanon: 961 + 8 digits
+        'IQ' => ['dialCode' => '964', 'localLength' => 10], // Iraq: 964 + 10 digits
+    ];
+
+    /**
      * Normalize phone number to standard format
      *
      * Converts Arabic/Persian numerals to Western numerals,
@@ -115,6 +131,108 @@ abstract class BaseProvider implements ProviderInterface
         }
 
         return $number;
+    }
+
+    /**
+     * Normalize and validate phone number for specific allowed countries
+     *
+     * Fixes common issues like:
+     * - Duplicate country codes (96596594400999 → 96594400999)
+     * - Missing country codes (94400999 → 96594400999)
+     * - Validates final length matches expected format
+     *
+     * @param string $number Phone number to normalize
+     * @param array $allowedCountries Array of country codes (e.g., ['KW', 'SA'])
+     * @return array{number: string, valid: bool, error: string|null, fixed: bool}
+     */
+    protected function normalizeAndValidatePhone(string $number, array $allowedCountries): array
+    {
+        // First do basic normalization
+        $number = $this->normalizePhoneNumber($number);
+        $originalNumber = $number;
+        $fixed = false;
+
+        // If wildcard or empty, just return the normalized number
+        if (empty($allowedCountries) || in_array('*', $allowedCountries, true)) {
+            return [
+                'number' => $number,
+                'valid' => strlen($number) >= 10 && strlen($number) <= 15,
+                'error' => null,
+                'fixed' => false,
+            ];
+        }
+
+        // Try to match and fix for each allowed country
+        foreach ($allowedCountries as $countryCode) {
+            $config = self::COUNTRY_PHONE_CONFIG[$countryCode] ?? null;
+            if (!$config) {
+                continue;
+            }
+
+            $dialCode = $config['dialCode'];
+            $localLength = $config['localLength'];
+            $expectedTotalLength = strlen($dialCode) + $localLength;
+
+            // Check for duplicate country code (e.g., 96596594400999)
+            $doubleDialCode = $dialCode . $dialCode;
+            if (str_starts_with($number, $doubleDialCode)) {
+                $number = substr($number, strlen($dialCode));
+                $fixed = true;
+                $this->logInfo('Phone number fixed: removed duplicate country code', [
+                    'original' => $originalNumber,
+                    'fixed' => $number,
+                    'country' => $countryCode,
+                ]);
+            }
+
+            // Check if number starts with country code
+            if (str_starts_with($number, $dialCode)) {
+                // Validate length
+                if (strlen($number) === $expectedTotalLength) {
+                    return [
+                        'number' => $number,
+                        'valid' => true,
+                        'error' => null,
+                        'fixed' => $fixed,
+                    ];
+                }
+
+                // Number has country code but wrong length
+                return [
+                    'number' => $number,
+                    'valid' => false,
+                    'error' => "Invalid phone number length for {$countryCode}. Expected {$expectedTotalLength} digits, got " . strlen($number),
+                    'fixed' => $fixed,
+                ];
+            }
+
+            // Check if it's a local number (without country code)
+            if (strlen($number) === $localLength) {
+                $number = $dialCode . $number;
+                $fixed = true;
+                $this->logInfo('Phone number fixed: added country code', [
+                    'original' => $originalNumber,
+                    'fixed' => $number,
+                    'country' => $countryCode,
+                ]);
+
+                return [
+                    'number' => $number,
+                    'valid' => true,
+                    'error' => null,
+                    'fixed' => true,
+                ];
+            }
+        }
+
+        // Could not match any allowed country format
+        $countryList = implode(', ', $allowedCountries);
+        return [
+            'number' => $number,
+            'valid' => false,
+            'error' => "Phone number format does not match any allowed country ({$countryList}). Number: {$number}",
+            'fixed' => $fixed,
+        ];
     }
 
     /**

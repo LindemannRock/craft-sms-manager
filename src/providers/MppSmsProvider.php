@@ -100,18 +100,18 @@ class MppSmsProvider extends BaseProvider
      */
     public function send(string $to, string $message, string $senderId, string $language, array $settings): array
     {
-        // Validate phone number against allowed countries
         $allowedCountries = $settings['allowedCountries'] ?? [];
-        if (!empty($allowedCountries) && !GeoHelper::isPhoneNumberAllowed($to, $allowedCountries)) {
-            // Build list of allowed country names for error message
-            $allowedNames = array_map(
-                fn($code) => GeoHelper::getCountryWithDialCode($code),
-                $allowedCountries
-            );
-            $allowedList = implode(', ', array_filter($allowedNames));
 
-            $this->logError('MPP-SMS: Phone number not allowed for this provider', [
+        // Normalize and validate phone number
+        $phoneResult = $this->normalizeAndValidatePhone($to, $allowedCountries);
+        $toNumber = $phoneResult['number'];
+
+        // If phone number is invalid, return error
+        if (!$phoneResult['valid']) {
+            $this->logError('MPP-SMS: Invalid phone number', [
                 'to' => $to,
+                'normalized' => $toNumber,
+                'error' => $phoneResult['error'],
                 'allowedCountries' => $allowedCountries,
             ]);
 
@@ -119,8 +119,39 @@ class MppSmsProvider extends BaseProvider
                 'success' => false,
                 'messageId' => null,
                 'response' => null,
-                'error' => Craft::t('sms-manager', 'This provider only supports: {countries}', ['countries' => $allowedList]),
+                'error' => $phoneResult['error'],
             ];
+        }
+
+        // Log if phone number was auto-fixed
+        if ($phoneResult['fixed']) {
+            $this->logInfo('MPP-SMS: Phone number was auto-corrected', [
+                'original' => $to,
+                'corrected' => $toNumber,
+            ]);
+        }
+
+        // Additional check: validate phone number against allowed countries (if not wildcard)
+        if (!empty($allowedCountries) && !in_array('*', $allowedCountries, true)) {
+            if (!GeoHelper::isPhoneNumberAllowed($toNumber, $allowedCountries)) {
+                $allowedNames = array_map(
+                    fn($code) => GeoHelper::getCountryWithDialCode($code),
+                    $allowedCountries
+                );
+                $allowedList = implode(', ', array_filter($allowedNames));
+
+                $this->logError('MPP-SMS: Phone number not allowed for this provider', [
+                    'to' => $toNumber,
+                    'allowedCountries' => $allowedCountries,
+                ]);
+
+                return [
+                    'success' => false,
+                    'messageId' => null,
+                    'response' => null,
+                    'error' => Craft::t('sms-manager', 'This provider only supports: {countries}', ['countries' => $allowedList]),
+                ];
+            }
         }
 
         // Check if this is a development sender ID and if a dev API key is configured
@@ -145,9 +176,6 @@ class MppSmsProvider extends BaseProvider
                 'error' => 'API key not configured',
             ];
         }
-
-        // Normalize phone number
-        $toNumber = $this->normalizePhoneNumber($to);
 
         // Sanitize message
         $message = $this->sanitizeMessage($message);
