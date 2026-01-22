@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.4.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.3.0...v5.4.0) (2026-01-22)
+
+
+### Features
+
+* add AJAX endpoint and auto-refresh functionality for SMS logs ([3fd504e](https://github.com/LindemannRock/craft-sms-manager/commit/3fd504ebbc0c0b22159093f85b5a80c3a05a6b46))
+* add log status badge and filter menu for SMS logs ([6a88532](https://github.com/LindemannRock/craft-sms-manager/commit/6a88532427aab90098d5c5cf67612ee44604561d))
+
+
+### Bug Fixes
+
+* remove sortOrder from provider and sender ID configurations and update related documentation ([0542188](https://github.com/LindemannRock/craft-sms-manager/commit/05421888fc9ee4f2fa37bc0f9cfe81604902b40c))
+
 ## [5.3.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.2.5...v5.3.0) (2026-01-21)
 
 
