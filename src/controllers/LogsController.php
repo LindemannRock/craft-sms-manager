@@ -454,6 +454,7 @@ class LogsController extends Controller
             $senderId = SenderIdRecord::findOne($log['senderIdId']);
             $log['providerName'] = $provider ? $provider->name : 'Unknown';
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
             // Format date for display using Craft's formatter (respects timezone/locale)
             $log['datetimeFormatted'] = $formatter->asDatetime($log['dateCreated'], 'medium');
         }
