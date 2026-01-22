@@ -2,7 +2,7 @@
     "name": "lindemannrock/craft-sms-manager",
     "description": "SMS gateway and management for Craft CMS with multi-provider support",
     "type": "craft-plugin",
-    "version": "5.5.0",
+    "version": "5.5.1",
     "keywords": [
         "craft",
         "cms",

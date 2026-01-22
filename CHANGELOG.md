@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.5.0...v5.5.1) (2026-01-22)
+
+
+### Bug Fixes
+
+* enhance date formatting in logs display using Craft's formatter ([668ee4e](https://github.com/LindemannRock/craft-sms-manager/commit/668ee4e5b3196351eca075cd363cdd90ca1179ba))
+
 ## [5.5.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.4.0...v5.5.0) (2026-01-22)
 
 
