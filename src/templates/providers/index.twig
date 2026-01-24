@@ -93,23 +93,29 @@
             type: 'status',
             param: 'status',
             current: statusFilter,
-            label: 'All Status'|t('sms-manager'),
-            colorSet: 'status',
-            options: [
-                {value: 'all', label: 'All'|t('sms-manager'), status: 'all'},
-                {value: 'enabled', label: 'Enabled'|t('sms-manager'), colorKey: 'enabled'},
-                {value: 'disabled', label: 'Disabled'|t('sms-manager'), colorKey: 'disabled'},
-            ],
-        },
-        {
-            type: 'dropdown',
-            param: 'source',
-            current: sourceFilter,
-            label: 'All Sources'|t('sms-manager'),
-            options: [
-                {value: 'all', label: 'All Sources'|t('sms-manager')},
-                {value: 'config', label: 'Config'|t('sms-manager')},
-                {value: 'database', label: 'Database'|t('sms-manager')},
+            label: 'All'|t('sms-manager'),
+            groups: [
+                {
+                    param: 'status',
+                    current: statusFilter,
+                    colorSet: 'status',
+                    options: [
+                        {value: 'all', label: 'All'|t('sms-manager'), status: 'all'},
+                        {value: 'enabled', label: 'Enabled'|t('sms-manager'), colorKey: 'enabled'},
+                        {value: 'disabled', label: 'Disabled'|t('sms-manager'), colorKey: 'disabled'},
+                    ],
+                },
+                {
+                    header: 'Config Source'|t('sms-manager'),
+                    param: 'source',
+                    current: sourceFilter,
+                    colorSet: 'configSource',
+                    options: [
+                        {value: 'all', label: 'All Sources'|t('sms-manager'), status: 'all'},
+                        {value: 'config', label: 'Config File'|t('sms-manager'), colorKey: 'config'},
+                        {value: 'database', label: 'Database'|t('sms-manager'), colorKey: 'database'},
+                    ],
+                },
             ],
         },
     ],
