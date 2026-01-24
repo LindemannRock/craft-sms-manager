@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.6.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.5.2...v5.6.0) (2026-01-24)
+
+
+### Features
+
+* refactor templates to use base plugin cp-table layout and centralize export/datetime helpers ([00be1fb](https://github.com/LindemannRock/craft-sms-manager/commit/00be1fb8e18324f3b6ad29e294be6523e55daae3))
+
+
+### Bug Fixes
+
+* filter options by grouping status and source in the provider dropdown ([88712cb](https://github.com/LindemannRock/craft-sms-manager/commit/88712cba6e1d65e63569de9ef8f0b63a8e4e3fa2))
+* include sender ID value in logs display ([cd07182](https://github.com/LindemannRock/craft-sms-manager/commit/cd071824f33148a5f0c30dfe4c016290b5b756d5))
+
 ## [5.5.2](https://github.com/LindemannRock/craft-sms-manager/compare/v5.5.1...v5.5.2) (2026-01-22)
 
 
