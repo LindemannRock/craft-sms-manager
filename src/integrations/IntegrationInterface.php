@@ -28,6 +28,7 @@ interface IntegrationInterface
      *
      * @param int $providerId The provider ID to check
      * @return array<array{label: string, editUrl: string|null}>
+     * @since 5.0.0
      */
     public function getProviderUsages(int $providerId): array;
 
@@ -40,6 +41,7 @@ interface IntegrationInterface
      *
      * @param int $senderIdId The sender ID to check
      * @return array<array{label: string, editUrl: string|null}>
+     * @since 5.0.0
      */
     public function getSenderIdUsages(int $senderIdId): array;
 }

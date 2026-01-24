@@ -17,6 +17,10 @@ use yii\web\Response;
  * Utilities Controller
  *
  * Handles utility actions like clearing analytics data
+ *
+ * @author    LindemannRock
+ * @package   SmsManager
+ * @since     5.0.0
  */
 class UtilitiesController extends Controller
 {
@@ -52,6 +56,9 @@ class UtilitiesController extends Controller
 
     /**
      * Clear all analytics data
+     *
+     * @return Response
+     * @since 5.0.0
      */
     public function actionClearAllAnalytics(): Response
     {
@@ -89,6 +96,9 @@ class UtilitiesController extends Controller
 
     /**
      * Clear all logs data
+     *
+     * @return Response
+     * @since 5.0.0
      */
     public function actionClearAllLogs(): Response
     {

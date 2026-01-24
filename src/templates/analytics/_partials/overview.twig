@@ -1,28 +1,38 @@
 {# Overview Tab - Summary stats and daily trend chart #}
 
 {# Summary Stats Grid #}
-<div class="analytics-stats">
-    <div class="stat-box">
-        <div class="stat-value" id="total-messages">{{ summaryStats.total|number_format }}</div>
-        <div class="stat-label">{{ 'Total Messages'|t('sms-manager') }}</div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-value" style="color: #10b981;" id="total-sent">{{ summaryStats.sent|number_format }}</div>
-        <div class="stat-label">{{ 'Sent Successfully'|t('sms-manager') }}</div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-value" style="color: #ef4444;" id="total-failed">{{ summaryStats.failed|number_format }}</div>
-        <div class="stat-label">{{ 'Failed'|t('sms-manager') }}</div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-value" id="success-rate">{{ summaryStats.successRate }}%</div>
-        <div class="stat-label">{{ 'Success Rate'|t('sms-manager') }}</div>
-    </div>
+<div class="lr-analytics-stats">
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.total,
+        label: 'Total Messages'|t('sms-manager'),
+        id: 'total-messages',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.sent,
+        label: 'Sent Successfully'|t('sms-manager'),
+        id: 'total-sent',
+        color: '#10b981',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.failed,
+        label: 'Failed'|t('sms-manager'),
+        id: 'total-failed',
+        color: '#ef4444',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.successRate,
+        label: 'Success Rate'|t('sms-manager'),
+        id: 'success-rate',
+        suffix: '%',
+    } only %}
 </div>
 
 {# Daily Trend Chart #}
-<div class="analytics-charts">
-    <div class="chart-container full-width">
+<div class="lr-analytics-charts">
+    <div class="lr-chart-container full-width">
         <h3>{{ 'Daily SMS Volume'|t('sms-manager') }}</h3>
         <div style="height: 250px;">
             <canvas id="daily-trend-chart"></canvas>
@@ -31,21 +41,21 @@
 </div>
 
 {# Two Column Layout - Provider and Language breakdown #}
-<div class="analytics-charts two-columns">
-    <div class="chart-container">
+<div class="lr-analytics-charts two-columns">
+    <div class="lr-chart-container">
         <h3>{{ 'By Provider'|t('sms-manager') }}</h3>
         <canvas id="provider-chart"></canvas>
     </div>
-    <div class="chart-container">
+    <div class="lr-chart-container">
         <h3>{{ 'By Language'|t('sms-manager') }}</h3>
         <canvas id="language-chart"></canvas>
     </div>
 </div>
 
 {# Top Providers Table #}
-<div class="chart-container" style="margin-top: 24px;">
+<div class="lr-chart-container" style="margin-top: 24px;">
     <h3>{{ 'Provider Performance'|t('sms-manager') }}</h3>
-    <div class="table-scroll-container">
+    <div class="lr-table-scroll">
         <table class="data fullwidth">
             <thead>
                 <tr>

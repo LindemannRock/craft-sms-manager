@@ -32,6 +32,7 @@ class RegisterIntegrationsEvent extends Event
      * @param string $handle Plugin handle (e.g., 'formie-sms')
      * @param string $name Display name (e.g., 'Formie SMS')
      * @param string $class Integration class that implements IntegrationInterface
+     * @since 5.0.0
      */
     public function register(string $handle, string $name, string $class): void
     {

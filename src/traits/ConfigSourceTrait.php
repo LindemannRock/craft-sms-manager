@@ -9,6 +9,8 @@ namespace lindemannrock\smsmanager\traits;
  * either the config file or the database.
  *
  * Used by: ProviderRecord, SenderIdRecord
+ *
+ * @since 5.0.0
  */
 trait ConfigSourceTrait
 {
@@ -19,6 +21,9 @@ trait ConfigSourceTrait
 
     /**
      * Check if this record can be edited (only database records can be edited)
+     *
+     * @return bool
+     * @since 5.0.0
      */
     public function canEdit(): bool
     {
@@ -27,6 +32,9 @@ trait ConfigSourceTrait
 
     /**
      * Check if this record is from the config file
+     *
+     * @return bool
+     * @since 5.0.0
      */
     public function isFromConfig(): bool
     {
@@ -35,6 +43,9 @@ trait ConfigSourceTrait
 
     /**
      * Check if this record is from the database
+     *
+     * @return bool
+     * @since 5.0.0
      */
     public function isFromDatabase(): bool
     {

@@ -1,0 +1,323 @@
+{#
+ # Badges Test Page (CP Version)
+ #
+ # Displays all default color sets from ColorHelper for visual testing.
+ # Uses Craft's actual CSS classes from the CP.
+ #}
+
+{% extends "_layouts/cp" %}
+
+{% set title = "Badge Colors Test" %}
+
+{% block content %}
+    <style>
+        .color-set-section {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .color-set-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .color-set-desc {
+            color: #6b7280;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .badges-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .badge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .badge-value {
+            font-size: 0.7rem;
+            color: #6b7280;
+            font-family: monospace;
+        }
+        .badge-class {
+            font-size: 0.65rem;
+            color: #9ca3af;
+            font-family: monospace;
+        }
+    </style>
+
+    <h1>ColorHelper Default Color Sets</h1>
+    <p style="color: #6b7280; margin-bottom: 2rem;">All color sets use Craft CSS classes (teal, gray, orange, red, blue, pink). Plugin-specific colors use inline styles when no CSS class matches.</p>
+
+    {# STATUS #}
+    <div class="color-set-section">
+        <div class="color-set-title">status</div>
+        <p class="color-set-desc">Matches Craft's default status classes: enabled/live = teal, disabled/off = gray, pending = orange, expired = red</p>
+        <div class="badges-row">
+            {% for value in ['enabled', 'disabled', 'pending', 'expired', 'live', 'on', 'off'] %}
+                {% set colors = lrSetColor('status', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|capitalize,
+                        value: value,
+                        colorSet: 'status',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">label: {{ colors.class }}, dot: {{ colors.dot }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# YES/NO #}
+    <div class="color-set-section">
+        <div class="color-set-title">yesNo</div>
+        <p class="color-set-desc">Boolean values: yes/true = teal, no/false = red</p>
+        <div class="badges-row">
+            {% for value in ['yes', 'no', 'true', 'false'] %}
+                {% set colors = lrSetColor('yesNo', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|capitalize,
+                        value: value,
+                        colorSet: 'yesNo',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">class: {{ colors.class }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# HANDLED #}
+    <div class="color-set-section">
+        <div class="color-set-title">handled</div>
+        <p class="color-set-desc">For handled/processed status: yes/true = teal, no/false = red</p>
+        <div class="badges-row">
+            {% for value in ['yes', 'no', 'true', 'false'] %}
+                {% set colors = lrSetColor('handled', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|capitalize,
+                        value: value,
+                        colorSet: 'handled',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">class: {{ colors.class }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# CONFIG SOURCE #}
+    <div class="color-set-section">
+        <div class="color-set-title">configSource</div>
+        <p class="color-set-desc">Configuration source: config = orange, database = blue</p>
+        <div class="badges-row">
+            {% for value in ['config', 'database'] %}
+                {% set colors = lrSetColor('configSource', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|capitalize,
+                        value: value,
+                        colorSet: 'configSource',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">class: {{ colors.class }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ENVIRONMENT TYPE #}
+    <div class="color-set-section">
+        <div class="color-set-title">environmentType</div>
+        <p class="color-set-desc">Environment indicators: development = pink, staging = orange, production = blue</p>
+        <div class="badges-row">
+            {% for value in ['development', 'staging', 'production'] %}
+                {% set colors = lrSetColor('environmentType', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|capitalize,
+                        value: value,
+                        colorSet: 'environmentType',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">class: {{ colors.class }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# PRIORITY #}
+    <div class="color-set-section">
+        <div class="color-set-title">priority</div>
+        <p class="color-set-desc">Priority levels: low = gray, normal = blue, high = orange, critical = red</p>
+        <div class="badges-row">
+            {% for value in ['low', 'normal', 'high', 'critical'] %}
+                {% set colors = lrSetColor('priority', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|capitalize,
+                        value: value,
+                        colorSet: 'priority',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">class: {{ colors.class }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# HTTP STATUS #}
+    <div class="color-set-section">
+        <div class="color-set-title">httpStatus</div>
+        <p class="color-set-desc">HTTP response categories: success = teal, redirect = blue, client_error = orange, server_error = red</p>
+        <div class="badges-row">
+            {% for value in ['success', 'redirect', 'client_error', 'server_error'] %}
+                {% set colors = lrSetColor('httpStatus', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|replace({'_': ' '})|title,
+                        value: value,
+                        colorSet: 'httpStatus',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">class: {{ colors.class }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# LOG LEVEL #}
+    <div class="color-set-section">
+        <div class="color-set-title">logLevel</div>
+        <p class="color-set-desc">Log levels: debug = purple, info = blue, warning = orange, error = red</p>
+        <div class="badges-row">
+            {% for value in ['debug', 'info', 'warning', 'error'] %}
+                {% set colors = lrSetColor('logLevel', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|capitalize,
+                        value: value,
+                        colorSet: 'logLevel',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">class: {{ colors.class }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# SMS STATUS (Plugin-specific) #}
+    <div class="color-set-section">
+        <div class="color-set-title">smsStatus (plugin-specific)</div>
+        <p class="color-set-desc">SMS Manager plugin colors registered via PluginHelper::bootstrap()</p>
+        <div class="badges-row">
+            {% for value in ['sent', 'failed', 'pending'] %}
+                {% set colors = lrSetColor('smsStatus', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|capitalize,
+                        value: value,
+                        colorSet: 'smsStatus',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">{{ colors.class is defined and colors.class ? 'class: ' ~ colors.class : 'inline style' }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# SMS PROVIDER TYPE (Plugin-specific) #}
+    <div class="color-set-section">
+        <div class="color-set-title">smsProviderType (plugin-specific)</div>
+        <p class="color-set-desc">SMS Manager provider colors (inline styles - no CSS class)</p>
+        <div class="badges-row">
+            {% for value in ['mpp-sms'] %}
+                {% set colors = lrSetColor('smsProviderType', value) %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: value|upper,
+                        value: value,
+                        colorSet: 'smsProviderType',
+                    } only %}
+                    <span class="badge-value">{{ value }}</span>
+                    <span class="badge-class">{{ colors.class is defined and colors.class ? 'class: ' ~ colors.class : 'inline style' }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# DEFAULT/NEUTRAL COLORS #}
+    <div class="color-set-section">
+        <div class="color-set-title">Default & Neutral Colors</div>
+        <p class="color-set-desc">Fallback colors (inline styles) when value not found or for unselected filter states</p>
+        <div class="badges-row">
+            <div class="badge-item">
+                {% set defaultColors = lrDefaultColor() %}
+                <span class="status-label" style="background: rgba({{ defaultColors.rgb }}, 0.12);">
+                    <span class="status" style="background: {{ defaultColors.color }};"></span>
+                    <span class="status-label-text" style="color: {{ defaultColors.text }};">Default</span>
+                </span>
+                <span class="badge-value">DEFAULT_COLOR</span>
+                <span class="badge-class">inline style</span>
+            </div>
+            <div class="badge-item">
+                <span class="status-label" style="background: rgba(170, 182, 193, 0.12);">
+                    <span class="status" style="background: {{ lrNeutralColor() }};"></span>
+                    <span class="status-label-text" style="color: #374151;">Neutral</span>
+                </span>
+                <span class="badge-value">NEUTRAL_COLOR</span>
+                <span class="badge-class">inline style</span>
+            </div>
+        </div>
+    </div>
+
+    {# CRAFT BUILT-IN STATUS CLASSES #}
+    <div class="color-set-section">
+        <div class="color-set-title">Craft CSS Classes Reference</div>
+        <p class="color-set-desc">All available Craft CSS classes for status-label</p>
+        <div class="badges-row">
+            {% for status in ['teal', 'gray', 'orange', 'red', 'blue', 'pink', 'purple', 'green', 'yellow', 'amber', 'cyan', 'emerald', 'indigo', 'violet', 'fuchsia', 'rose', 'lime', 'sky', 'turquoise'] %}
+                <div class="badge-item">
+                    {% include 'lindemannrock-base/_components/badge' with {
+                        label: status|capitalize,
+                        status: status,
+                    } only %}
+                    <span class="badge-value">{{ status }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# CRAFT STATUS DOT CLASSES #}
+    <div class="color-set-section">
+        <div class="color-set-title">Craft Status Dot Classes</div>
+        <p class="color-set-desc">Special status dot classes (enabled, disabled, pending, expired, live, on, off, etc.)</p>
+        <div class="badges-row">
+            {% for status in ['enabled', 'disabled', 'pending', 'expired', 'live', 'on', 'off', 'active', 'inactive', 'suspended', 'warning'] %}
+                <div class="badge-item">
+                    <span class="status-label gray">
+                        <span class="status {{ status }}"></span>
+                        <span class="status-label-text">{{ status|capitalize }}</span>
+                    </span>
+                    <span class="badge-value">dot: {{ status }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}

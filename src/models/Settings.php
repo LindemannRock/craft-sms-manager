@@ -253,6 +253,8 @@ class Settings extends Model
 
     /**
      * Validate log level - debug requires devMode
+     *
+     * @since 5.0.0
      */
     public function validateLogLevel(string $attribute): void
     {

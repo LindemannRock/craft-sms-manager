@@ -17,6 +17,8 @@ use lindemannrock\smsmanager\SmsManager;
  * SMS Manager Utility
  *
  * Provides system utilities for clearing analytics data
+ *
+ * @since 5.0.0
  */
 class SmsManagerUtility extends Utility
 {

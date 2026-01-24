@@ -19,6 +19,7 @@ use craft\events\RegisterUserPermissionsEvent;
 use craft\services\UserPermissions;
 use craft\services\Utilities;
 use craft\web\UrlManager;
+use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -78,12 +79,24 @@ class SmsManager extends Plugin
         parent::init();
         self::$plugin = $this;
 
-        // Bootstrap base module (logging + Twig extension)
+        // Bootstrap base module (logging + Twig extension + colors)
         PluginHelper::bootstrap(
             $this,
             'smsHelper',
             ['smsManager:viewLogs'],
-            ['smsManager:downloadLogs']
+            ['smsManager:downloadLogs'],
+            [
+                'colorSets' => [
+                    'smsStatus' => [
+                        'sent' => ColorHelper::getPaletteColor('teal'),
+                        'failed' => ColorHelper::getPaletteColor('red'),
+                        'pending' => ColorHelper::getPaletteColor('orange'),
+                    ],
+                    'smsProviderType' => [
+                        'mpp-sms' => ColorHelper::getPaletteColor('purple'),
+                    ],
+                ],
+            ]
         );
         PluginHelper::applyPluginNameFromConfig($this);
 
@@ -279,6 +292,7 @@ class SmsManager extends Plugin
             // Dashboard
             'sms-manager' => 'sms-manager/dashboard/index',
             'sms-manager/dashboard' => 'sms-manager/dashboard/index',
+            'sms-manager/badges' => 'sms-manager/dashboard/badges',
 
             // Providers
             'sms-manager/providers' => 'sms-manager/providers/index',
@@ -374,6 +388,9 @@ class SmsManager extends Plugin
                 'nested' => [
                     'smsManager:downloadLogs' => [
                         'label' => Craft::t('sms-manager', 'Download logs'),
+                    ],
+                    'smsManager:deleteLogs' => [
+                        'label' => Craft::t('sms-manager', 'Delete logs'),
                     ],
                 ],
             ],

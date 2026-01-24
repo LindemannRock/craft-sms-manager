@@ -41,6 +41,7 @@ class SenderIdsController extends Controller
      * List all sender IDs
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -101,6 +102,7 @@ class SenderIdsController extends Controller
      *
      * @param string|null $handle Sender ID handle
      * @return Response
+     * @since 5.0.0
      */
     public function actionView(?string $handle = null): Response
     {
@@ -142,6 +144,7 @@ class SenderIdsController extends Controller
      *
      * @param int|null $senderIdId
      * @return Response
+     * @since 5.0.0
      */
     public function actionEdit(?int $senderIdId = null): Response
     {
@@ -182,6 +185,7 @@ class SenderIdsController extends Controller
      * Save a sender ID
      *
      * @return Response|null
+     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {
@@ -255,6 +259,7 @@ class SenderIdsController extends Controller
      * Delete a sender ID
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionDelete(): Response
     {
@@ -282,6 +287,7 @@ class SenderIdsController extends Controller
      * Toggle sender ID enabled status
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionToggleEnabled(): Response
     {
@@ -314,6 +320,7 @@ class SenderIdsController extends Controller
      * Set a sender ID as the default
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionSetDefault(): Response
     {
@@ -367,6 +374,7 @@ class SenderIdsController extends Controller
      * Get sender IDs for a provider (AJAX)
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionGetByProvider(): Response
     {
@@ -399,6 +407,7 @@ class SenderIdsController extends Controller
      * Bulk enable sender IDs
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionBulkEnable(): Response
     {
@@ -439,6 +448,7 @@ class SenderIdsController extends Controller
      * Bulk disable sender IDs
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionBulkDisable(): Response
     {
@@ -485,6 +495,7 @@ class SenderIdsController extends Controller
      * Bulk delete sender IDs
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionBulkDelete(): Response
     {

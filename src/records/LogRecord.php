@@ -58,6 +58,7 @@ class LogRecord extends ActiveRecord
      * Get the provider for this log
      *
      * @return \yii\db\ActiveQuery
+     * @since 5.0.0
      */
     public function getProvider(): \yii\db\ActiveQuery
     {
@@ -68,6 +69,7 @@ class LogRecord extends ActiveRecord
      * Get the sender ID for this log
      *
      * @return \yii\db\ActiveQuery
+     * @since 5.0.0
      */
     public function getSenderId(): \yii\db\ActiveQuery
     {

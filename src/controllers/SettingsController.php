@@ -40,6 +40,7 @@ class SettingsController extends Controller
      * Settings index - redirects to general
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -50,6 +51,7 @@ class SettingsController extends Controller
      * General settings
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionGeneral(): Response
     {
@@ -64,6 +66,7 @@ class SettingsController extends Controller
      * Analytics settings
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionAnalytics(): Response
     {
@@ -78,6 +81,7 @@ class SettingsController extends Controller
      * Interface settings
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionInterface(): Response
     {
@@ -92,6 +96,7 @@ class SettingsController extends Controller
      * Test page
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionTest(): Response
     {
@@ -203,6 +208,7 @@ class SettingsController extends Controller
      *
      * @return Response
      * @throws BadRequestHttpException
+     * @since 5.0.0
      */
     public function actionTestSms(): Response
     {
@@ -234,6 +240,7 @@ class SettingsController extends Controller
      * Save settings
      *
      * @return Response|null
+     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {

@@ -1,8 +1,8 @@
 {# Sender IDs Tab - Sender ID performance breakdown #}
 
 {# Sender ID Chart #}
-<div class="analytics-charts">
-    <div class="chart-container full-width">
+<div class="lr-analytics-charts">
+    <div class="lr-chart-container full-width">
         <h3>{{ 'Messages by Sender ID'|t('sms-manager') }}</h3>
         <div style="height: 300px;">
             <canvas id="senderid-bar-chart"></canvas>
@@ -11,21 +11,21 @@
 </div>
 
 {# Two Column Layout - Success/Failure distribution #}
-<div class="analytics-charts two-columns">
-    <div class="chart-container">
+<div class="lr-analytics-charts two-columns">
+    <div class="lr-chart-container">
         <h3>{{ 'Sender ID Distribution'|t('sms-manager') }}</h3>
         <canvas id="senderid-pie-chart"></canvas>
     </div>
-    <div class="chart-container">
+    <div class="lr-chart-container">
         <h3>{{ 'Success Rate by Sender ID'|t('sms-manager') }}</h3>
         <canvas id="senderid-success-chart"></canvas>
     </div>
 </div>
 
 {# Sender ID Performance Table #}
-<div class="chart-container" style="margin-top: 24px;">
+<div class="lr-chart-container" style="margin-top: 24px;">
     <h3>{{ 'Sender ID Performance'|t('sms-manager') }}</h3>
-    <div class="table-scroll-container">
+    <div class="lr-table-scroll">
         <table class="data fullwidth">
             <thead>
                 <tr>

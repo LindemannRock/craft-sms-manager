@@ -1,28 +1,36 @@
 {# Encoding Tab - SMS encoding distribution analytics #}
 
 {# Encoding Summary Stats #}
-<div class="analytics-stats">
-    <div class="stat-box">
-        <div class="stat-value" style="color: #3b82f6;" id="gsm7-count">{{ summaryStats.english|number_format }}</div>
-        <div class="stat-label">{{ encodingLabels.gsm7 }} {{ 'Messages'|t('sms-manager') }}</div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-value" style="color: #8b5cf6;" id="ucs2-count">{{ summaryStats.arabic|number_format }}</div>
-        <div class="stat-label">{{ encodingLabels.ucs2 }} {{ 'Messages'|t('sms-manager') }}</div>
-    </div>
-    <div class="stat-box">
-        <div class="stat-value" style="color: #6b7280;" id="mixed-count">{{ summaryStats.other|number_format }}</div>
-        <div class="stat-label">{{ encodingLabels.mixed }} {{ 'Messages'|t('sms-manager') }}</div>
-    </div>
+<div class="lr-analytics-stats">
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.english,
+        label: encodingLabels.gsm7 ~ ' ' ~ 'Messages'|t('sms-manager'),
+        id: 'gsm7-count',
+        color: '#3b82f6',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.arabic,
+        label: encodingLabels.ucs2 ~ ' ' ~ 'Messages'|t('sms-manager'),
+        id: 'ucs2-count',
+        color: '#8b5cf6',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.other,
+        label: encodingLabels.mixed ~ ' ' ~ 'Messages'|t('sms-manager'),
+        id: 'mixed-count',
+        color: '#6b7280',
+    } only %}
 </div>
 
 {# Encoding Charts #}
-<div class="analytics-charts two-columns">
-    <div class="chart-container">
+<div class="lr-analytics-charts two-columns">
+    <div class="lr-chart-container">
         <h3>{{ 'Distribution'|t('sms-manager') }}</h3>
         <canvas id="encoding-pie-chart"></canvas>
     </div>
-    <div class="chart-container">
+    <div class="lr-chart-container">
         <h3>{{ 'Daily Breakdown'|t('sms-manager') }}</h3>
         <div style="height: 250px;">
             <canvas id="encoding-daily-chart"></canvas>

@@ -39,9 +39,21 @@ class DashboardController extends Controller
     }
 
     /**
+     * Badges test page - displays all ColorHelper color sets
+     *
+     * @return Response
+     * @since 5.6.0
+     */
+    public function actionBadges(): Response
+    {
+        return $this->renderTemplate('sms-manager/badges');
+    }
+
+    /**
      * Dashboard index
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionIndex(): Response
     {

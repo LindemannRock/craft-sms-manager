@@ -11,11 +11,14 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\db\Query;
 use craft\web\Controller;
+use lindemannrock\base\helpers\DateTimeHelper;
+use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\LogRecord;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\SmsManager;
+use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -43,6 +46,7 @@ class LogsController extends Controller
      * List all logs
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -176,6 +180,7 @@ class LogsController extends Controller
      *
      * @param int $logId
      * @return Response
+     * @since 5.0.0
      */
     public function actionView(int $logId): Response
     {
@@ -201,15 +206,21 @@ class LogsController extends Controller
      * Export logs
      *
      * @return Response
+     * @throws BadRequestHttpException
+     * @since 5.0.0
      */
     public function actionExport(): Response
     {
         $this->requirePermission('smsManager:downloadLogs');
 
         $request = Craft::$app->getRequest();
-
         $dateRange = $request->getQueryParam('dateRange', 'last30days');
         $format = $request->getQueryParam('format', 'csv');
+
+        // Validate format is enabled
+        if (!ExportHelper::isFormatEnabled($format)) {
+            throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
+        }
 
         $dates = $this->getDateRangeFromParam($dateRange);
         $startDate = $dates['start'];
@@ -226,42 +237,33 @@ class LogsController extends Controller
 
         $logs = $query->all();
 
-        // Enrich with provider/sender names and actual sender ID
-        foreach ($logs as &$log) {
+        // Build export rows with provider/sender names
+        $rows = [];
+        foreach ($logs as $log) {
             $provider = ProviderRecord::findOne($log['providerId']);
             $senderId = SenderIdRecord::findOne($log['senderIdId']);
-            $log['providerName'] = $provider ? $provider->name : 'Unknown';
-            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
-            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
+
+            $rows[] = [
+                'dateCreated' => $log['dateCreated'],
+                'recipient' => $log['recipient'],
+                'message' => $log['message'],
+                'language' => $log['language'],
+                'status' => $log['status'],
+                'provider' => $provider ? $provider->name : 'Unknown',
+                'senderId' => $senderId ? $senderId->senderId : 'Unknown',
+                'source' => $log['sourcePlugin'] ?? 'Direct',
+                'messageId' => $log['providerMessageId'],
+                'error' => $log['errorMessage'],
+                'providerResponse' => $log['providerResponse'],
+            ];
         }
 
-        // Build filename with settings-based name
-        $settings = SmsManager::$plugin->getSettings();
-        $filenamePart = strtolower(str_replace(' ', '-', $settings->getLowerDisplayName()));
-        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $filename = $filenamePart . '-logs-' . $dateRangeLabel . '-' . date('Y-m-d-His') . '.' . $format;
-
-        if ($format === 'csv') {
-            return $this->exportCsv($logs, $filename);
+        // Check for empty data
+        if (empty($rows)) {
+            Craft::$app->getSession()->setError(Craft::t('sms-manager', 'No logs to export for the selected date range.'));
+            return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
-        $response = Craft::$app->getResponse();
-        $response->headers->set('Content-Type', 'application/json');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
-        $response->content = json_encode($logs, JSON_PRETTY_PRINT);
-
-        return $response;
-    }
-
-    /**
-     * Export logs as CSV
-     *
-     * @param array $logs
-     * @param string $filename
-     * @return Response
-     */
-    private function exportCsv(array $logs, string $filename): Response
-    {
         $headers = [
             'Date',
             'Recipient',
@@ -276,41 +278,29 @@ class LogsController extends Controller
             'Provider Response',
         ];
 
-        $output = fopen('php://temp', 'r+');
-        fputcsv($output, $headers);
+        // Build filename
+        $settings = SmsManager::$plugin->getSettings();
+        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
+        $extension = $format === 'excel' ? 'xlsx' : $format;
+        $filename = ExportHelper::filename($settings, ['logs', $dateRangeLabel], $extension);
 
-        foreach ($logs as $log) {
-            fputcsv($output, [
-                $log['dateCreated'],
-                $log['recipient'],
-                $log['message'],
-                $log['language'],
-                $log['status'],
-                $log['providerName'],
-                $log['senderIdValue'],
-                $log['sourcePlugin'] ?? 'Direct',
-                $log['providerMessageId'],
-                $log['errorMessage'],
-                $log['providerResponse'],
-            ]);
-        }
+        $dateColumns = ['dateCreated'];
 
-        rewind($output);
-        $csv = stream_get_contents($output);
-        fclose($output);
-
-        $response = Craft::$app->getResponse();
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
-        $response->content = $csv;
-
-        return $response;
+        return match ($format) {
+            'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),
+            'json' => ExportHelper::toJson($rows, $filename, $dateColumns),
+            'excel' => ExportHelper::toExcel($rows, $headers, $filename, $dateColumns, [
+                'sheetTitle' => 'SMS Logs',
+            ]),
+            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
+        };
     }
 
     /**
      * Clear logs
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionClear(): Response
     {
@@ -341,6 +331,7 @@ class LogsController extends Controller
      * Delete a single log
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionDelete(): Response
     {
@@ -361,6 +352,7 @@ class LogsController extends Controller
      * Get logs data for AJAX refresh
      *
      * @return Response
+     * @since 5.0.0
      */
     public function actionGetLogsData(): Response
     {
@@ -448,15 +440,14 @@ class LogsController extends Controller
         $logs = $query->all();
 
         // Enrich with provider/sender names and format dates
-        $formatter = Craft::$app->getFormatter();
         foreach ($logs as &$log) {
             $provider = ProviderRecord::findOne($log['providerId']);
             $senderId = SenderIdRecord::findOne($log['senderIdId']);
             $log['providerName'] = $provider ? $provider->name : 'Unknown';
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
             $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
-            // Format date for display using Craft's formatter (respects timezone/locale)
-            $log['datetimeFormatted'] = $formatter->asDatetime($log['dateCreated'], 'medium');
+            // Format date for display using centralized DateTimeHelper
+            $log['datetimeFormatted'] = DateTimeHelper::formatDatetime($log['dateCreated'], 'medium');
         }
 
         // Get status counts
@@ -503,5 +494,51 @@ class LogsController extends Controller
         }
 
         return ['start' => $startDate, 'end' => $endDate];
+    }
+
+    /**
+     * Bulk delete logs
+     *
+     * @return Response
+     * @since 5.6.0
+     */
+    public function actionBulkDelete(): Response
+    {
+        $this->requirePostRequest();
+        $this->requirePermission('smsManager:deleteLogs');
+
+        $logIds = Craft::$app->getRequest()->getBodyParam('logIds', []);
+
+        if (empty($logIds)) {
+            return $this->asJson([
+                'success' => false,
+                'message' => Craft::t('sms-manager', 'No logs selected.'),
+            ]);
+        }
+
+        try {
+            $deletedCount = LogRecord::deleteAll(['id' => $logIds]);
+
+            $this->logInfo("Bulk deleted {$deletedCount} SMS log(s)", [
+                'logIds' => $logIds,
+                'deletedCount' => $deletedCount,
+            ]);
+
+            return $this->asJson([
+                'success' => true,
+                'message' => Craft::t('sms-manager', '{count} log(s) deleted.', ['count' => $deletedCount]),
+                'deletedCount' => $deletedCount,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logError('Failed to bulk delete logs: ' . $e->getMessage(), [
+                'logIds' => $logIds,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->asJson([
+                'success' => false,
+                'message' => Craft::t('sms-manager', 'Failed to delete logs.'),
+            ]);
+        }
     }
 }

@@ -1,197 +1,248 @@
-{% extends "_layouts/cp" %}
-{% import "_includes/forms" as forms %}
-{% import 'sms-manager/_macros/index' as indexMacros %}
+{#
+ # SMS Logs Index - Using cp-table layout
+ #
+ # This template extends the base plugin's cp-table layout to provide
+ # a consistent interface for viewing SMS logs with filters, sorting,
+ # and expandable row details.
+ #}
 
-{% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
+{% extends 'lindemannrock-base/_layouts/cp-table' %}
 
-{% set title = 'SMS Logs'|t('sms-manager') %}
-{% set fullPageForm = false %}
-{% set selectedSubnavItem = 'sms-logs' %}
-
-{% set canDownload = currentUser.can('smsManager:downloadLogs') %}
-
-{% set crumbs = [
-    { label: smsHelper.fullName, url: url('sms-manager') },
-    { label: 'SMS Logs'|t('sms-manager'), url: url('sms-manager/sms-logs') }
-] %}
+{# ============================================================================
+   BUILD FILTER OPTIONS
+   ============================================================================ #}
 
 {# Build language options from Craft sites #}
-{% set languageOptions = [] %}
+{% set languageOptions = [{value: 'all', label: 'All Languages'|t('sms-manager')}] %}
 {% set seenLanguages = [] %}
 {% for site in craft.app.sites.getAllSites() %}
     {% set langCode = site.language|split('-')|first %}
     {% if langCode not in seenLanguages %}
         {% set seenLanguages = seenLanguages|merge([langCode]) %}
         {% set languageOptions = languageOptions|merge([{
-            code: langCode,
+            value: langCode,
             label: site.language ~ ' (' ~ site.name ~ ')'
         }]) %}
     {% endif %}
 {% endfor %}
 
-{# Status filter uses Craft's built-in status classes: green, red, orange #}
+{# Build source options #}
+{% set sourceOptions = [
+    {value: 'all', label: 'All Sources'|t('sms-manager')},
+    {value: 'direct', label: 'Direct'|t('sms-manager')},
+] %}
+{% for source in sources %}
+    {% set sourceOptions = sourceOptions|merge([{value: source, label: source}]) %}
+{% endfor %}
 
-{% block toolbar %}
-    <div id="toolbar" class="flex" style="align-items: flex-end;">
-        <div class="flex-grow">
-            <form method="get" action="{{ url('sms-manager/sms-logs') }}">
-                <div class="flex">
-                    {# Status filter #}
-                    <div class="btngroup">
-                        <button type="button" class="btn menubtn statusmenubtn">
-                            <span class="status {{ statusFilter == 'all' ? 'all' : (statusFilter == 'sent' ? 'green' : (statusFilter == 'failed' ? 'red' : 'orange')) }}"></span>
-                            {{ statusFilter == 'all' ? 'All Status'|t('sms-manager') : statusFilter|capitalize }}
-                        </button>
-                        <div class="menu">
-                            <ul>
-                                <li><a class="{{ statusFilter == 'all' ? 'sel' : '' }}" href="?status=all&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status all"></span>{{ 'All'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ statusFilter == 'sent' ? 'sel' : '' }}" href="?status=sent&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status green"></span>{{ 'Sent'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ statusFilter == 'failed' ? 'sel' : '' }}" href="?status=failed&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status red"></span>{{ 'Failed'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ statusFilter == 'pending' ? 'sel' : '' }}" href="?status=pending&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}"><span class="status orange"></span>{{ 'Pending'|t('sms-manager') }}</a></li>
-                            </ul>
-                        </div>
-                    </div>
 
-                    {# Language filter - dynamic from Craft sites #}
-                    {% set currentLangLabel = 'All Languages'|t('sms-manager') %}
-                    {% if languageFilter != 'all' %}
-                        {% for lang in languageOptions %}
-                            {% if lang.code == languageFilter %}
-                                {% set currentLangLabel = lang.label %}
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
-                    <div class="btngroup">
-                        <button type="button" class="btn menubtn">
-                            {{ currentLangLabel }}
-                        </button>
-                        <div class="menu">
-                            <ul>
-                                <li><a class="{{ languageFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language=all&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'All Languages'|t('sms-manager') }}</a></li>
-                                {% for lang in languageOptions %}
-                                    <li><a class="{{ languageFilter == lang.code ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ lang.code }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ lang.label }}</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
+{# ============================================================================
+   TABLE CONFIGURATION
+   ============================================================================ #}
 
-                    {# Source filter #}
-                    {% set currentSourceLabel = 'All Sources'|t('sms-manager') %}
-                    {% if sourceFilter == 'direct' %}
-                        {% set currentSourceLabel = 'Direct'|t('sms-manager') %}
-                    {% elseif sourceFilter != 'all' %}
-                        {% set currentSourceLabel = sourceFilter %}
-                    {% endif %}
-                    <div class="btngroup">
-                        <button type="button" class="btn menubtn">
-                            {{ currentSourceLabel }}
-                        </button>
-                        <div class="menu">
-                            <ul>
-                                <li><a class="{{ sourceFilter == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source=all&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'All Sources'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ sourceFilter == 'direct' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source=direct&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Direct'|t('sms-manager') }}</a></li>
-                                {% for source in sources %}
-                                    <li><a class="{{ sourceFilter == source ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ source }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ source }}</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
+{% set tableConfig = {
+    plugin: {
+        handle: 'sms-manager',
+        name: smsHelper.fullName,
+    },
+    page: {
+        title: 'SMS Logs'|t('sms-manager'),
+        subnav: 'sms-logs',
+        crumbs: [
+            { label: smsHelper.fullName, url: url('sms-manager') },
+            { label: 'SMS Logs'|t('sms-manager'), url: url('sms-manager/sms-logs') }
+        ],
+    },
+    filters: [
+        {
+            type: 'status',
+            param: 'status',
+            current: statusFilter,
+            label: 'All Status'|t('sms-manager'),
+            colorSet: 'smsStatus',
+            options: [
+                {value: 'all', label: 'All'|t('sms-manager'), status: 'all'},
+                {value: 'sent', label: 'Sent'|t('sms-manager'), colorKey: 'sent'},
+                {value: 'failed', label: 'Failed'|t('sms-manager'), colorKey: 'failed'},
+                {value: 'pending', label: 'Pending'|t('sms-manager'), colorKey: 'pending'},
+            ],
+        },
+        {
+            type: 'dropdown',
+            param: 'language',
+            current: languageFilter,
+            label: 'All Languages'|t('sms-manager'),
+            options: languageOptions,
+        },
+        {
+            type: 'dropdown',
+            param: 'source',
+            current: sourceFilter,
+            label: 'All Sources'|t('sms-manager'),
+            options: sourceOptions,
+        },
+        {
+            type: 'dateRange',
+            param: 'dateRange',
+            current: dateRange,
+            label: 'Date Range'|t('sms-manager'),
+        },
+        {
+            type: 'hidden',
+            param: 'provider',
+            current: providerFilter,
+        },
+    ],
+    search: {
+        placeholder: 'Search logs...'|t('sms-manager'),
+        value: search,
+    },
+    sort: {
+        field: sort,
+        direction: dir,
+    },
+    table: {
+        columns: [
+            {key: 'dateCreated', label: 'Sent'|t('sms-manager'), sortable: true},
+            {key: 'recipient', label: 'Recipient'|t('sms-manager'), sortable: true},
+            {key: 'message', label: 'Message'|t('sms-manager')},
+            {key: 'language', label: 'Language'|t('sms-manager'), sortable: true},
+            {key: 'status', label: 'Status'|t('sms-manager'), sortable: true},
+            {key: 'providerName', label: 'Provider'|t('sms-manager')},
+            {key: 'senderIdValue', label: 'Sender ID'|t('sms-manager')},
+            {key: 'sourcePlugin', label: 'Source'|t('sms-manager')},
+        ],
+        items: logs,
+        emptyMessage: 'No logs found.'|t('sms-manager'),
+        expandable: true,
+    },
+    pagination: {
+        page: page,
+        limit: limit,
+        totalCount: totalCount,
+        itemLabel: {singular: 'log'|t('sms-manager'), plural: 'logs'|t('sms-manager')},
+    },
+    checkboxes: currentUser.can('smsManager:deleteLogs'),
+    footerActions: [],
+    ajax: {
+        enabled: settings.refreshIntervalSecs > 0,
+        interval: settings.refreshIntervalSecs,
+        endpoint: actionUrl('sms-manager/logs/get-logs-data'),
+    },
+} %}
 
-                    {# Date range filter #}
-                    {% set dateRangeLabels = {
-                        'today': 'Today'|t('sms-manager'),
-                        'yesterday': 'Yesterday'|t('sms-manager'),
-                        'last7days': 'Last 7 days'|t('sms-manager'),
-                        'last30days': 'Last 30 days'|t('sms-manager'),
-                        'last90days': 'Last 90 days'|t('sms-manager'),
-                        'all': 'All time'|t('sms-manager'),
-                    } %}
-                    <div class="btngroup">
-                        <button type="button" class="btn menubtn">
-                            {{ dateRangeLabels[dateRange] ?? dateRangeLabels['last30days'] }}
-                        </button>
-                        <div class="menu">
-                            <ul>
-                                <li><a class="{{ dateRange == 'today' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange=today&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Today'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'yesterday' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange=yesterday&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Yesterday'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'last7days' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange=last7days&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Last 7 days'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'last30days' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange=last30days&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Last 30 days'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'last90days' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange=last90days&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'Last 90 days'|t('sms-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'all' ? 'sel' : '' }}" href="?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange=all&search={{ search }}&sort={{ sort }}&dir={{ dir }}">{{ 'All time'|t('sms-manager') }}</a></li>
-                            </ul>
-                        </div>
-                    </div>
 
-                    {# Search #}
-                    <div class="search-container texticon flex-grow">
-                        <span class="texticon-icon search icon" aria-hidden="true"></span>
-                        <input type="text" class="clearable text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search logs...'|t('sms-manager') }}" autocomplete="off">
-                        <button type="button" class="clear-btn {{ search ? '' : 'hidden' }}" title="{{ 'Clear'|t('app') }}"></button>
-                        <input type="hidden" name="status" value="{{ statusFilter }}">
-                        <input type="hidden" name="provider" value="{{ providerFilter }}">
-                        <input type="hidden" name="language" value="{{ languageFilter }}">
-                        <input type="hidden" name="source" value="{{ sourceFilter }}">
-                        <input type="hidden" name="dateRange" value="{{ dateRange }}">
-                        <input type="hidden" name="sort" value="{{ sort }}">
-                        <input type="hidden" name="dir" value="{{ dir }}">
-                    </div>
-                </div>
-            </form>
-        </div>
-        {% if canDownload %}
-            <div class="btngroup">
-                <button type="button" class="btn menubtn" data-icon="download">{{ "Export"|t('sms-manager') }}</button>
-                <div class="menu" data-align="right">
-                    <ul>
-                        <li>
-                            <a href="{{ url('sms-manager/sms-logs/export', {dateRange: dateRange, format: 'csv'}) }}">{{ "Export as CSV"|t('sms-manager') }}</a>
-                        </li>
-                        <li>
-                            <a href="{{ url('sms-manager/sms-logs/export', {dateRange: dateRange, format: 'json'}) }}">{{ "Export as JSON"|t('sms-manager') }}</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        {% endif %}
-    </div>
+{# ============================================================================
+   TOOLBAR ACTIONS (Export button)
+   ============================================================================ #}
+
+{% block toolbarActions %}
+    {% include 'lindemannrock-base/_components/export-menu' with {
+        action: 'sms-manager/sms-logs/export',
+        permission: 'smsManager:downloadLogs',
+    } only %}
 {% endblock %}
 
-{% block content %}
+
+{# ============================================================================
+   BULK ACTIONS (shown when items selected)
+   ============================================================================ #}
+
+{% block bulkActions %}
+    {% if currentUser.can('smsManager:deleteLogs') %}
+        <button type="button" class="btn secondary" id="lr-bulk-delete-btn">
+            {{ 'Delete'|t('app') }} (<span id="lr-selected-count">0</span>)
+        </button>
+    {% endif %}
+{% endblock %}
+
+
+{# ============================================================================
+   ROW ACTIONS (per-row delete button)
+   ============================================================================ #}
+
+{% block rowActions %}
+    {% include 'lindemannrock-base/_components/row-actions' with {
+        item: item,
+        actions: {
+            type: 'menu',
+            icon: 'settings',
+            title: 'Actions'|t('app'),
+            permission: 'smsManager:deleteLogs',
+            items: [
+                {
+                    label: 'Delete'|t('app'),
+                    class: 'error',
+                    permission: 'smsManager:deleteLogs',
+                    jsAction: 'delete',
+                },
+            ],
+        },
+    } only %}
+{% endblock %}
+
+
+{# ============================================================================
+   CUSTOM TABLE ROW RENDERING
+   ============================================================================ #}
+
+{% block tableRow %}
+    {# Sent date #}
+    <td class="light">{{ item.dateCreated|lrDatetime('medium') }}</td>
+
+    {# Recipient #}
+    <td><code>{{ item.recipient }}</code></td>
+
+    {# Message (truncated) #}
+    <td class="message-cell" title="{{ item.message }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        {{ item.message|slice(0, 50) }}{% if item.message|length > 50 %}...{% endif %}
+    </td>
+
+    {# Language #}
+    <td>
+        {% set langLabel = item.language %}
+        {% for lang in languageOptions %}
+            {% if lang.value == item.language %}
+                {% set langLabel = lang.label %}
+            {% endif %}
+        {% endfor %}
+        <span class="light">{{ langLabel }}</span>
+    </td>
+
+    {# Status badge #}
+    <td>
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: item.status|capitalize,
+            value: item.status,
+            colorSet: 'smsStatus',
+        } only %}
+    </td>
+
+    {# Provider #}
+    <td><span class="light">{{ item.providerName }}</span></td>
+
+    {# Sender ID #}
+    <td><span class="light">{{ item.senderIdValue }}</span></td>
+
+    {# Source #}
+    <td>
+        {% if item.sourcePlugin %}
+            <span class="light">{{ item.sourcePlugin }}</span>
+        {% else %}
+            <span class="light">{{ 'Direct'|t('sms-manager') }}</span>
+        {% endif %}
+    </td>
+{% endblock %}
+
+
+{# ============================================================================
+   EXPANDABLE ROW DETAILS
+   ============================================================================ #}
+
+{% block expandableRow %}
+    {% set isRtl = item.language|slice(0, 2) == 'ar' %}
+
     <style>
-        .message-cell {
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .pagination {
-            gap: 4px;
-            align-items: center;
-        }
-        .page-info {
-            margin: 0 12px;
-            color: #596673;
-        }
-        /* Clickable row hover effect */
-        .clickable-row {
-            cursor: pointer;
-            transition: background 0.1s ease;
-        }
-        .clickable-row:hover {
-            background: #f9fafb !important;
-        }
-        /* Context row styling */
-        .context-row td {
-            padding: 0 !important;
-        }
-        .context-row .context-content {
-            padding: 16px;
-            background: #f9fafb;
-            border-left: 3px solid #3498db;
-        }
-        .context-row.error .context-content {
-            border-left-color: #ef4444;
-        }
         .context-label {
             font-size: 11px;
             color: #606d7b;
@@ -213,440 +264,155 @@
             display: grid;
             gap: 12px;
         }
+        .lr-context-row.error .lr-context-content {
+            border-left-color: #ef4444;
+        }
     </style>
 
-    <div id="elements" class="elements">
-        <div class="tableview tablepane">
-            <table class="data fullwidth">
-                <thead>
-                    <tr>
-                        <th scope="col" data-attribute="dateCreated" class="orderable {{ sort == 'dateCreated' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="dateCreated">{{ 'Sent'|t('sms-manager') }}</button>
-                        </th>
-                        <th scope="col" data-attribute="recipient" class="orderable {{ sort == 'recipient' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="recipient">{{ 'Recipient'|t('sms-manager') }}</button>
-                        </th>
-                        <th scope="col">{{ 'Message'|t('sms-manager') }}</th>
-                        <th scope="col" data-attribute="language" class="orderable {{ sort == 'language' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="language">{{ 'Language'|t('sms-manager') }}</button>
-                        </th>
-                        <th scope="col" data-attribute="status" class="orderable {{ sort == 'status' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="status">{{ 'Status'|t('sms-manager') }}</button>
-                        </th>
-                        <th scope="col">{{ 'Provider'|t('sms-manager') }}</th>
-                        <th scope="col">{{ 'Sender ID'|t('sms-manager') }}</th>
-                        <th scope="col">{{ 'Source'|t('sms-manager') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if logs|length %}
-                        {% for log in logs %}
-                            {% set hasDetails = log.errorMessage or log.providerResponse or (log.message|length > 50) %}
-                            {# Main log row - clickable #}
-                            <tr class="clickable-row" data-id="{{ log.id }}" data-entry-id="{{ loop.index }}">
-                                <td class="light">{{ craft.app.formatter.asDatetime(log.dateCreated, 'medium') }}</td>
-                                <td><code>{{ log.recipient }}</code></td>
-                                <td class="message-cell" title="{{ log.message }}">
-                                    {{ log.message|slice(0, 50) }}{% if log.message|length > 50 %}...{% endif %}
-                                </td>
-                                <td>
-                                    {% set langLabel = log.language %}
-                                    {% for lang in languageOptions %}
-                                        {% if lang.code == log.language %}
-                                            {% set langLabel = lang.label %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    <span class="light">{{ langLabel }}</span>
-                                </td>
-                                <td>
-                                    {{ indexMacros.logStatusBadge(log.status) }}
-                                </td>
-                                <td><span class="light">{{ log.providerName }}</span></td>
-                                <td><span class="light">{{ log.senderIdValue }}</span></td>
-                                <td>
-                                    {% if log.sourcePlugin %}
-                                        <span class="light">{{ log.sourcePlugin }}</span>
-                                    {% else %}
-                                        <span class="light">{{ 'Direct'|t('sms-manager') }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {# Expandable context row - hidden by default #}
-                            {% if hasDetails %}
-                                <tr class="context-row {{ log.status == 'failed' ? 'error' : '' }}" data-entry-id="{{ loop.index }}" style="display: none;">
-                                    <td colspan="8">
-                                        <div class="context-content">
-                                            <div class="context-grid">
-                                                {# Full message #}
-                                                {% set isRtl = log.language|slice(0, 2) == 'ar' %}
-                                                <div>
-                                                    <div class="context-label">{{ 'Full Message'|t('sms-manager') }}</div>
-                                                    <div class="context-value"{{ isRtl ? ' dir="rtl"' : '' }}>{{ log.message }}</div>
-                                                </div>
-                                                {# Error message (if failed) #}
-                                                {% if log.errorMessage %}
-                                                    <div>
-                                                        <div class="context-label" style="color: #dc2626;">{{ 'Error'|t('sms-manager') }}</div>
-                                                        <div class="context-value" style="border-color: #fecaca; background: #fef2f2;">{{ log.errorMessage }}</div>
-                                                    </div>
-                                                {% endif %}
-                                                {# Provider response #}
-                                                {% if log.providerResponse %}
-                                                    <div>
-                                                        <div class="context-label">{{ 'Provider Response'|t('sms-manager') }}</div>
-                                                        <div class="context-value">{{ log.providerResponse }}</div>
-                                                    </div>
-                                                {% endif %}
-                                                {# Sender ID used (actual value sent to API) #}
-                                                <div>
-                                                    <div class="context-label">{{ 'Sender ID'|t('sms-manager') }}</div>
-                                                    <div class="context-value">{{ log.senderIdValue ?? 'Unknown' }}</div>
-                                                </div>
-                                                {# Provider Message ID #}
-                                                {% if log.providerMessageId %}
-                                                    <div>
-                                                        <div class="context-label">{{ 'Message ID'|t('sms-manager') }}</div>
-                                                        <div class="context-value">{{ log.providerMessageId }}</div>
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 2em;">
-                                {{ 'No logs found.'|t('sms-manager') }}
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+    <div class="context-grid">
+        {# Full message #}
+        <div>
+            <div class="context-label">{{ 'Full Message'|t('sms-manager') }}</div>
+            <div class="context-value"{{ isRtl ? ' dir="rtl"' : '' }}>{{ item.message }}</div>
         </div>
-    </div>
 
-    {# Pagination #}
-    <div id="footer" class="flex">
-        <div class="light">
-            <div class="flex pagination">
-                <nav class="flex" aria-label="log pagination">
-                    <button type="button" class="page-link prev-page {{ page <= 1 ? 'disabled' : '' }}" {{ page <= 1 ? 'disabled' : '' }} title="{{ 'Previous Page'|t('app') }}"></button>
-                    <button type="button" class="page-link next-page {{ page >= totalPages ? 'disabled' : '' }}" {{ page >= totalPages ? 'disabled' : '' }} title="{{ 'Next Page'|t('app') }}"></button>
-                </nav>
-                <div class="page-info">
-                    {% set endRange = min(offset + limit, totalCount) %}
-                    {% if totalCount == 0 %}
-                        {{ 'no logs'|t('sms-manager') }}
-                    {% else %}
-                        {{ offset + 1 }} – {{ endRange }} {{ 'of'|t('app') }} {{ totalCount }} {{ 'logs'|t('sms-manager') }}
-                    {% endif %}
-                </div>
+        {# Error message (if failed) #}
+        {% if item.errorMessage %}
+            <div>
+                <div class="context-label" style="color: #dc2626;">{{ 'Error'|t('sms-manager') }}</div>
+                <div class="context-value" style="border-color: #fecaca; background: #fef2f2;">{{ item.errorMessage }}</div>
             </div>
-        </div>
-    </div>
-
-    <script>
-        // Initialize menu buttons
-        document.querySelectorAll('.menubtn').forEach(btn => {
-            if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
-                new Craft.MenuBtn(btn);
-            }
-        });
-
-        // Clickable rows to toggle context/details
-        document.querySelectorAll('.clickable-row').forEach(row => {
-            row.addEventListener('click', function(e) {
-                // Don't toggle if clicking on a link or button
-                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                    return;
-                }
-
-                const entryId = this.dataset.entryId;
-                const contextRow = document.querySelector('.context-row[data-entry-id="' + entryId + '"]');
-
-                if (contextRow) {
-                    const isVisible = contextRow.style.display !== 'none';
-                    contextRow.style.display = isVisible ? 'none' : 'table-row';
-
-                    // Toggle visual indicator on main row
-                    if (!isVisible) {
-                        this.style.background = '#f0f4f8';
-                    } else {
-                        this.style.background = '';
-                    }
-                }
-            });
-        });
-
-        // Clear search
-        const searchClearBtn = document.querySelector('.search-container .clear-btn');
-        if (searchClearBtn) {
-            searchClearBtn.addEventListener('click', function() {
-                const searchInput = this.previousElementSibling;
-                searchInput.value = '';
-                searchInput.form.submit();
-            });
-        }
-
-        // Search on Enter
-        const searchInput = document.querySelector('input[name="search"]');
-        if (searchInput) {
-            searchInput.addEventListener('keyup', function(e) {
-                if (e.key === 'Enter') {
-                    this.form.submit();
-                }
-            });
-        }
-
-        // Sort buttons
-        document.querySelectorAll('th.orderable button').forEach(button => {
-            button.addEventListener('click', function() {
-                const sortField = this.dataset.sort;
-                const currentSort = '{{ sort }}';
-                const currentDir = '{{ dir }}';
-                let newDir = 'asc';
-
-                if (sortField === currentSort) {
-                    newDir = currentDir === 'asc' ? 'desc' : 'asc';
-                }
-
-                window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort=' + sortField + '&dir=' + newDir + '&page=1';
-            });
-        });
-
-        // Pagination
-        document.querySelector('.prev-page:not(.disabled)')?.addEventListener('click', function() {
-            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page - 1 }}';
-        });
-
-        document.querySelector('.next-page:not(.disabled)')?.addEventListener('click', function() {
-            window.location.href = '?status={{ statusFilter }}&provider={{ providerFilter }}&language={{ languageFilter }}&source={{ sourceFilter }}&dateRange={{ dateRange }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page + 1 }}';
-        });
-
-        // Auto-refresh logs via AJAX (no full page reload)
-        {% if settings.refreshIntervalSecs > 0 %}
-        const refreshInterval = {{ settings.refreshIntervalSecs }} * 1000;
-        let refreshTimer;
-        let isRefreshing = false;
-
-        function getCurrentParams() {
-            const searchInput = document.querySelector('input[name="search"]');
-            return new URLSearchParams({
-                search: searchInput ? searchInput.value : '{{ search|e('js') }}',
-                status: '{{ statusFilter }}',
-                provider: '{{ providerFilter }}',
-                language: '{{ languageFilter }}',
-                source: '{{ sourceFilter }}',
-                dateRange: '{{ dateRange }}',
-                sort: '{{ sort }}',
-                dir: '{{ dir }}',
-                page: '{{ page }}'
-            });
-        }
-
-        function renderRow(log, index) {
-            const statusClass = log.status === 'sent' ? 'green' : (log.status === 'failed' ? 'red' : 'orange');
-            const hasDetails = log.errorMessage || log.providerResponse || log.providerMessageId || (log.message && log.message.length > 50);
-            const isRtl = log.language && log.language.substring(0, 2) === 'ar';
-
-            // Build language display
-            let langLabel = log.language || '-';
-            {% for site in craft.app.sites.getAllSites() %}
-            if (log.language === '{{ site.language|split('-')|first }}') {
-                langLabel = '{{ site.language }} ({{ site.name|e('js') }})';
-            }
-            {% endfor %}
-
-            let contextRowHtml = '';
-            if (hasDetails) {
-                let contextContent = '';
-
-                // Full message
-                contextContent += `
-                    <div>
-                        <div class="context-label">{{ "Full Message"|t("sms-manager")|e("js") }}</div>
-                        <div class="context-value"${isRtl ? ' dir="rtl"' : ''}>${Craft.escapeHtml(log.message || '')}</div>
-                    </div>`;
-
-                // Error message (if failed)
-                if (log.errorMessage) {
-                    contextContent += `
-                        <div>
-                            <div class="context-label" style="color: #dc2626;">{{ "Error"|t("sms-manager")|e("js") }}</div>
-                            <div class="context-value" style="border-color: #fecaca; background: #fef2f2;">${Craft.escapeHtml(log.errorMessage)}</div>
-                        </div>`;
-                }
-
-                // Provider response
-                if (log.providerResponse) {
-                    contextContent += `
-                        <div>
-                            <div class="context-label">{{ "Provider Response"|t("sms-manager")|e("js") }}</div>
-                            <div class="context-value">${Craft.escapeHtml(log.providerResponse)}</div>
-                        </div>`;
-                }
-
-                // Sender ID used (actual value sent to API)
-                contextContent += `
-                    <div>
-                        <div class="context-label">{{ "Sender ID"|t("sms-manager")|e("js") }}</div>
-                        <div class="context-value">${Craft.escapeHtml(log.senderIdValue || 'Unknown')}</div>
-                    </div>`;
-
-                // Provider Message ID
-                if (log.providerMessageId) {
-                    contextContent += `
-                        <div>
-                            <div class="context-label">{{ "Message ID"|t("sms-manager")|e("js") }}</div>
-                            <div class="context-value">${Craft.escapeHtml(log.providerMessageId)}</div>
-                        </div>`;
-                }
-
-                contextRowHtml = `
-                    <tr class="context-row ${log.status === 'failed' ? 'error' : ''}" data-entry-id="${index}" style="display: none;">
-                        <td colspan="8">
-                            <div class="context-content">
-                                <div class="context-grid">
-                                    ${contextContent}
-                                </div>
-                            </div>
-                        </td>
-                    </tr>`;
-            }
-
-            return `
-                <tr class="clickable-row" data-id="${log.id}" data-entry-id="${index}">
-                    <td class="light">${log.datetimeFormatted}</td>
-                    <td><code>${Craft.escapeHtml(log.recipient)}</code></td>
-                    <td class="message-cell" title="${Craft.escapeHtml(log.message || '')}">
-                        ${Craft.escapeHtml((log.message || '').substring(0, 50))}${(log.message || '').length > 50 ? '...' : ''}
-                    </td>
-                    <td><span class="light">${langLabel}</span></td>
-                    <td>
-                        <span class="status-label ${statusClass}">
-                            <span class="status ${statusClass}"></span>
-                            <span class="status-label-text">${log.status.charAt(0).toUpperCase() + log.status.slice(1)}</span>
-                        </span>
-                    </td>
-                    <td><span class="light">${Craft.escapeHtml(log.providerName)}</span></td>
-                    <td><span class="light">${Craft.escapeHtml(log.senderIdValue)}</span></td>
-                    <td>
-                        ${log.sourcePlugin
-                            ? `<span class="light">${Craft.escapeHtml(log.sourcePlugin)}</span>`
-                            : '<span class="light">{{ "Direct"|t("sms-manager")|e("js") }}</span>'}
-                    </td>
-                </tr>
-                ${contextRowHtml}
-            `;
-        }
-
-        async function refreshLogs() {
-            if (isRefreshing) return;
-            isRefreshing = true;
-
-            try {
-                const params = getCurrentParams();
-                const baseUrl = '{{ actionUrl('sms-manager/logs/get-logs-data') }}';
-                const separator = baseUrl.includes('?') ? '&' : '?';
-                const response = await fetch(baseUrl + separator + params.toString(), {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
-                if (!response.ok) throw new Error('Network response was not ok');
-
-                const data = await response.json();
-                if (!data.success) throw new Error('API returned error');
-
-                // Update table body
-                const tbody = document.querySelector('.tableview tbody');
-                if (tbody && data.logs) {
-                    if (data.logs.length > 0) {
-                        tbody.innerHTML = data.logs.map((log, i) => renderRow(log, i + 1)).join('');
-                        attachRowEventListeners();
-                    } else {
-                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2em;">{{ 'No logs found.'|t('sms-manager')|e('js') }}</td></tr>`;
-                    }
-                }
-
-                // Update pagination info
-                const pageInfo = document.querySelector('.page-info');
-                if (pageInfo && data.totalCount !== undefined) {
-                    const endRange = Math.min(data.offset + data.limit, data.totalCount);
-                    if (data.totalCount === 0) {
-                        pageInfo.textContent = '{{ "No logs"|t("sms-manager")|e("js") }}';
-                    } else {
-                        pageInfo.textContent = `${data.offset + 1} – ${endRange} {{ "of"|t("sms-manager")|e("js") }} ${data.totalCount} {{ "logs"|t("sms-manager")|e("js") }}`;
-                    }
-                }
-
-                // Update pagination buttons
-                const prevBtn = document.querySelector('.prev-page');
-                const nextBtn = document.querySelector('.next-page');
-                if (prevBtn) {
-                    prevBtn.disabled = data.page <= 1;
-                    prevBtn.classList.toggle('disabled', data.page <= 1);
-                }
-                if (nextBtn) {
-                    nextBtn.disabled = data.page >= data.totalPages;
-                    nextBtn.classList.toggle('disabled', data.page >= data.totalPages);
-                }
-
-            } catch (error) {
-                console.error('Logs refresh failed:', error);
-            } finally {
-                isRefreshing = false;
-            }
-        }
-
-        function attachRowEventListeners() {
-            document.querySelectorAll('.clickable-row').forEach(row => {
-                row.addEventListener('click', function(e) {
-                    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                        return;
-                    }
-                    const entryId = this.dataset.entryId;
-                    const contextRow = document.querySelector('.context-row[data-entry-id="' + entryId + '"]');
-                    if (contextRow) {
-                        const isVisible = contextRow.style.display !== 'none';
-                        contextRow.style.display = isVisible ? 'none' : 'table-row';
-                        this.style.background = isVisible ? '' : '#f0f4f8';
-                    }
-                });
-            });
-        }
-
-        function startAutoRefresh() {
-            refreshTimer = setInterval(refreshLogs, refreshInterval);
-        }
-
-        function stopAutoRefresh() {
-            if (refreshTimer) {
-                clearInterval(refreshTimer);
-                refreshTimer = null;
-            }
-        }
-
-        // Start auto-refresh on page load
-        startAutoRefresh();
-
-        // Pause auto-refresh when user interacts with the page
-        let pauseTimeout;
-        function resetAutoRefreshPause() {
-            stopAutoRefresh();
-            clearTimeout(pauseTimeout);
-            pauseTimeout = setTimeout(function() {
-                startAutoRefresh();
-            }, 5000); // Resume after 5 seconds of inactivity
-        }
-
-        document.addEventListener('click', resetAutoRefreshPause);
-        document.addEventListener('keydown', resetAutoRefreshPause);
-        document.addEventListener('scroll', resetAutoRefreshPause);
         {% endif %}
+
+        {# Provider response #}
+        {% if item.providerResponse %}
+            <div>
+                <div class="context-label">{{ 'Provider Response'|t('sms-manager') }}</div>
+                <div class="context-value">{{ item.providerResponse }}</div>
+            </div>
+        {% endif %}
+
+        {# Sender ID used #}
+        <div>
+            <div class="context-label">{{ 'Sender ID'|t('sms-manager') }}</div>
+            <div class="context-value">{{ item.senderIdValue ?? 'Unknown' }}</div>
+        </div>
+
+        {# Provider Message ID #}
+        {% if item.providerMessageId %}
+            <div>
+                <div class="context-label">{{ 'Message ID'|t('sms-manager') }}</div>
+                <div class="context-value">{{ item.providerMessageId }}</div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+
+{# ============================================================================
+   CUSTOM SCRIPTS
+   ============================================================================ #}
+
+{% block scripts %}
+    <script>
+    // Add error class to context rows for failed items
+    document.querySelectorAll('.lr-data-row').forEach(row => {
+        const statusCell = row.querySelector('td:nth-child(5) .status-label');
+        if (statusCell) {
+            const statusText = statusCell.textContent.trim().toLowerCase();
+            if (statusText === 'failed') {
+                const entryId = row.dataset.entryId;
+                const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + entryId + '"]');
+                if (contextRow) {
+                    contextRow.classList.add('error');
+                }
+            }
+        }
+    });
+
+    // Handle AJAX refresh rendering (when auto-refresh is enabled)
+    document.addEventListener('lr:refresh', function(e) {
+        const data = e.detail;
+        if (!data.logs) return;
+
+        // For now, just reload the page on refresh
+        // Future: implement proper client-side row rendering
+        window.location.reload();
+    });
+
+    // Update selected count when selection changes
+    document.addEventListener('lr:selectionChanged', function(e) {
+        const countSpan = document.getElementById('lr-selected-count');
+        if (countSpan) {
+            countSpan.textContent = e.detail.count;
+        }
+    });
+
+    // Bulk delete handler
+    const bulkDeleteBtn = document.getElementById('lr-bulk-delete-btn');
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!window.lrTableSelection) return;
+
+            const ids = window.lrTableSelection.getSelectedIds();
+            const count = window.lrTableSelection.getCount();
+
+            if (count === 0) return;
+
+            if (!confirm('{{ "Are you sure you want to delete {count} log(s)?"|t("sms-manager")|e("js") }}'.replace('{count}', count))) {
+                return;
+            }
+
+            Craft.sendActionRequest('POST', 'sms-manager/logs/bulk-delete', {
+                data: { logIds: ids }
+            })
+            .then(response => {
+                if (response.data.success) {
+                    Craft.cp.displayNotice('{{ "Logs deleted successfully."|t("sms-manager")|e("js") }}');
+                    window.location.reload();
+                } else {
+                    Craft.cp.displayError(response.data.message || '{{ "Failed to delete logs."|t("sms-manager")|e("js") }}');
+                }
+            })
+            .catch(error => {
+                Craft.cp.displayError('{{ "Failed to delete logs."|t("sms-manager")|e("js") }}');
+            });
+        });
+    }
+
+    // Individual row delete handler
+    document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const id = this.dataset.id;
+            if (!id) return;
+
+            if (!confirm('{{ "Are you sure you want to delete this log?"|t("sms-manager")|e("js") }}')) {
+                return;
+            }
+
+            Craft.sendActionRequest('POST', 'sms-manager/logs/bulk-delete', {
+                data: { logIds: [id] }
+            })
+            .then(response => {
+                if (response.data.success) {
+                    Craft.cp.displayNotice('{{ "Log deleted successfully."|t("sms-manager")|e("js") }}');
+                    // Remove the row from the table
+                    const row = this.closest('tr');
+                    const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + row.dataset.entryId + '"]');
+                    if (row) row.remove();
+                    if (contextRow) contextRow.remove();
+                } else {
+                    Craft.cp.displayError(response.data.message || '{{ "Failed to delete log."|t("sms-manager")|e("js") }}');
+                }
+            })
+            .catch(error => {
+                Craft.cp.displayError('{{ "Failed to delete log."|t("sms-manager")|e("js") }}');
+            });
+        });
+    });
     </script>
 {% endblock %}

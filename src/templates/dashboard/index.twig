@@ -230,7 +230,7 @@
                         {% endif %}
                     </td>
                     <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-size: 13px;">
-                        {{ log.dateCreated|date('M j, H:i') }}
+                        {{ log.dateCreated|lrCompactDatetime }}
                     </td>
                 </tr>
             {% endfor %}

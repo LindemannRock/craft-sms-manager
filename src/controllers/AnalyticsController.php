@@ -11,11 +11,13 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\db\Query;
 use craft\web\Controller;
+use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\SmsManager;
+use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 /**
@@ -497,15 +499,20 @@ class AnalyticsController extends Controller
      * Export analytics data
      *
      * @return Response
+     * @throws BadRequestHttpException
      */
     public function actionExport(): Response
     {
         $this->requirePermission('smsManager:exportAnalytics');
 
         $request = Craft::$app->getRequest();
-
         $dateRange = $request->getQueryParam('dateRange', 'last30days');
         $format = $request->getQueryParam('format', 'csv');
+
+        // Validate format is enabled
+        if (!ExportHelper::isFormatEnabled($format)) {
+            throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
+        }
 
         $dates = $this->getDateRangeFromParam($dateRange);
         $startDate = $dates['start'];
@@ -518,41 +525,32 @@ class AnalyticsController extends Controller
             ->orderBy(['date' => SORT_ASC])
             ->all();
 
-        // Enrich with provider/sender names
-        foreach ($data as &$row) {
+        // Build export rows with provider/sender names
+        $rows = [];
+        foreach ($data as $row) {
             $provider = ProviderRecord::findOne($row['providerId']);
             $senderId = SenderIdRecord::findOne($row['senderIdId']);
-            $row['providerName'] = $provider ? $provider->name : 'Unknown';
-            $row['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+
+            $rows[] = [
+                'date' => $row['date'],
+                'provider' => $provider ? $provider->name : 'Unknown',
+                'senderId' => $senderId ? $senderId->name : 'Unknown',
+                'totalSent' => (int)$row['totalSent'],
+                'totalDelivered' => (int)$row['totalDelivered'],
+                'totalFailed' => (int)$row['totalFailed'],
+                'totalPending' => (int)$row['totalPending'],
+                'english' => (int)$row['englishCount'],
+                'arabic' => (int)$row['arabicCount'],
+                'other' => (int)$row['otherCount'],
+            ];
         }
 
-        // Build filename with settings-based name
-        $settings = SmsManager::$plugin->getSettings();
-        $filenamePart = strtolower(str_replace(' ', '-', $settings->getLowerDisplayName()));
-        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $filename = $filenamePart . '-analytics-' . $dateRangeLabel . '-' . date('Y-m-d-His') . '.' . $format;
-
-        if ($format === 'csv') {
-            return $this->exportCsv($data, $filename);
+        // Check for empty data
+        if (empty($rows)) {
+            Craft::$app->getSession()->setError(Craft::t('sms-manager', 'No analytics data to export for the selected date range.'));
+            return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
-        $response = Craft::$app->getResponse();
-        $response->headers->set('Content-Type', 'application/json');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
-        $response->content = json_encode($data, JSON_PRETTY_PRINT);
-
-        return $response;
-    }
-
-    /**
-     * Export data as CSV
-     *
-     * @param array $data
-     * @param string $filename
-     * @return Response
-     */
-    private function exportCsv(array $data, string $filename): Response
-    {
         $headers = [
             'Date',
             'Provider',
@@ -566,34 +564,20 @@ class AnalyticsController extends Controller
             'Other',
         ];
 
-        $output = fopen('php://temp', 'r+');
-        fputcsv($output, $headers);
+        // Build filename
+        $settings = SmsManager::$plugin->getSettings();
+        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
+        $extension = $format === 'excel' ? 'xlsx' : $format;
+        $filename = ExportHelper::filename($settings, ['analytics', $dateRangeLabel], $extension);
 
-        foreach ($data as $row) {
-            fputcsv($output, [
-                $row['date'],
-                $row['providerName'],
-                $row['senderIdName'],
-                $row['totalSent'],
-                $row['totalDelivered'],
-                $row['totalFailed'],
-                $row['totalPending'],
-                $row['englishCount'],
-                $row['arabicCount'],
-                $row['otherCount'],
-            ]);
-        }
-
-        rewind($output);
-        $csv = stream_get_contents($output);
-        fclose($output);
-
-        $response = Craft::$app->getResponse();
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
-        $response->content = $csv;
-
-        return $response;
+        return match ($format) {
+            'csv' => ExportHelper::toCsv($rows, $headers, $filename),
+            'json' => ExportHelper::toJson($rows, $filename),
+            'excel' => ExportHelper::toExcel($rows, $headers, $filename, [], [
+                'sheetTitle' => 'Analytics',
+            ]),
+            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
+        };
     }
 
     /**
