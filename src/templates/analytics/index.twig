@@ -13,16 +13,6 @@
     'mixed': 'Mixed'|t('sms-manager')
 } %}
 
-{# Build provider filter options #}
-{% set providerOptions = [
-    { value: 'all', label: 'All Providers'|t('sms-manager') }
-] %}
-{% for provider in providers %}
-    {% set providerOptions = providerOptions|merge([
-        { value: provider.id, label: provider.name }
-    ]) %}
-{% endfor %}
-
 {# ============================================================================
    ANALYTICS CONFIGURATION
    ============================================================================ #}
@@ -50,14 +40,6 @@
             default: 'last7days',
             current: dateRange,
         },
-        custom: [
-            {
-                param: 'provider',
-                current: providerId,
-                allLabel: 'All Providers'|t('sms-manager'),
-                options: providerOptions,
-            },
-        ],
     },
     export: {
         permission: 'smsManager:exportAnalytics',

@@ -181,8 +181,8 @@ class SmsManager extends Plugin
 
             $item['subnav'] = [];
 
-            // Dashboard
-            if ($hasAnalyticsAccess) {
+            // Dashboard (shows SMS Logs)
+            if ($this->getSettings()->enableLogs && $hasLogsAccess) {
                 $item['subnav']['dashboard'] = [
                     'label' => Craft::t('sms-manager', 'Dashboard'),
                     'url' => 'sms-manager',
@@ -210,14 +210,6 @@ class SmsManager extends Plugin
                 $item['subnav']['analytics'] = [
                     'label' => Craft::t('sms-manager', 'Analytics'),
                     'url' => 'sms-manager/analytics',
-                ];
-            }
-
-            // SMS Logs (custom transaction logs)
-            if ($this->getSettings()->enableLogs && $hasLogsAccess) {
-                $item['subnav']['sms-logs'] = [
-                    'label' => Craft::t('sms-manager', 'SMS Logs'),
-                    'url' => 'sms-manager/sms-logs',
                 ];
             }
 
@@ -289,9 +281,14 @@ class SmsManager extends Plugin
     private function getCpUrlRules(): array
     {
         return [
-            // Dashboard
-            'sms-manager' => 'sms-manager/dashboard/index',
-            'sms-manager/dashboard' => 'sms-manager/dashboard/index',
+            // SMS Logs (main landing page)
+            'sms-manager' => 'sms-manager/logs/index',
+            'sms-manager/sms-logs' => 'sms-manager/logs/index',
+            'sms-manager/sms-logs/<logId:\d+>' => 'sms-manager/logs/view',
+            'sms-manager/sms-logs/export' => 'sms-manager/logs/export',
+            'sms-manager/sms-logs/clear' => 'sms-manager/logs/clear',
+
+            // Badges test page
             'sms-manager/badges' => 'sms-manager/dashboard/badges',
 
             // Providers
@@ -315,12 +312,6 @@ class SmsManager extends Plugin
 
             // Utilities
             'sms-manager/utilities/clear-all-analytics' => 'sms-manager/utilities/clear-all-analytics',
-
-            // SMS Logs (custom transaction logs)
-            'sms-manager/sms-logs' => 'sms-manager/logs/index',
-            'sms-manager/sms-logs/<logId:\d+>' => 'sms-manager/logs/view',
-            'sms-manager/sms-logs/export' => 'sms-manager/logs/export',
-            'sms-manager/sms-logs/clear' => 'sms-manager/logs/clear',
 
             // System Logs (logging library)
             'sms-manager/logs' => 'logging-library/logs/index',

@@ -154,7 +154,7 @@ class LogsController extends Controller
             ->andWhere(['not', ['sourcePlugin' => '']])
             ->column();
 
-        return $this->renderTemplate('sms-manager/sms-logs/index', [
+        return $this->renderTemplate('sms-manager/dashboard/index', [
             'logs' => $logs,
             'settings' => $settings,
             'providers' => $providers,
@@ -195,7 +195,7 @@ class LogsController extends Controller
         $provider = ProviderRecord::findOne($log->providerId);
         $senderId = SenderIdRecord::findOne($log->senderIdId);
 
-        return $this->renderTemplate('sms-manager/sms-logs/view', [
+        return $this->renderTemplate('sms-manager/dashboard/view', [
             'log' => $log,
             'provider' => $provider,
             'senderId' => $senderId,
@@ -324,7 +324,7 @@ class LogsController extends Controller
 
         Craft::$app->getSession()->setNotice(Craft::t('sms-manager', '{count} log records deleted.', ['count' => $count]));
 
-        return $this->redirect('sms-manager/sms-logs');
+        return $this->redirect('sms-manager/dashboard');
     }
 
     /**
