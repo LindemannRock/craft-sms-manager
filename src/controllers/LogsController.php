@@ -43,17 +43,36 @@ class LogsController extends Controller
     }
 
     /**
-     * List all logs
+     * List all logs (main dashboard page)
      *
      * @return Response
      * @since 5.0.0
      */
     public function actionIndex(): Response
     {
-        $this->requirePermission('smsManager:viewLogs');
+        $user = Craft::$app->getUser();
+        $settings = SmsManager::$plugin->getSettings();
+
+        // If user doesn't have viewLogs permission, redirect to first accessible section
+        if (!$user->checkPermission('smsManager:viewLogs') || !$settings->enableLogs) {
+            if ($user->checkPermission('smsManager:viewProviders')) {
+                return $this->redirect('sms-manager/providers');
+            }
+            if ($user->checkPermission('smsManager:viewSenderIds')) {
+                return $this->redirect('sms-manager/sender-ids');
+            }
+            if ($settings->enableAnalytics && $user->checkPermission('smsManager:viewAnalytics')) {
+                return $this->redirect('sms-manager/analytics');
+            }
+            if ($user->checkPermission('smsManager:manageSettings')) {
+                return $this->redirect('sms-manager/settings');
+            }
+
+            // No access at all - require permission (will show 403)
+            $this->requirePermission('smsManager:viewLogs');
+        }
 
         $request = Craft::$app->getRequest();
-        $settings = SmsManager::$plugin->getSettings();
 
         // Get filter parameters
         $search = $request->getQueryParam('search', '');
