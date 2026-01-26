@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.7.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.6.0...v5.7.0) (2026-01-26)
+
+
+### Features
+
+* enhance log access control and improve dashboard table configuration ([94482ad](https://github.com/LindemannRock/craft-sms-manager/commit/94482ad9c1fb45d716d1306640ef8281485bdb35))
+
+
+### Bug Fixes
+
+* **jobs:** prevent duplicate scheduling of cleanup jobs ([b075767](https://github.com/LindemannRock/craft-sms-manager/commit/b075767cca6f68d26295c5d688e9eb457d810b96))
+
 ## [5.6.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.5.2...v5.6.0) (2026-01-24)
 
 
