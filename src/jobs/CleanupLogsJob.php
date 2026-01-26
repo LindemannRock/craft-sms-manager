@@ -191,6 +191,19 @@ class CleanupLogsJob extends BaseJob
             return;
         }
 
+        // Prevent duplicate scheduling - check if another cleanup job already exists
+        // This prevents fan-out if multiple jobs end up in the queue (manual runs, retries, etc.)
+        $existingJob = (new \craft\db\Query())
+            ->from('{{%queue}}')
+            ->where(['like', 'job', 'smsmanager'])
+            ->andWhere(['like', 'job', 'CleanupLogsJob'])
+            ->exists();
+
+        if ($existingJob) {
+            $this->logDebug('Skipping reschedule - logs cleanup job already exists');
+            return;
+        }
+
         $delay = $this->calculateNextRunDelay();
 
         if ($delay > 0) {
@@ -202,6 +215,11 @@ class CleanupLogsJob extends BaseJob
             ]);
 
             Craft::$app->getQueue()->delay($delay)->push($job);
+
+            $this->logDebug('Scheduled next logs cleanup', [
+                'delay' => $delay,
+                'nextRun' => $nextRunTime,
+            ]);
         }
     }
 
