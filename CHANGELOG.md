@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.8.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.7.0...v5.8.0) (2026-01-28)
+
+
+### Features
+
+* **analytics:** add export action and enhance analytics controller ([e810d48](https://github.com/LindemannRock/craft-sms-manager/commit/e810d489a0188a85800764ceee01cb1ca80c4f49))
+* **logs:** improve log handling and bulk delete functionality ([e810d48](https://github.com/LindemannRock/craft-sms-manager/commit/e810d489a0188a85800764ceee01cb1ca80c4f49))
+* **phone-input:** integrate lrPhoneInput component for phone number handling ([dd689f6](https://github.com/LindemannRock/craft-sms-manager/commit/dd689f6d44d5f5d904339533b32c383bc6ee9393))
+* **providers:** enhance provider settings retrieval ([e810d48](https://github.com/LindemannRock/craft-sms-manager/commit/e810d489a0188a85800764ceee01cb1ca80c4f49))
+* **security:** implement API endpoint validation ([e810d48](https://github.com/LindemannRock/craft-sms-manager/commit/e810d489a0188a85800764ceee01cb1ca80c4f49))
+* **settings:** update settings interface and validation ([e810d48](https://github.com/LindemannRock/craft-sms-manager/commit/e810d489a0188a85800764ceee01cb1ca80c4f49))
+
+
+### Bug Fixes
+
+* **utilities:** correct permission checks for log management ([e810d48](https://github.com/LindemannRock/craft-sms-manager/commit/e810d489a0188a85800764ceee01cb1ca80c4f49))
+
 ## [5.7.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.6.0...v5.7.0) (2026-01-26)
 
 
