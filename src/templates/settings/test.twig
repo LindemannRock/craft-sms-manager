@@ -12,7 +12,8 @@
         {% set allDialCodes = allDialCodes|merge([{
             country: option.value,
             dialCode: dc,
-            label: option.value ~ ' +' ~ dc
+            label: option.value ~ ' +' ~ dc,
+            name: lrCountryName(option.value)
         }]) %}
     {% endif %}
 {% endfor %}
@@ -82,34 +83,14 @@
                 } %}
             </div>
 
-            {# Phone number with country code selector #}
-            <div class="field" id="recipientField">
-                <div class="heading">
-                    <label for="testRecipient">{{ 'Recipient Phone Number'|t('sms-manager') }}</label>
-                    <div class="instructions">
-                        <p>{{ 'Enter phone number. Paste with country code to auto-detect.'|t('sms-manager') }}</p>
-                    </div>
-                </div>
-                <div class="input">
-                    <div style="display: flex; align-items: stretch;">
-                        <div class="select" style="flex-shrink: 0;">
-                            <select id="testCountry" name="testCountry" style="border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; height: 100%;">
-                                {# Options populated by JS based on provider #}
-                            </select>
-                        </div>
-                        <input type="text"
-                               id="testRecipient"
-                               name="testRecipient"
-                               class="text code"
-                               style="border-top-left-radius: 0; border-bottom-left-radius: 0; flex: 1; min-width: 0;"
-                               autocomplete="off"
-                               autocorrect="off"
-                               autocapitalize="off"
-                               inputmode="tel"
-                               placeholder="{{ 'e.g., 94400999'|t('sms-manager') }}">
-                    </div>
-                </div>
-            </div>
+            {# Phone number with country code selector - using base component #}
+            {% include 'lindemannrock-base/_components/phone-input' with {
+                id: 'testRecipient',
+                countryId: 'testCountry',
+                label: 'Recipient Phone Number'|t('sms-manager'),
+                instructions: 'Enter phone number. Paste with country code to auto-detect.'|t('sms-manager'),
+                placeholder: 'e.g., 94400999'|t('sms-manager'),
+            } only %}
 
             {{ forms.textareaField({
                 label: 'Message'|t('sms-manager'),
@@ -169,7 +150,6 @@
 const testButton = document.getElementById('testButton');
 const testProviderSelect = document.getElementById('testProvider');
 const testSenderIdSelect = document.getElementById('testSenderId');
-const testCountrySelect = document.getElementById('testCountry');
 const testRecipientInput = document.getElementById('testRecipient');
 const testMessageInput = document.getElementById('testMessage');
 const testLanguageSelect = document.getElementById('testLanguage');
@@ -199,45 +179,25 @@ const allDialCodes = {{ allDialCodes|json_encode|raw }};
 const apiKeyInfo = document.getElementById('apiKeyInfo');
 const apiKeyInfoMessage = document.getElementById('apiKeyInfoMessage');
 
-// Current dial codes for selected provider (for auto-detect)
-let currentDialCodes = [];
-
 // Update country dropdown based on provider's allowed countries
+// Uses lrPhoneInput component's updateAllowedCountries method
 function updateCountryDropdown() {
     const providerId = testProviderSelect.value;
     const allowedCountries = providerAllowedCountries[providerId] || [];
     const isAllCountries = allowedCountries.includes('*') || allowedCountries.length === 0;
 
-    testCountrySelect.innerHTML = '';
-    currentDialCodes = [];
-
+    // Build dial codes array for this provider
+    let dialCodes;
     if (isAllCountries) {
-        // All countries allowed
-        allDialCodes.forEach(function(item) {
-            const option = document.createElement('option');
-            option.value = item.country;
-            option.textContent = item.label;
-            option.dataset.dialcode = item.dialCode;
-            testCountrySelect.appendChild(option);
-            currentDialCodes.push({ code: item.dialCode, country: item.country });
-        });
+        dialCodes = allDialCodes;
     } else {
-        // Limited to specific countries
-        allowedCountries.forEach(function(countryCode) {
-            const item = allDialCodes.find(d => d.country === countryCode);
-            if (item) {
-                const option = document.createElement('option');
-                option.value = item.country;
-                option.textContent = item.label;
-                option.dataset.dialcode = item.dialCode;
-                testCountrySelect.appendChild(option);
-                currentDialCodes.push({ code: item.dialCode, country: item.country });
-            }
-        });
+        dialCodes = allowedCountries
+            .map(code => allDialCodes.find(d => d.country === code))
+            .filter(Boolean);
     }
 
-    // Sort dial codes by length descending for auto-detect (longer codes first)
-    currentDialCodes.sort((a, b) => b.code.length - a.code.length);
+    // Update the phone input component
+    window.lrPhoneInput.updateAllowedCountries('testRecipient', dialCodes);
 }
 
 // Update API key info based on selected sender ID
@@ -321,97 +281,17 @@ if (testSenderIdSelect) {
     testSenderIdSelect.addEventListener('change', updateApiKeyInfo);
 }
 
-// Initialize on page load
-updateCountryDropdown();
-updateApiKeyInfo();
-
-// Detect and strip country code from pasted number
-function detectAndStripCountryCode(value) {
-    // Remove whitespace, +, and 00 prefix
-    let cleaned = value.replace(/[\s\-\(\)]/g, '');
-    if (cleaned.indexOf('+') === 0) {
-        cleaned = cleaned.substring(1);
-    }
-    if (cleaned.indexOf('00') === 0) {
-        cleaned = cleaned.substring(2);
-    }
-
-    // Try to match a dial code from our allowed list
-    for (let i = 0; i < currentDialCodes.length; i++) {
-        const item = currentDialCodes[i];
-        if (cleaned.indexOf(item.code) === 0 && cleaned.length > item.code.length) {
-            return {
-                dialCode: item.code,
-                countryCode: item.country,
-                localNumber: cleaned.substring(item.code.length)
-            };
-        }
-    }
-    return null;
-}
-
-function processPhoneInput() {
-    const value = testRecipientInput.value.trim();
-    if (!value) return;
-
-    const result = detectAndStripCountryCode(value);
-    if (result && result.localNumber && result.countryCode) {
-        testCountrySelect.value = result.countryCode;
-        testRecipientInput.value = result.localNumber;
+// Initialize on page load - wait for lrPhoneInput component to be ready
+function initPage() {
+    if (window.lrPhoneInput) {
+        updateCountryDropdown();
+        updateApiKeyInfo();
+    } else {
+        // Component not ready yet, wait and try again
+        setTimeout(initPage, 10);
     }
 }
-
-// Sanitize phone number - remove invisible characters and formatting
-function sanitizePhoneNumber(value) {
-    // Remove zero-width spaces, non-breaking spaces, directional marks, BOM, etc.
-    value = value.replace(/[\u200B-\u200D\uFEFF\u00A0\u2060\u202A-\u202E\u2066-\u2069]/g, '');
-    // Keep only digits
-    return value.replace(/[^0-9]/g, '');
-}
-
-// Phone input handlers - sanitize and auto-detect country code
-if (testRecipientInput) {
-    // Process on paste - detect country code
-    testRecipientInput.addEventListener('paste', function(e) {
-        setTimeout(() => {
-            processPhoneInput();
-            this.value = sanitizePhoneNumber(this.value);
-        }, 10);
-    });
-
-    // Process on blur - detect country code
-    testRecipientInput.addEventListener('blur', function() {
-        processPhoneInput();
-    });
-
-    // Sanitize on input and auto-detect with debounce
-    let inputTimeout;
-    testRecipientInput.addEventListener('input', function() {
-        const sanitized = sanitizePhoneNumber(this.value);
-        if (sanitized !== this.value) {
-            const cursorPos = this.selectionStart;
-            const diff = this.value.length - sanitized.length;
-            this.value = sanitized;
-            this.setSelectionRange(Math.max(0, cursorPos - diff), Math.max(0, cursorPos - diff));
-        }
-
-        // Auto-detect country code with debounce for longer numbers
-        clearTimeout(inputTimeout);
-        inputTimeout = setTimeout(function() {
-            if (testRecipientInput.value.length > 9) {
-                processPhoneInput();
-            }
-        }, 500);
-    });
-}
-
-// Get full phone number with country dial code
-function getFullPhoneNumber() {
-    const selectedOption = testCountrySelect.options[testCountrySelect.selectedIndex];
-    const dialCode = selectedOption ? selectedOption.dataset.dialcode : '';
-    const localNumber = sanitizePhoneNumber(testRecipientInput.value);
-    return dialCode + localNumber;
-}
+initPage();
 
 // RTL languages
 const rtlLanguages = ['ar', 'he', 'fa', 'ur'];
@@ -459,8 +339,8 @@ if (testButton) {
     testButton.addEventListener('click', function() {
         const providerId = testProviderSelect.value;
         const senderIdId = testSenderIdSelect.value;
-        const localNumber = sanitizePhoneNumber(testRecipientInput.value);
-        const recipient = getFullPhoneNumber();
+        const localNumber = window.lrPhoneInput.getLocalNumber('testRecipient');
+        const recipient = window.lrPhoneInput.getFullNumber('testRecipient');
         const message = testMessageInput.value.trim();
         const language = testLanguageSelect.value;
 
@@ -581,6 +461,12 @@ if (testRecipientInput) {
             e.preventDefault();
             testButton.click();
         }
+    });
+
+    // Handle country not allowed error
+    testRecipientInput.addEventListener('lr:phoneCountryNotAllowed', function(e) {
+        const countryName = allDialCodes.find(d => d.country === e.detail.detectedCountry)?.name || e.detail.detectedCountry;
+        Craft.cp.displayError(Craft.t('sms-manager', 'The pasted number is from {country}, which is not allowed by this provider.', {country: countryName}));
     });
 }
 {% endjs %}

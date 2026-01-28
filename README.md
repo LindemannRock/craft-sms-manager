@@ -157,6 +157,19 @@ return [
         'itemsPerPage' => 100,
         'refreshIntervalSecs' => 30,
 
+        // Security Settings (outbound API requests)
+        // Defaults: require HTTPS, block private networks, disallow redirects, allow port 443 only
+        // Leave allowedApiHosts empty to allow any public host over HTTPS
+        'security' => [
+            'requireHttps' => true,
+            'blockPrivateNetworks' => true,
+            'allowRedirects' => false,
+            'allowedPorts' => [443],
+            'allowedApiHosts' => [
+                'api.mpp-sms.com',
+            ],
+        ],
+
         // Provider Configuration (read-only in CP)
         'providers' => [
             'production-provider' => [
@@ -167,6 +180,8 @@ return [
                     'apiUrl' => App::env('MPP_SMS_API_URL'),
                     'apiKey' => App::env('MPP_SMS_API_KEY'),
                     'allowedCountries' => ['*'], // ['*'] for all, or ['KW', 'SA', 'AE'] for specific
+                    // Optional per-provider API host allowlist
+                    // 'allowedApiHosts' => ['api.mpp-sms.com'],
                 ],
             ],
         ],
@@ -203,6 +218,20 @@ return [
 - Config items cannot be edited or deleted via CP (only through the config file)
 - Config items take precedence over database items with the same handle
 - A warning is shown in CP when defaults are set via config file
+
+## Security Settings
+
+SMS Manager applies a safe outbound request policy for provider API calls:
+- HTTPS required by default
+- Private/loopback/link-local networks are blocked
+- Redirects are disabled by default
+- Only port 443 is allowed by default
+
+You can optionally allow specific API hosts globally or per provider:
+- `security.allowedApiHosts` (global)
+- `providers.*.settings.allowedApiHosts` (per provider)
+
+If `allowedApiHosts` is empty, any public HTTPS host is allowed.
 
 ## Usage
 
