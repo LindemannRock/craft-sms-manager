@@ -82,7 +82,8 @@ class LogsController extends Controller
         $sourceFilter = $request->getQueryParam('source', 'all');
         $dateRange = $request->getQueryParam('dateRange', 'last30days');
         $sort = $request->getQueryParam('sort', 'dateCreated');
-        $dir = $request->getQueryParam('dir', 'desc');
+        $dir = strtolower($request->getQueryParam('dir', 'desc'));
+        $sortDir = $dir === 'asc' ? SORT_ASC : SORT_DESC;
         $page = max(1, (int)$request->getQueryParam('page', 1));
         $limit = $settings->itemsPerPage ?? 100;
         $offset = ($page - 1) * $limit;
@@ -133,14 +134,14 @@ class LogsController extends Controller
         }
 
         // Apply sorting
-        $orderBy = match ($sort) {
-            'recipient' => "recipient $dir",
-            'status' => "status $dir",
-            'language' => "language $dir",
-            'providerId' => "providerId $dir",
-            default => "dateCreated $dir",
+        $sortColumn = match ($sort) {
+            'recipient' => 'recipient',
+            'status' => 'status',
+            'language' => 'language',
+            'providerId' => 'providerId',
+            default => 'dateCreated',
         };
-        $query->orderBy($orderBy);
+        $query->orderBy([$sortColumn => $sortDir]);
 
         // Get total count for pagination
         $totalCount = $query->count();
@@ -236,6 +237,10 @@ class LogsController extends Controller
         $dateRange = $request->getQueryParam('dateRange', 'last30days');
         $format = $request->getQueryParam('format', 'csv');
 
+        // Check for specific log IDs (selection-aware export via query or body params)
+        $logIdsJson = $request->getQueryParam('logIds') ?? $request->getBodyParam('logIds');
+        $logIds = $logIdsJson ? json_decode($logIdsJson, true) : null;
+
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
@@ -249,7 +254,10 @@ class LogsController extends Controller
             ->from(LogRecord::tableName())
             ->orderBy(['dateCreated' => SORT_DESC]);
 
-        if ($dateRange !== 'all') {
+        // If specific IDs provided, export only those
+        if (!empty($logIds) && is_array($logIds)) {
+            $query->where(['id' => $logIds]);
+        } elseif ($dateRange !== 'all') {
             $query->where(['>=', 'dateCreated', $startDate->format('Y-m-d 00:00:00')])
                 ->andWhere(['<=', 'dateCreated', $endDate->format('Y-m-d 23:59:59')]);
         }
@@ -324,7 +332,7 @@ class LogsController extends Controller
     public function actionClear(): Response
     {
         $this->requirePostRequest();
-        $this->requirePermission('smsManager:downloadLogs');
+        $this->requirePermission('smsManager:deleteLogs');
 
         $request = Craft::$app->getRequest();
         $olderThan = $request->getBodyParam('olderThan');
@@ -355,7 +363,7 @@ class LogsController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
-        $this->requirePermission('smsManager:downloadLogs');
+        $this->requirePermission('smsManager:deleteLogs');
 
         $logId = Craft::$app->getRequest()->getRequiredBodyParam('logId');
 
@@ -371,7 +379,7 @@ class LogsController extends Controller
      * Get logs data for AJAX refresh
      *
      * @return Response
-     * @since 5.0.0
+     * @since 5.4.0
      */
     public function actionGetLogsData(): Response
     {
@@ -388,7 +396,8 @@ class LogsController extends Controller
         $sourceFilter = $request->getQueryParam('source', 'all');
         $dateRange = $request->getQueryParam('dateRange', 'last30days');
         $sort = $request->getQueryParam('sort', 'dateCreated');
-        $dir = $request->getQueryParam('dir', 'desc');
+        $dir = strtolower($request->getQueryParam('dir', 'desc'));
+        $sortDir = $dir === 'asc' ? SORT_ASC : SORT_DESC;
         $page = max(1, (int)$request->getQueryParam('page', 1));
         $limit = $settings->itemsPerPage ?? 100;
         $offset = ($page - 1) * $limit;
@@ -439,14 +448,14 @@ class LogsController extends Controller
         }
 
         // Apply sorting
-        $orderBy = match ($sort) {
-            'recipient' => "recipient $dir",
-            'status' => "status $dir",
-            'language' => "language $dir",
-            'providerId' => "providerId $dir",
-            default => "dateCreated $dir",
+        $sortColumn = match ($sort) {
+            'recipient' => 'recipient',
+            'status' => 'status',
+            'language' => 'language',
+            'providerId' => 'providerId',
+            default => 'dateCreated',
         };
-        $query->orderBy($orderBy);
+        $query->orderBy([$sortColumn => $sortDir]);
 
         // Get total count for pagination
         $totalCount = $query->count();
@@ -551,6 +560,41 @@ class LogsController extends Controller
         } catch (\Throwable $e) {
             $this->logError('Failed to bulk delete logs: ' . $e->getMessage(), [
                 'logIds' => $logIds,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->asJson([
+                'success' => false,
+                'message' => Craft::t('sms-manager', 'Failed to delete logs.'),
+            ]);
+        }
+    }
+
+    /**
+     * Delete all logs
+     *
+     * @return Response
+     * @since 5.6.0
+     */
+    public function actionDeleteAll(): Response
+    {
+        $this->requirePostRequest();
+        $this->requirePermission('smsManager:deleteLogs');
+
+        try {
+            $deletedCount = LogRecord::deleteAll();
+
+            $this->logInfo("Deleted all SMS logs", [
+                'deletedCount' => $deletedCount,
+            ]);
+
+            return $this->asJson([
+                'success' => true,
+                'message' => Craft::t('sms-manager', '{count} log(s) deleted.', ['count' => $deletedCount]),
+                'deleted' => $deletedCount,
+            ]);
+        } catch (\Throwable $e) {
+            $this->logError('Failed to delete all logs: ' . $e->getMessage(), [
                 'error' => $e->getMessage(),
             ]);
 

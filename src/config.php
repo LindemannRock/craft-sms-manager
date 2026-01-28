@@ -132,6 +132,24 @@ return [
         // 'defaultSenderIdHandle' => 'main-sender',
 
         // ========================================
+        // SECURITY SETTINGS
+        // ========================================
+
+        /**
+         * Require HTTPS for provider API endpoints
+         * Default: true
+         */
+        // 'security' => [
+        //     'requireHttps' => true,
+        //     'blockPrivateNetworks' => true,
+        //     'allowRedirects' => false,
+        //     'allowedPorts' => [443],
+        //     'allowedApiHosts' => [
+        //         'api.mpp-sms.com',
+        //     ],
+        // ],
+
+        // ========================================
         // PROVIDER CONFIGURATION
         // ========================================
 
@@ -153,6 +171,8 @@ return [
             //         'apiKey' => App::env('MPP_SMS_API_KEY'),
             //         'devApiKey' => App::env('MPP_SMS_DEV_API_KEY'),
             //         'allowedCountries' => ['*'],  // ['*'] for all, or ['KW', 'SA', 'AE'] for specific
+            //         // Optional per-provider API host allowlist
+            //         // 'allowedApiHosts' => ['api.mpp-sms.com'],
             //     ],
             // ],
 

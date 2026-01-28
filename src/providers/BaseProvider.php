@@ -253,6 +253,141 @@ abstract class BaseProvider implements ProviderInterface
     }
 
     /**
+     * Validate API endpoint against security policy
+     *
+     * @param string $url Endpoint URL
+     * @param array $providerAllowedHosts Provider-specific allowlist
+     * @return array{ok: bool, error: string|null}
+     */
+    protected function validateApiEndpoint(string $url, array $providerAllowedHosts = []): array
+    {
+        $security = $this->getSecurityConfig();
+
+        $parsed = parse_url($url);
+        if ($parsed === false || empty($parsed['scheme']) || empty($parsed['host'])) {
+            return ['ok' => false, 'error' => 'API URL must include scheme and host.'];
+        }
+
+        $scheme = strtolower($parsed['scheme']);
+        if (($security['requireHttps'] ?? true) && $scheme !== 'https') {
+            return ['ok' => false, 'error' => 'API URL must use HTTPS.'];
+        }
+
+        $host = strtolower($parsed['host']);
+        $port = $parsed['port'] ?? ($scheme === 'https' ? 443 : 80);
+
+        $allowedPorts = $security['allowedPorts'] ?? [443];
+        if (!in_array($port, $allowedPorts, true)) {
+            return ['ok' => false, 'error' => 'API URL port is not allowed.'];
+        }
+
+        $allowedHosts = array_merge($security['allowedApiHosts'] ?? [], $providerAllowedHosts);
+        if (!empty($allowedHosts) && !$this->hostMatchesAllowed($host, $allowedHosts)) {
+            return ['ok' => false, 'error' => 'API URL host is not allowed.'];
+        }
+
+        if (($security['blockPrivateNetworks'] ?? true) && $this->hostResolvesToPrivateIp($host)) {
+            return ['ok' => false, 'error' => 'API URL host resolves to a private network address.'];
+        }
+
+        return ['ok' => true, 'error' => null];
+    }
+
+    /**
+     * Get security config from sms-manager.php
+     */
+    private function getSecurityConfig(): array
+    {
+        $config = Craft::$app->getConfig()->getConfigFromFile('sms-manager');
+        $security = $config['security'] ?? [];
+
+        return array_merge([
+            'requireHttps' => true,
+            'blockPrivateNetworks' => true,
+            'allowRedirects' => false,
+            'allowedPorts' => [443],
+            'allowedApiHosts' => [],
+        ], $security);
+    }
+
+    /**
+     * Check if host matches allowed list (supports *.example.com)
+     */
+    private function hostMatchesAllowed(string $host, array $allowedHosts): bool
+    {
+        foreach ($allowedHosts as $allowed) {
+            $allowed = strtolower(trim($allowed));
+            if ($allowed === '') {
+                continue;
+            }
+            if (str_starts_with($allowed, '*.')) {
+                $suffix = substr($allowed, 1);
+                if (str_ends_with($host, $suffix)) {
+                    return true;
+                }
+            } elseif ($host === $allowed) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if host resolves to private or reserved IP ranges
+     */
+    private function hostResolvesToPrivateIp(string $host): bool
+    {
+        $ips = [];
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips[] = $host;
+        } else {
+            $records = @dns_get_record($host, DNS_A + DNS_AAAA) ?: [];
+            foreach ($records as $record) {
+                if (!empty($record['ip'])) {
+                    $ips[] = $record['ip'];
+                } elseif (!empty($record['ipv6'])) {
+                    $ips[] = $record['ipv6'];
+                }
+            }
+        }
+
+        if (empty($ips)) {
+            return true;
+        }
+
+        foreach ($ips as $ip) {
+            if ($this->isPrivateIp($ip)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if an IP is private/reserved
+     */
+    private function isPrivateIp(string $ip): bool
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get safe Guzzle redirect policy
+     */
+    protected function getRedirectPolicy(): array|bool
+    {
+        $security = $this->getSecurityConfig();
+        return ($security['allowRedirects'] ?? false) ? ['max' => 3, 'strict' => true] : false;
+    }
+
+    /**
      * Render settings template
      *
      * @param string $template Template path

@@ -132,14 +132,11 @@
 
 
 {# ============================================================================
-   TOOLBAR ACTIONS (Export button)
+   TOOLBAR ACTIONS
    ============================================================================ #}
 
 {% block toolbarActions %}
-    {% include 'lindemannrock-base/_components/export-menu' with {
-        action: 'sms-manager/sms-logs/export',
-        permission: 'smsManager:downloadLogs',
-    } only %}
+    {# Export moved to extraFooter for consistent layout #}
 {% endblock %}
 
 
@@ -149,9 +146,25 @@
 
 {% block bulkActions %}
     {% if currentUser.can('smsManager:deleteLogs') %}
-        <button type="button" class="btn secondary" id="lr-bulk-delete-btn">
-            {{ 'Delete'|t('app') }} (<span id="lr-selected-count">0</span>)
+        <button type="button" class="btn secondary" id="lr-delete-btn">
+            {{ 'Delete'|t('sms-manager') }} (<span id="lr-selected-count">0</span>)
         </button>
+    {% endif %}
+{% endblock %}
+
+
+{# ============================================================================
+   EXTRA FOOTER (always visible - export button)
+   ============================================================================ #}
+
+{% block extraFooter %}
+    {% if currentUser.can('smsManager:downloadLogs') %}
+        {% include 'lindemannrock-base/_components/export-menu' with {
+            action: 'sms-manager/sms-logs/export',
+            permission: 'smsManager:downloadLogs',
+            selectionAware: true,
+            idsParam: 'logIds',
+        } only %}
     {% endif %}
 {% endblock %}
 
@@ -339,27 +352,28 @@
         window.location.reload();
     });
 
+    // Selection state
+    let selectedIds = new Set();
+
     // Update selected count when selection changes
     document.addEventListener('lr:selectionChanged', function(e) {
+        selectedIds = new Set(e.detail.selectedIds);
         const countSpan = document.getElementById('lr-selected-count');
         if (countSpan) {
-            countSpan.textContent = e.detail.count;
+            countSpan.textContent = selectedIds.size;
         }
     });
 
-    // Bulk delete handler
-    const bulkDeleteBtn = document.getElementById('lr-bulk-delete-btn');
-    if (bulkDeleteBtn) {
-        bulkDeleteBtn.addEventListener('click', function(e) {
+    // Delete button - handles selected items only
+    const deleteBtn = document.getElementById('lr-delete-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (!window.lrTableSelection) return;
+            const ids = Array.from(selectedIds);
 
-            const ids = window.lrTableSelection.getSelectedIds();
-            const count = window.lrTableSelection.getCount();
+            if (ids.length === 0) return;
 
-            if (count === 0) return;
-
-            if (!confirm('{{ "Are you sure you want to delete {count} log(s)?"|t("sms-manager")|e("js") }}'.replace('{count}', count))) {
+            if (!confirm('{{ "Are you sure you want to delete {count} log(s)?"|t("sms-manager")|e("js") }}'.replace('{count}', ids.length))) {
                 return;
             }
 

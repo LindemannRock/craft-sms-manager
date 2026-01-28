@@ -244,7 +244,7 @@ class Settings extends Model
             ['logsRetention', 'default', 'value' => 30],
             ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],
             ['itemsPerPage', 'default', 'value' => 100],
-            ['refreshIntervalSecs', 'integer', 'min' => 5],
+            ['refreshIntervalSecs', 'integer', 'min' => 0],
             ['refreshIntervalSecs', 'default', 'value' => 30],
             [['logLevel'], 'in', 'range' => ['debug', 'info', 'warning', 'error']],
             [['logLevel'], 'validateLogLevel'],

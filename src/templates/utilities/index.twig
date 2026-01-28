@@ -4,7 +4,7 @@
 {% set canViewAnalytics = currentUser.can('smsManager:viewAnalytics') %}
 {% set canClearAnalytics = currentUser.can('smsManager:clearAnalytics') %}
 {% set canViewLogs = currentUser.can('smsManager:viewLogs') %}
-{% set canClearLogs = currentUser.can('smsManager:downloadLogs') %}
+{% set canClearLogs = currentUser.can('smsManager:deleteLogs') %}
 {% set canManageSettings = currentUser.can('smsManager:manageSettings') %}
 
 <div style="margin-bottom: 32px;">

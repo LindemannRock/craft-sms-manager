@@ -362,4 +362,83 @@ class ProvidersService extends Component
 
         return $options;
     }
+
+    /**
+     * Get provider settings array
+     *
+     * @param int|string $providerIdOrHandle Provider ID or handle
+     * @return array Provider settings or empty array if not found
+     * @since 5.7.0
+     */
+    public function getProviderSettings(int|string $providerIdOrHandle): array
+    {
+        $provider = is_int($providerIdOrHandle)
+            ? $this->getProviderById($providerIdOrHandle)
+            : $this->getProviderByHandle($providerIdOrHandle);
+
+        if (!$provider) {
+            return [];
+        }
+
+        return $provider->getSettingsArray();
+    }
+
+    /**
+     * Get allowed countries for a provider
+     *
+     * @param int|string $providerIdOrHandle Provider ID or handle
+     * @return array Array of country codes (e.g., ['KW', 'SA']) or ['*'] for all
+     * @since 5.7.0
+     */
+    public function getAllowedCountries(int|string $providerIdOrHandle): array
+    {
+        $settings = $this->getProviderSettings($providerIdOrHandle);
+        return $settings['allowedCountries'] ?? [];
+    }
+
+    /**
+     * Check if a country is allowed for a provider
+     *
+     * @param int|string $providerIdOrHandle Provider ID or handle
+     * @param string $countryCode Country code (e.g., 'KW', 'SA')
+     * @return bool True if country is allowed, false otherwise
+     * @since 5.7.0
+     */
+    public function isCountryAllowed(int|string $providerIdOrHandle, string $countryCode): bool
+    {
+        $allowedCountries = $this->getAllowedCountries($providerIdOrHandle);
+
+        // Empty or wildcard means all countries allowed
+        if (empty($allowedCountries) || in_array('*', $allowedCountries, true)) {
+            return true;
+        }
+
+        return in_array(strtoupper($countryCode), $allowedCountries, true);
+    }
+
+    /**
+     * Get providers that support a specific country
+     *
+     * @param string $countryCode Country code (e.g., 'KW', 'SA')
+     * @param bool $enabledOnly Only return enabled providers
+     * @return array Array of ProviderRecord objects
+     * @since 5.7.0
+     */
+    public function getProvidersForCountry(string $countryCode, bool $enabledOnly = true): array
+    {
+        $providers = $this->getAllProviders($enabledOnly);
+        $countryCode = strtoupper($countryCode);
+
+        return array_filter($providers, function($provider) use ($countryCode) {
+            $settings = $provider->getSettingsArray();
+            $allowedCountries = $settings['allowedCountries'] ?? [];
+
+            // Empty or wildcard means all countries allowed
+            if (empty($allowedCountries) || in_array('*', $allowedCountries, true)) {
+                return true;
+            }
+
+            return in_array($countryCode, $allowedCountries, true);
+        });
+    }
 }

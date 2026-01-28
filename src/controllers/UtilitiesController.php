@@ -26,6 +26,9 @@ class UtilitiesController extends Controller
 {
     use LoggingTrait;
 
+    /**
+     * @inheritdoc
+     */
     public function init(): void
     {
         parent::init();
@@ -47,7 +50,7 @@ class UtilitiesController extends Controller
                 $this->requirePermission('smsManager:clearAnalytics');
                 break;
             case 'clear-all-logs':
-                $this->requirePermission('smsManager:downloadLogs');
+                $this->requirePermission('smsManager:deleteLogs');
                 break;
         }
 

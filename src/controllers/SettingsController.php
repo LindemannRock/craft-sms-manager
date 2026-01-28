@@ -11,7 +11,6 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\helpers\App;
 use craft\web\Controller;
-use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -126,15 +125,12 @@ class SettingsController extends Controller
                 'main' => $this->maskApiKey($mainKey),
                 'dev' => $this->maskApiKey($devKey),
             ];
-            // Get allowed countries for this provider
+            // Get allowed countries for this provider (raw codes for JS dropdown)
             $allowedCountries = $providerSettings['allowedCountries'] ?? [];
-            if (in_array('*', $allowedCountries, true)) {
-                $providerAllowedCountries[$provider->id] = ['All Countries'];
+            if (in_array('*', $allowedCountries, true) || empty($allowedCountries)) {
+                $providerAllowedCountries[$provider->id] = ['*'];
             } else {
-                $providerAllowedCountries[$provider->id] = array_map(
-                    fn($code) => GeoHelper::getCountryWithDialCode($code),
-                    $allowedCountries
-                );
+                $providerAllowedCountries[$provider->id] = $allowedCountries;
             }
         }
 

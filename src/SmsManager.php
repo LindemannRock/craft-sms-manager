@@ -305,6 +305,7 @@ class SmsManager extends Plugin
 
             // Analytics
             'sms-manager/analytics' => 'sms-manager/analytics/index',
+            'sms-manager/analytics/export' => 'sms-manager/analytics/export',
 
             // Settings
             'sms-manager/settings' => 'sms-manager/settings/index',

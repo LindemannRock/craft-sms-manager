@@ -186,6 +186,20 @@ class MppSmsProvider extends BaseProvider
 
         // Get API endpoint (use custom or default)
         $apiEndpoint = App::parseEnv($settings['apiUrl'] ?? '') ?: self::DEFAULT_API_ENDPOINT;
+        $providerAllowedHosts = $settings['allowedApiHosts'] ?? [];
+
+        $endpointValidation = $this->validateApiEndpoint($apiEndpoint, $providerAllowedHosts);
+        if (!$endpointValidation['ok']) {
+            $this->logError('MPP-SMS: API endpoint validation failed', [
+                'error' => $endpointValidation['error'],
+            ]);
+            return [
+                'success' => false,
+                'messageId' => null,
+                'response' => null,
+                'error' => $endpointValidation['error'],
+            ];
+        }
 
         // Build API URL manually to control encoding
         // (http_build_query double-encodes already-encoded values)
@@ -202,6 +216,7 @@ class MppSmsProvider extends BaseProvider
             $client = Craft::createGuzzleClient([
                 'timeout' => 60,
                 'connect_timeout' => 60,
+                'allow_redirects' => $this->getRedirectPolicy(),
             ]);
 
             $response = $client->get($url);

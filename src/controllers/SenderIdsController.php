@@ -378,6 +378,7 @@ class SenderIdsController extends Controller
      */
     public function actionGetByProvider(): Response
     {
+        $this->requirePermission('smsManager:viewSenderIds');
         $this->requireAcceptsJson();
 
         $providerId = Craft::$app->getRequest()->getQueryParam('providerId');

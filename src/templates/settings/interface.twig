@@ -48,16 +48,17 @@
 
         {{ forms.selectField({
             label: 'Dashboard Refresh Interval'|t('sms-manager'),
-            instructions: 'How often to refresh dashboard data'|t('sms-manager'),
+            instructions: 'How often to refresh dashboard data. Set to Off to disable auto-refresh.'|t('sms-manager'),
             id: 'refreshIntervalSecs',
             name: 'settings[refreshIntervalSecs]',
             value: settings.refreshIntervalSecs,
             required: true,
             options: {
+                0: 'Off'|t('sms-manager'),
                 15: '15 seconds'|t('sms-manager'),
                 30: '30 seconds'|t('sms-manager'),
                 60: '60 seconds (1 minute)'|t('sms-manager'),
-                120: '2 minutes'|t('sms-manager'),
+                120: '120 seconds (2 minutes)'|t('sms-manager'),
             },
             disabled: settings.isOverriddenByConfig('refreshIntervalSecs'),
             warning: settings.isOverriddenByConfig('refreshIntervalSecs') ?
