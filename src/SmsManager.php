@@ -313,10 +313,6 @@ class SmsManager extends Plugin
 
             // Utilities
             'sms-manager/utilities/clear-all-analytics' => 'sms-manager/utilities/clear-all-analytics',
-
-            // System Logs (logging library)
-            'sms-manager/logs' => 'logging-library/logs/index',
-            'sms-manager/logs/download' => 'logging-library/logs/download',
         ];
     }
 
@@ -376,10 +372,10 @@ class SmsManager extends Plugin
             ],
             // Logs
             'smsManager:viewLogs' => [
-                'label' => Craft::t('sms-manager', 'View logs'),
+                'label' => Craft::t('sms-manager', 'View system logs'),
                 'nested' => [
                     'smsManager:downloadLogs' => [
-                        'label' => Craft::t('sms-manager', 'Download logs'),
+                        'label' => Craft::t('sms-manager', 'Download system logs'),
                     ],
                     'smsManager:deleteLogs' => [
                         'label' => Craft::t('sms-manager', 'Delete logs'),

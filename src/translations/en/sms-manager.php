@@ -90,8 +90,8 @@ return [
     'View analytics' => 'View analytics',
     'Export analytics' => 'Export analytics',
     'Clear analytics' => 'Clear analytics',
-    'View logs' => 'View logs',
-    'Download logs' => 'Download logs',
+    'View system logs' => 'View system logs',
+    'Download system logs' => 'Download system logs',
     'Manage settings' => 'Manage settings',
 
     // Providers
