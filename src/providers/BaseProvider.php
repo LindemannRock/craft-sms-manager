@@ -10,6 +10,7 @@ namespace lindemannrock\smsmanager\providers;
 
 use Craft;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\SmsManager;
 
 /**
  * Base Provider
@@ -45,7 +46,7 @@ abstract class BaseProvider implements ProviderInterface
      */
     public function __construct()
     {
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
     }
 
     /**

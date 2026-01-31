@@ -11,7 +11,7 @@ namespace lindemannrock\smsmanager\records;
 use craft\db\ActiveRecord;
 
 /**
- * Log Record
+ * SMS Log Record
  *
  * Stores individual SMS delivery records.
  *
@@ -36,7 +36,7 @@ use craft\db\ActiveRecord;
  * @property \DateTime $dateUpdated
  * @property string $uid
  */
-class LogRecord extends ActiveRecord
+class SmsLogRecord extends ActiveRecord
 {
     /**
      * Status constants

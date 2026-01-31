@@ -45,7 +45,7 @@ class CleanupAnalyticsJob extends BaseJob
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
 
         // Calculate and set next run time if not already set
         if ($this->reschedule && !$this->nextRunTime) {
@@ -200,7 +200,6 @@ class CleanupAnalyticsJob extends BaseJob
             ->exists();
 
         if ($existingJob) {
-            $this->logDebug('Skipping reschedule - analytics cleanup job already exists');
             return;
         }
 

@@ -13,7 +13,7 @@ use craft\db\Query;
 use craft\helpers\Db;
 use craft\queue\BaseJob;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
-use lindemannrock\smsmanager\records\LogRecord;
+use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\SmsManager;
 
 /**
@@ -45,7 +45,7 @@ class CleanupLogsJob extends BaseJob
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
 
         // Calculate and set next run time if not already set
         if ($this->reschedule && !$this->nextRunTime) {
@@ -121,7 +121,7 @@ class CleanupLogsJob extends BaseJob
 
         $deleted = Craft::$app->getDb()->createCommand()
             ->delete(
-                LogRecord::tableName(),
+                SmsLogRecord::tableName(),
                 ['<', 'dateCreated', Db::prepareDateForDb($date)]
             )
             ->execute();
@@ -146,7 +146,7 @@ class CleanupLogsJob extends BaseJob
 
         // Get current count
         $currentCount = (new Query())
-            ->from(LogRecord::tableName())
+            ->from(SmsLogRecord::tableName())
             ->count();
 
         if ($currentCount <= $limit) {
@@ -156,7 +156,7 @@ class CleanupLogsJob extends BaseJob
         // Get IDs to delete (oldest by dateCreated)
         $idsToDelete = (new Query())
             ->select(['id'])
-            ->from(LogRecord::tableName())
+            ->from(SmsLogRecord::tableName())
             ->orderBy(['dateCreated' => SORT_ASC])
             ->limit($currentCount - $limit)
             ->column();
@@ -166,7 +166,7 @@ class CleanupLogsJob extends BaseJob
         }
 
         $deleted = Craft::$app->getDb()->createCommand()
-            ->delete(LogRecord::tableName(), ['id' => $idsToDelete])
+            ->delete(SmsLogRecord::tableName(), ['id' => $idsToDelete])
             ->execute();
 
         if ($deleted > 0) {
@@ -200,7 +200,6 @@ class CleanupLogsJob extends BaseJob
             ->exists();
 
         if ($existingJob) {
-            $this->logDebug('Skipping reschedule - logs cleanup job already exists');
             return;
         }
 

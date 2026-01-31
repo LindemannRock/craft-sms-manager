@@ -11,25 +11,26 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\db\Query;
 use craft\web\Controller;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\DateTimeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
-use lindemannrock\smsmanager\records\LogRecord;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\records\SenderIdRecord;
+use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
- * Logs Controller
+ * SMS Logs Controller
  *
  * @author    LindemannRock
  * @package   SmsManager
  * @since     5.0.0
  */
-class LogsController extends Controller
+class SmsLogsController extends Controller
 {
     use LoggingTrait;
 
@@ -39,7 +40,7 @@ class LogsController extends Controller
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
     }
 
     /**
@@ -80,7 +81,7 @@ class LogsController extends Controller
         $providerFilter = $request->getQueryParam('provider', 'all');
         $languageFilter = $request->getQueryParam('language', 'all');
         $sourceFilter = $request->getQueryParam('source', 'all');
-        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
         $sort = $request->getQueryParam('sort', 'dateCreated');
         $dir = strtolower($request->getQueryParam('dir', 'desc'));
         $sortDir = $dir === 'asc' ? SORT_ASC : SORT_DESC;
@@ -90,7 +91,7 @@ class LogsController extends Controller
 
         // Build query
         $query = (new Query())
-            ->from(LogRecord::tableName());
+            ->from(SmsLogRecord::tableName());
 
         // Apply status filter
         if ($statusFilter !== 'all') {
@@ -116,12 +117,8 @@ class LogsController extends Controller
             }
         }
 
-        // Apply date range filter
-        if ($dateRange !== 'all') {
-            $dates = $this->getDateRangeFromParam($dateRange);
-            $query->andWhere(['>=', 'dateCreated', $dates['start']->format('Y-m-d 00:00:00')]);
-            $query->andWhere(['<=', 'dateCreated', $dates['end']->format('Y-m-d 23:59:59')]);
-        }
+        // Apply date range filter (supports all options: thisMonth, lastYear, etc.)
+        DateRangeHelper::applyToQuery($query, $dateRange);
 
         // Apply search
         if (!empty($search)) {
@@ -168,7 +165,7 @@ class LogsController extends Controller
         // Get unique source plugins for filter
         $sources = (new Query())
             ->select(['sourcePlugin'])
-            ->from(LogRecord::tableName())
+            ->from(SmsLogRecord::tableName())
             ->distinct()
             ->where(['not', ['sourcePlugin' => null]])
             ->andWhere(['not', ['sourcePlugin' => '']])
@@ -206,7 +203,7 @@ class LogsController extends Controller
     {
         $this->requirePermission('smsManager:viewLogs');
 
-        $log = LogRecord::findOne($logId);
+        $log = SmsLogRecord::findOne($logId);
 
         if (!$log) {
             throw new NotFoundHttpException('Log not found');
@@ -234,7 +231,7 @@ class LogsController extends Controller
         $this->requirePermission('smsManager:downloadLogs');
 
         $request = Craft::$app->getRequest();
-        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
         $format = $request->getQueryParam('format', 'csv');
 
         // Check for specific log IDs (selection-aware export via query or body params)
@@ -242,24 +239,20 @@ class LogsController extends Controller
         $logIds = $logIdsJson ? json_decode($logIdsJson, true) : null;
 
         // Validate format is enabled
-        if (!ExportHelper::isFormatEnabled($format)) {
+        if (!ExportHelper::isFormatEnabled($format, SmsManager::$plugin->id)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $startDate = $dates['start'];
-        $endDate = $dates['end'];
-
         $query = (new Query())
-            ->from(LogRecord::tableName())
+            ->from(SmsLogRecord::tableName())
             ->orderBy(['dateCreated' => SORT_DESC]);
 
-        // If specific IDs provided, export only those
+        // If specific IDs provided, export only those; otherwise apply date range filter
         if (!empty($logIds) && is_array($logIds)) {
             $query->where(['id' => $logIds]);
-        } elseif ($dateRange !== 'all') {
-            $query->where(['>=', 'dateCreated', $startDate->format('Y-m-d 00:00:00')])
-                ->andWhere(['<=', 'dateCreated', $endDate->format('Y-m-d 23:59:59')]);
+        } else {
+            // Apply date range filter (supports all options: thisMonth, lastYear, etc.)
+            DateRangeHelper::applyToQuery($query, $dateRange);
         }
 
         $logs = $query->all();
@@ -344,8 +337,8 @@ class LogsController extends Controller
             $condition = ['<', 'dateCreated', $date];
         }
 
-        $count = LogRecord::find()->where($condition ?: null)->count();
-        LogRecord::deleteAll($condition ?: []);
+        $count = SmsLogRecord::find()->where($condition ?: null)->count();
+        SmsLogRecord::deleteAll($condition ?: []);
 
         $this->logInfo('Logs cleared', ['count' => $count, 'olderThan' => $olderThan]);
 
@@ -367,7 +360,7 @@ class LogsController extends Controller
 
         $logId = Craft::$app->getRequest()->getRequiredBodyParam('logId');
 
-        $log = LogRecord::findOne($logId);
+        $log = SmsLogRecord::findOne($logId);
         if ($log && $log->delete()) {
             return $this->asJson(['success' => true]);
         }
@@ -394,7 +387,7 @@ class LogsController extends Controller
         $providerFilter = $request->getQueryParam('provider', 'all');
         $languageFilter = $request->getQueryParam('language', 'all');
         $sourceFilter = $request->getQueryParam('source', 'all');
-        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
         $sort = $request->getQueryParam('sort', 'dateCreated');
         $dir = strtolower($request->getQueryParam('dir', 'desc'));
         $sortDir = $dir === 'asc' ? SORT_ASC : SORT_DESC;
@@ -404,7 +397,7 @@ class LogsController extends Controller
 
         // Build query
         $query = (new Query())
-            ->from(LogRecord::tableName());
+            ->from(SmsLogRecord::tableName());
 
         // Apply status filter
         if ($statusFilter !== 'all') {
@@ -430,12 +423,8 @@ class LogsController extends Controller
             }
         }
 
-        // Apply date range filter
-        if ($dateRange !== 'all') {
-            $dates = $this->getDateRangeFromParam($dateRange);
-            $query->andWhere(['>=', 'dateCreated', $dates['start']->format('Y-m-d 00:00:00')]);
-            $query->andWhere(['<=', 'dateCreated', $dates['end']->format('Y-m-d 23:59:59')]);
-        }
+        // Apply date range filter (supports all options: thisMonth, lastYear, etc.)
+        DateRangeHelper::applyToQuery($query, $dateRange);
 
         // Apply search
         if (!empty($search)) {
@@ -479,9 +468,9 @@ class LogsController extends Controller
         }
 
         // Get status counts
-        $sentCount = (new Query())->from(LogRecord::tableName())->where(['status' => 'sent'])->count();
-        $failedCount = (new Query())->from(LogRecord::tableName())->where(['status' => 'failed'])->count();
-        $pendingCount = (new Query())->from(LogRecord::tableName())->where(['status' => 'pending'])->count();
+        $sentCount = (new Query())->from(SmsLogRecord::tableName())->where(['status' => 'sent'])->count();
+        $failedCount = (new Query())->from(SmsLogRecord::tableName())->where(['status' => 'failed'])->count();
+        $pendingCount = (new Query())->from(SmsLogRecord::tableName())->where(['status' => 'pending'])->count();
 
         return $this->asJson([
             'success' => true,
@@ -495,33 +484,6 @@ class LogsController extends Controller
             'failedCount' => (int)$failedCount,
             'pendingCount' => (int)$pendingCount,
         ]);
-    }
-
-    /**
-     * Get date range from parameter
-     *
-     * @param string $dateRange Date range parameter
-     * @return array{start: \DateTime, end: \DateTime}
-     */
-    private function getDateRangeFromParam(string $dateRange): array
-    {
-        $endDate = new \DateTime();
-
-        $startDate = match ($dateRange) {
-            'today' => new \DateTime(),
-            'yesterday' => (new \DateTime())->modify('-1 day'),
-            'last7days' => (new \DateTime())->modify('-7 days'),
-            'last30days' => (new \DateTime())->modify('-30 days'),
-            'last90days' => (new \DateTime())->modify('-90 days'),
-            'all' => (new \DateTime())->modify('-365 days'),
-            default => (new \DateTime())->modify('-30 days'),
-        };
-
-        if ($dateRange === 'yesterday') {
-            $endDate = (new \DateTime())->modify('-1 day');
-        }
-
-        return ['start' => $startDate, 'end' => $endDate];
     }
 
     /**
@@ -545,7 +507,7 @@ class LogsController extends Controller
         }
 
         try {
-            $deletedCount = LogRecord::deleteAll(['id' => $logIds]);
+            $deletedCount = SmsLogRecord::deleteAll(['id' => $logIds]);
 
             $this->logInfo("Bulk deleted {$deletedCount} SMS log(s)", [
                 'logIds' => $logIds,
@@ -582,7 +544,7 @@ class LogsController extends Controller
         $this->requirePermission('smsManager:deleteLogs');
 
         try {
-            $deletedCount = LogRecord::deleteAll();
+            $deletedCount = SmsLogRecord::deleteAll();
 
             $this->logInfo("Deleted all SMS logs", [
                 'deletedCount' => $deletedCount,

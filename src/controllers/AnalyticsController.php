@@ -11,6 +11,7 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\db\Query;
 use craft\web\Controller;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
@@ -37,7 +38,7 @@ class AnalyticsController extends Controller
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
     }
 
     /**
@@ -54,20 +55,22 @@ class AnalyticsController extends Controller
         $settings = SmsManager::$plugin->getSettings();
 
         // Get filter parameters
-        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
         $providerId = $request->getQueryParam('provider', 'all');
         $senderIdId = $request->getQueryParam('senderId', 'all');
 
-        // Calculate date range
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $startDate = $dates['start'];
-        $endDate = $dates['end'];
+        // Calculate date range (supports all options: thisMonth, lastYear, etc.)
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $startDate = $bounds['start'] ?? new \DateTime('-30 days');
+        $endDate = $bounds['end'] ?? new \DateTime();
 
         // Build query
         $query = (new Query())
-            ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', $startDate->format('Y-m-d')])
-            ->andWhere(['<=', 'date', $endDate->format('Y-m-d')]);
+            ->from(AnalyticsRecord::tableName());
+
+        // Apply date filters (DATE column, so format as Y-m-d)
+        $query->andWhere(['>=', 'date', $startDate->format('Y-m-d')]);
+        $query->andWhere(['<=', 'date', $endDate->format('Y-m-d')]);
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -180,12 +183,13 @@ class AnalyticsController extends Controller
 
         $request = Craft::$app->getRequest();
         $type = $request->getBodyParam('type', 'daily');
-        $dateRange = $request->getBodyParam('dateRange', 'last30days');
+        $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
         $providerId = $request->getBodyParam('providerId', 'all');
 
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $startDate = $dates['start'];
-        $endDate = $dates['end'];
+        // Calculate date range (supports all options: thisMonth, lastYear, etc.)
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $startDate = $bounds['start'] ?? new \DateTime('-30 days');
+        $endDate = $bounds['end'] ?? new \DateTime();
 
         $data = match ($type) {
             'daily' => $this->getDailyChartData($startDate, $endDate, $providerId),
@@ -472,32 +476,6 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Get date range from parameter
-     */
-    private function getDateRangeFromParam(string $dateRange): array
-    {
-        $endDate = new \DateTime();
-        $startDate = match ($dateRange) {
-            'today' => new \DateTime(),
-            'yesterday' => (new \DateTime())->modify('-1 day'),
-            'last7days' => (new \DateTime())->modify('-7 days'),
-            'last30days' => (new \DateTime())->modify('-30 days'),
-            'last90days' => (new \DateTime())->modify('-90 days'),
-            'all' => (new \DateTime())->modify('-365 days'),
-            default => (new \DateTime())->modify('-30 days'),
-        };
-
-        if ($dateRange === 'yesterday') {
-            $endDate = (new \DateTime())->modify('-1 day');
-        }
-
-        return [
-            'start' => $startDate,
-            'end' => $endDate,
-        ];
-    }
-
-    /**
      * Export analytics data
      *
      * @return Response
@@ -509,24 +487,28 @@ class AnalyticsController extends Controller
         $this->requirePermission('smsManager:exportAnalytics');
 
         $request = Craft::$app->getRequest();
-        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
         $format = $request->getQueryParam('format', 'csv');
 
         // Validate format is enabled
-        if (!ExportHelper::isFormatEnabled($format)) {
+        if (!ExportHelper::isFormatEnabled($format, SmsManager::$plugin->id)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $startDate = $dates['start'];
-        $endDate = $dates['end'];
+        // Calculate date range (supports all options: thisMonth, lastYear, etc.)
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $startDate = $bounds['start'] ?? new \DateTime('-30 days');
+        $endDate = $bounds['end'] ?? new \DateTime();
 
-        $data = (new Query())
+        $query = (new Query())
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', $startDate->format('Y-m-d')])
-            ->andWhere(['<=', 'date', $endDate->format('Y-m-d')])
-            ->orderBy(['date' => SORT_ASC])
-            ->all();
+            ->orderBy(['date' => SORT_ASC]);
+
+        // Apply date filters (DATE column, so format as Y-m-d)
+        $query->andWhere(['>=', 'date', $startDate->format('Y-m-d')]);
+        $query->andWhere(['<=', 'date', $endDate->format('Y-m-d')]);
+
+        $data = $query->all();
 
         // Build export rows with provider/sender names
         $rows = [];

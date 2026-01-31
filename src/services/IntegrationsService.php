@@ -12,6 +12,7 @@ use craft\base\Component;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\events\RegisterIntegrationsEvent;
 use lindemannrock\smsmanager\integrations\IntegrationInterface;
+use lindemannrock\smsmanager\SmsManager;
 
 /**
  * Integrations Service
@@ -47,7 +48,7 @@ class IntegrationsService extends Component
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
     }
 
     /**

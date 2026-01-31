@@ -14,7 +14,7 @@ use craft\db\Query;
 use craft\helpers\StringHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
-use lindemannrock\smsmanager\records\LogRecord;
+use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\SmsManager;
 
 /**
@@ -36,7 +36,7 @@ class SmsService extends Component
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
     }
 
     /**
@@ -95,14 +95,14 @@ class SmsService extends Component
         }
 
         // Create log record
-        $log = new LogRecord([
+        $log = new SmsLogRecord([
             'providerId' => $provider->id,
             'senderIdId' => $senderId->id,
             'recipient' => $to,
             'message' => $message,
             'language' => $language,
             'messageLength' => mb_strlen($message),
-            'status' => LogRecord::STATUS_PENDING,
+            'status' => SmsLogRecord::STATUS_PENDING,
             'sourcePlugin' => $sourcePlugin,
             'sourceElementId' => $sourceElementId,
             'uid' => StringHelper::UUID(),
@@ -125,7 +125,7 @@ class SmsService extends Component
 
         if (!$providerInstance) {
             $this->logError('Unknown provider type', ['type' => $provider->type]);
-            $this->updateLogStatus($log, LogRecord::STATUS_FAILED, 'Unknown provider type');
+            $this->updateLogStatus($log, SmsLogRecord::STATUS_FAILED, 'Unknown provider type');
             return false;
         }
 
@@ -145,7 +145,7 @@ class SmsService extends Component
         if ($result['success']) {
             $this->updateLogStatus(
                 $log,
-                LogRecord::STATUS_SENT,
+                SmsLogRecord::STATUS_SENT,
                 null,
                 $result['messageId'],
                 $result['response']
@@ -166,7 +166,7 @@ class SmsService extends Component
         } else {
             $this->updateLogStatus(
                 $log,
-                LogRecord::STATUS_FAILED,
+                SmsLogRecord::STATUS_FAILED,
                 $result['error'],
                 $result['messageId'],
                 $result['response']
@@ -287,14 +287,14 @@ class SmsService extends Component
         }
 
         // Create log record
-        $log = new LogRecord([
+        $log = new SmsLogRecord([
             'providerId' => $provider->id,
             'senderIdId' => $senderId->id,
             'recipient' => $to,
             'message' => $message,
             'language' => $language,
             'messageLength' => mb_strlen($message),
-            'status' => LogRecord::STATUS_PENDING,
+            'status' => SmsLogRecord::STATUS_PENDING,
             'sourcePlugin' => $sourcePlugin,
             'sourceElementId' => $sourceElementId,
             'uid' => StringHelper::UUID(),
@@ -317,7 +317,7 @@ class SmsService extends Component
 
         if (!$providerInstance) {
             $this->logError('Unknown provider type', ['type' => $provider->type]);
-            $this->updateLogStatus($log, LogRecord::STATUS_FAILED, 'Unknown provider type');
+            $this->updateLogStatus($log, SmsLogRecord::STATUS_FAILED, 'Unknown provider type');
             return [
                 'success' => false,
                 'messageId' => null,
@@ -349,7 +349,7 @@ class SmsService extends Component
         if ($result['success']) {
             $this->updateLogStatus(
                 $log,
-                LogRecord::STATUS_SENT,
+                SmsLogRecord::STATUS_SENT,
                 null,
                 $result['messageId'],
                 $result['response']
@@ -368,7 +368,7 @@ class SmsService extends Component
         } else {
             $this->updateLogStatus(
                 $log,
-                LogRecord::STATUS_FAILED,
+                SmsLogRecord::STATUS_FAILED,
                 $result['error'],
                 $result['messageId'],
                 $result['response']
@@ -437,14 +437,14 @@ class SmsService extends Component
     /**
      * Update log record status
      *
-     * @param LogRecord $log Log record
+     * @param SmsLogRecord $log Log record
      * @param string $status New status
      * @param string|null $errorMessage Error message (for failures)
      * @param string|null $messageId Provider message ID
      * @param string|null $response Raw provider response
      */
     private function updateLogStatus(
-        LogRecord $log,
+        SmsLogRecord $log,
         string $status,
         ?string $errorMessage = null,
         ?string $messageId = null,
@@ -544,7 +544,7 @@ class SmsService extends Component
 
         // Get current count
         $currentCount = (new Query())
-            ->from(LogRecord::tableName())
+            ->from(SmsLogRecord::tableName())
             ->count();
 
         if ($currentCount <= $limit) {
@@ -554,14 +554,14 @@ class SmsService extends Component
         // Get IDs to delete (oldest by dateCreated)
         $idsToDelete = (new Query())
             ->select(['id'])
-            ->from(LogRecord::tableName())
+            ->from(SmsLogRecord::tableName())
             ->orderBy(['dateCreated' => SORT_ASC])
             ->limit($currentCount - $limit)
             ->column();
 
         if (!empty($idsToDelete)) {
             Craft::$app->getDb()->createCommand()
-                ->delete(LogRecord::tableName(), ['id' => $idsToDelete])
+                ->delete(SmsLogRecord::tableName(), ['id' => $idsToDelete])
                 ->execute();
         }
     }

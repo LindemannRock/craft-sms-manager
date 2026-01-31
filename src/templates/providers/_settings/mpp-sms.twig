@@ -10,6 +10,8 @@
     placeholder: 'https://api.mpp-sms.com/api/send.aspx',
     class: 'code',
     suggestEnvVars: true,
+    tip: 'Must use HTTPS. Can begin with an environment variable. <a href="https://craftcms.com/docs/5.x/configure.html#control-panel-settings" target="_blank" rel="noopener">Learn more</a>'|t('sms-manager'),
+    errors: provider ? provider.getErrors('providerSettings.apiUrl') : [],
 }) }}
 
 {{ forms.autosuggestField({
@@ -35,6 +37,7 @@
     placeholder: '$MPP_SMS_DEV_API_KEY',
     class: 'code',
     suggestEnvVars: true,
+    tip: 'This can begin with an environment variable. <a href="https://craftcms.com/docs/5.x/configure.html#control-panel-settings" target="_blank" rel="noopener">Learn more</a>'|t('sms-manager'),
 }) }}
 
 <hr>

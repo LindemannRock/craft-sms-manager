@@ -92,6 +92,16 @@ class MppSmsProvider extends BaseProvider
             $errors['apiKey'] = Craft::t('sms-manager', 'API Key is required.');
         }
 
+        // Validate API URL if provided (must be valid HTTPS URL)
+        $apiUrl = App::parseEnv($settings['apiUrl'] ?? '');
+        if (!empty($apiUrl)) {
+            if (!filter_var($apiUrl, FILTER_VALIDATE_URL)) {
+                $errors['apiUrl'] = Craft::t('sms-manager', 'API URL must be a valid URL.');
+            } elseif (!str_starts_with($apiUrl, 'https://')) {
+                $errors['apiUrl'] = Craft::t('sms-manager', 'API URL must use HTTPS.');
+            }
+        }
+
         return $errors;
     }
 

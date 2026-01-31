@@ -162,6 +162,7 @@
         {% include 'lindemannrock-base/_components/export-menu' with {
             action: 'sms-manager/sms-logs/export',
             permission: 'smsManager:downloadLogs',
+            pluginHandle: pluginHandle,
             selectionAware: true,
             idsParam: 'logIds',
         } only %}

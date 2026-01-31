@@ -282,11 +282,11 @@ class SmsManager extends Plugin
     {
         return [
             // SMS Logs (main landing page)
-            'sms-manager' => 'sms-manager/logs/index',
-            'sms-manager/sms-logs' => 'sms-manager/logs/index',
-            'sms-manager/sms-logs/<logId:\d+>' => 'sms-manager/logs/view',
-            'sms-manager/sms-logs/export' => 'sms-manager/logs/export',
-            'sms-manager/sms-logs/clear' => 'sms-manager/logs/clear',
+            'sms-manager' => 'sms-manager/sms-logs/index',
+            'sms-manager/sms-logs' => 'sms-manager/sms-logs/index',
+            'sms-manager/sms-logs/<logId:\d+>' => 'sms-manager/sms-logs/view',
+            'sms-manager/sms-logs/export' => 'sms-manager/sms-logs/export',
+            'sms-manager/sms-logs/clear' => 'sms-manager/sms-logs/clear',
 
             // Badges test page
             'sms-manager/badges' => 'sms-manager/dashboard/badges',

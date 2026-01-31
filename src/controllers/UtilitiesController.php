@@ -11,6 +11,7 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\web\Controller;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\SmsManager;
 use yii\web\Response;
 
 /**
@@ -32,7 +33,7 @@ class UtilitiesController extends Controller
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
     }
 
     /**

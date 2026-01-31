@@ -137,7 +137,7 @@ class Settings extends Model
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(static::pluginHandle());
     }
 
     // =========================================================================

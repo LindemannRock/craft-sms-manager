@@ -41,7 +41,7 @@ class ProvidersService extends Component
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('sms-manager');
+        $this->setLoggingHandle(SmsManager::$plugin->id);
         $this->registerDefaultProviders();
     }
 
