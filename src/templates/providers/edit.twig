@@ -111,6 +111,7 @@
                 {# MPP-SMS Settings #}
                 <div id="settings-mpp-sms" class="provider-type-settings {{ currentType != 'mpp-sms' ? 'hidden' : '' }}">
                     {% include 'sms-manager/providers/_settings/mpp-sms' with {
+                        provider: provider,
                         providerSettings: currentType == 'mpp-sms' ? providerSettings : {}
                     } %}
                 </div>
