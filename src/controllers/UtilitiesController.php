@@ -51,7 +51,7 @@ class UtilitiesController extends Controller
                 $this->requirePermission('smsManager:clearAnalytics');
                 break;
             case 'clear-all-logs':
-                $this->requirePermission('smsManager:deleteLogs');
+                $this->requirePermission('smsManager:deleteSmsLogs');
                 break;
         }
 

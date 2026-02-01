@@ -85,28 +85,28 @@ class Settings extends Model
     public bool $autoTrimAnalytics = true;
 
     // =========================================================================
-    // LOGS SETTINGS
+    // SMS LOGS SETTINGS
     // =========================================================================
 
     /**
-     * @var bool Enable delivery logs
+     * @var bool Enable SMS delivery logs
      */
-    public bool $enableLogs = true;
+    public bool $enableSmsLogs = true;
 
     /**
-     * @var int Maximum number of log records to retain
+     * @var int Maximum number of SMS log records to retain
      */
-    public int $logsLimit = 10000;
+    public int $smsLogsLimit = 10000;
 
     /**
-     * @var int Number of days to retain logs (0 = keep forever)
+     * @var int Number of days to retain SMS logs (0 = keep forever)
      */
-    public int $logsRetention = 30;
+    public int $smsLogsRetention = 30;
 
     /**
-     * @var bool Whether logs should be automatically trimmed
+     * @var bool Whether SMS logs should be automatically trimmed
      */
-    public bool $autoTrimLogs = true;
+    public bool $autoTrimSmsLogs = true;
 
     // =========================================================================
     // INTERFACE SETTINGS
@@ -168,8 +168,8 @@ class Settings extends Model
         return [
             'enableAnalytics',
             'autoTrimAnalytics',
-            'enableLogs',
-            'autoTrimLogs',
+            'enableSmsLogs',
+            'autoTrimSmsLogs',
         ];
     }
 
@@ -183,8 +183,8 @@ class Settings extends Model
             'defaultSenderIdId',
             'analyticsLimit',
             'analyticsRetention',
-            'logsLimit',
-            'logsRetention',
+            'smsLogsLimit',
+            'smsLogsRetention',
             'itemsPerPage',
             'refreshIntervalSecs',
         ];
@@ -227,8 +227,8 @@ class Settings extends Model
                 [
                     'enableAnalytics',
                     'autoTrimAnalytics',
-                    'enableLogs',
-                    'autoTrimLogs',
+                    'enableSmsLogs',
+                    'autoTrimSmsLogs',
                 ],
                 'boolean',
             ],
@@ -238,10 +238,10 @@ class Settings extends Model
             ['analyticsLimit', 'default', 'value' => 1000],
             ['analyticsRetention', 'integer', 'min' => 0],
             ['analyticsRetention', 'default', 'value' => 30],
-            ['logsLimit', 'integer', 'min' => 1],
-            ['logsLimit', 'default', 'value' => 10000],
-            ['logsRetention', 'integer', 'min' => 0],
-            ['logsRetention', 'default', 'value' => 30],
+            ['smsLogsLimit', 'integer', 'min' => 1],
+            ['smsLogsLimit', 'default', 'value' => 10000],
+            ['smsLogsRetention', 'integer', 'min' => 0],
+            ['smsLogsRetention', 'default', 'value' => 30],
             ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],
             ['itemsPerPage', 'default', 'value' => 100],
             ['refreshIntervalSecs', 'integer', 'min' => 0],

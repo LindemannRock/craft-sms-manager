@@ -55,8 +55,8 @@ class SmsLogsController extends Controller
         $user = Craft::$app->getUser();
         $settings = SmsManager::$plugin->getSettings();
 
-        // If user doesn't have viewLogs permission, redirect to first accessible section
-        if (!$user->checkPermission('smsManager:viewLogs') || !$settings->enableLogs) {
+        // If user doesn't have viewSmsLogs permission, redirect to first accessible section
+        if (!$user->checkPermission('smsManager:viewSmsLogs') || !$settings->enableSmsLogs) {
             $sections = SmsManager::$plugin->getCpSections($settings, false);
             $route = CpNavHelper::firstAccessibleRoute($user, $settings, $sections);
             if ($route) {
@@ -64,7 +64,7 @@ class SmsLogsController extends Controller
             }
 
             // No access at all - require permission (will show 403)
-            $this->requirePermission('smsManager:viewLogs');
+            $this->requirePermission('smsManager:viewSmsLogs');
         }
 
         $request = Craft::$app->getRequest();
@@ -195,7 +195,7 @@ class SmsLogsController extends Controller
      */
     public function actionView(int $logId): Response
     {
-        $this->requirePermission('smsManager:viewLogs');
+        $this->requirePermission('smsManager:viewSmsLogs');
 
         $log = SmsLogRecord::findOne($logId);
 
@@ -222,7 +222,7 @@ class SmsLogsController extends Controller
      */
     public function actionExport(): Response
     {
-        $this->requirePermission('smsManager:downloadLogs');
+        $this->requirePermission('smsManager:exportSmsLogs');
 
         $request = Craft::$app->getRequest();
         $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
@@ -319,7 +319,7 @@ class SmsLogsController extends Controller
     public function actionClear(): Response
     {
         $this->requirePostRequest();
-        $this->requirePermission('smsManager:deleteLogs');
+        $this->requirePermission('smsManager:deleteSmsLogs');
 
         $request = Craft::$app->getRequest();
         $olderThan = $request->getBodyParam('olderThan');
@@ -350,7 +350,7 @@ class SmsLogsController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
-        $this->requirePermission('smsManager:deleteLogs');
+        $this->requirePermission('smsManager:deleteSmsLogs');
 
         $logId = Craft::$app->getRequest()->getRequiredBodyParam('logId');
 
@@ -370,7 +370,7 @@ class SmsLogsController extends Controller
      */
     public function actionGetLogsData(): Response
     {
-        $this->requirePermission('smsManager:viewLogs');
+        $this->requirePermission('smsManager:viewSmsLogs');
 
         $request = Craft::$app->getRequest();
         $settings = SmsManager::$plugin->getSettings();
@@ -489,7 +489,7 @@ class SmsLogsController extends Controller
     public function actionBulkDelete(): Response
     {
         $this->requirePostRequest();
-        $this->requirePermission('smsManager:deleteLogs');
+        $this->requirePermission('smsManager:deleteSmsLogs');
 
         $logIds = Craft::$app->getRequest()->getBodyParam('logIds', []);
 
@@ -535,7 +535,7 @@ class SmsLogsController extends Controller
     public function actionDeleteAll(): Response
     {
         $this->requirePostRequest();
-        $this->requirePermission('smsManager:deleteLogs');
+        $this->requirePermission('smsManager:deleteSmsLogs');
 
         try {
             $deletedCount = SmsLogRecord::deleteAll();

@@ -84,8 +84,8 @@ class SmsManager extends Plugin
         PluginHelper::bootstrap(
             $this,
             'smsHelper',
-            ['smsManager:viewLogs'],
-            ['smsManager:downloadLogs'],
+            ['smsManager:viewSystemLogs'],
+            ['smsManager:downloadSystemLogs'],
             [
                 'colorSets' => [
                     'smsStatus' => [
@@ -176,7 +176,7 @@ class SmsManager extends Plugin
             // System Logs (using logging library)
             if (PluginHelper::isPluginEnabled('logging-library')) {
                 $item = LoggingLibrary::addLogsNav($item, $this->handle, [
-                    'smsManager:viewLogs',
+                    'smsManager:viewSystemLogs',
                 ]);
             }
 
@@ -206,8 +206,8 @@ class SmsManager extends Plugin
                 'key' => 'dashboard',
                 'label' => Craft::t('sms-manager', 'Dashboard'),
                 'url' => 'sms-manager',
-                'permissionsAll' => ['smsManager:viewLogs'],
-                'settingsFlag' => 'enableLogs',
+                'permissionsAll' => ['smsManager:viewSmsLogs'],
+                'settingsFlag' => 'enableSmsLogs',
             ];
         }
 
@@ -382,13 +382,26 @@ class SmsManager extends Plugin
             ],
             // Logs
             'smsManager:viewLogs' => [
-                'label' => Craft::t('sms-manager', 'View system logs'),
+                'label' => Craft::t('sms-manager', 'View logs'),
                 'nested' => [
-                    'smsManager:downloadLogs' => [
-                        'label' => Craft::t('sms-manager', 'Download system logs'),
+                    'smsManager:viewSystemLogs' => [
+                        'label' => Craft::t('sms-manager', 'View system logs'),
+                        'nested' => [
+                            'smsManager:downloadSystemLogs' => [
+                                'label' => Craft::t('sms-manager', 'Download system logs'),
+                            ],
+                        ],
                     ],
-                    'smsManager:deleteLogs' => [
-                        'label' => Craft::t('sms-manager', 'Delete logs'),
+                    'smsManager:viewSmsLogs' => [
+                        'label' => Craft::t('sms-manager', 'View SMS logs'),
+                        'nested' => [
+                            'smsManager:exportSmsLogs' => [
+                                'label' => Craft::t('sms-manager', 'Export SMS logs'),
+                            ],
+                            'smsManager:deleteSmsLogs' => [
+                                'label' => Craft::t('sms-manager', 'Delete SMS logs'),
+                            ],
+                        ],
                     ],
                 ],
             ],
@@ -436,7 +449,7 @@ class SmsManager extends Plugin
         $settings = $this->getSettings();
 
         // Only schedule cleanup if logs are enabled and retention is set
-        if ($settings->enableLogs && $settings->logsRetention > 0) {
+        if ($settings->enableSmsLogs && $settings->smsLogsRetention > 0) {
             // Check if a cleanup job is already scheduled
             $existingJob = (new \craft\db\Query())
                 ->from('{{%queue}}')

@@ -88,28 +88,28 @@ return [
         // ========================================
 
         /**
-         * Enable delivery logs
+         * Enable SMS delivery logs
          * Default: true
          */
-        // 'enableLogs' => true,
+        // 'enableSmsLogs' => true,
 
         /**
-         * Maximum number of log records to retain
+         * Maximum number of SMS log records to retain
          * Default: 10000
          */
-        // 'logsLimit' => 10000,
+        // 'smsLogsLimit' => 10000,
 
         /**
-         * Number of days to retain logs (0 = keep forever)
+         * Number of days to retain SMS logs (0 = keep forever)
          * Default: 30
          */
-        // 'logsRetention' => 30,
+        // 'smsLogsRetention' => 30,
 
         /**
-         * Whether logs should be automatically trimmed
+         * Whether SMS logs should be automatically trimmed
          * Default: true
          */
-        // 'autoTrimLogs' => true,
+        // 'autoTrimSmsLogs' => true,
 
         // ========================================
         // BASE PLUGIN OVERRIDES

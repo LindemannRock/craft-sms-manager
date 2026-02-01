@@ -250,10 +250,10 @@ class SettingsController extends Controller
         $nullableIntFields = ['defaultProviderId', 'defaultSenderIdId'];
 
         // Fields that should be cast to int (required)
-        $intFields = ['analyticsLimit', 'analyticsRetention', 'logsLimit', 'logsRetention', 'itemsPerPage', 'refreshIntervalSecs'];
+        $intFields = ['analyticsLimit', 'analyticsRetention', 'smsLogsLimit', 'smsLogsRetention', 'itemsPerPage', 'refreshIntervalSecs'];
 
         // Fields that should be cast to bool
-        $boolFields = ['enableAnalytics', 'autoTrimAnalytics', 'enableLogs', 'autoTrimLogs'];
+        $boolFields = ['enableAnalytics', 'autoTrimAnalytics', 'enableSmsLogs', 'autoTrimSmsLogs'];
 
         // Update settings with posted values
         foreach ($postedSettings as $key => $value) {

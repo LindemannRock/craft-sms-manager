@@ -3,8 +3,8 @@
 {% set canViewSenderIds = currentUser.can('smsManager:viewSenderIds') %}
 {% set canViewAnalytics = currentUser.can('smsManager:viewAnalytics') %}
 {% set canClearAnalytics = currentUser.can('smsManager:clearAnalytics') %}
-{% set canViewLogs = currentUser.can('smsManager:viewLogs') %}
-{% set canClearLogs = currentUser.can('smsManager:deleteLogs') %}
+{% set canViewLogs = currentUser.can('smsManager:viewSmsLogs') %}
+{% set canClearLogs = currentUser.can('smsManager:deleteSmsLogs') %}
 {% set canManageSettings = currentUser.can('smsManager:manageSettings') %}
 
 <div style="margin-bottom: 32px;">
@@ -75,7 +75,7 @@
         </div>
 
         {# Analytics & Logs Card #}
-        {% if settings.enableAnalytics or settings.enableLogs %}
+        {% if settings.enableAnalytics or settings.enableSmsLogs %}
         <div class="pane" style="padding: 24px; margin-block: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); display: flex; flex-direction: column; height: 100%;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                 <div style="width: 12px; height: 12px; border-radius: 50%; background: #8b5cf6;"></div>
@@ -108,9 +108,9 @@
 </div>
 
 {# Determine what sections to show #}
-{% set hasNavigation = canViewProviders or canViewSenderIds or (settings.enableAnalytics and canViewAnalytics) or (settings.enableLogs and canViewLogs) or canManageSettings %}
+{% set hasNavigation = canViewProviders or canViewSenderIds or (settings.enableAnalytics and canViewAnalytics) or (settings.enableSmsLogs and canViewLogs) or canManageSettings %}
 {% set hasAnalyticsManagement = canClearAnalytics and settings.enableAnalytics %}
-{% set hasLogsManagement = canClearLogs and settings.enableLogs %}
+{% set hasLogsManagement = canClearLogs and settings.enableSmsLogs %}
 {% set hasAnyQuickAction = hasNavigation or hasAnalyticsManagement or hasLogsManagement %}
 
 {# Quick Actions #}
@@ -139,7 +139,7 @@
                         {{ "View Analytics"|t('sms-manager') }}
                     </a>
                 {% endif %}
-                {% if settings.enableLogs and canViewLogs %}
+                {% if settings.enableSmsLogs and canViewLogs %}
                     <a href="{{ url('sms-manager/sms-logs') }}" class="btn">
                         {{ "View SMS Logs"|t('sms-manager') }}
                     </a>
@@ -226,7 +226,7 @@ $('#clear-all-analytics').on('click', function() {
 });
 {% endif %}
 
-{% if settings.enableLogs %}
+{% if settings.enableSmsLogs %}
 $('#clear-all-logs').on('click', function() {
     if (!confirm('{{ "Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!"|t('sms-manager')|e('js') }}')) {
         return;

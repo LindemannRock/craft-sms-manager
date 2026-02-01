@@ -75,11 +75,11 @@ class Install extends Migration
             'analyticsLimit' => $this->integer()->notNull()->defaultValue(1000),
             'analyticsRetention' => $this->integer()->notNull()->defaultValue(30),
             'autoTrimAnalytics' => $this->boolean()->notNull()->defaultValue(true),
-            // Logs settings
-            'enableLogs' => $this->boolean()->notNull()->defaultValue(true),
-            'logsLimit' => $this->integer()->notNull()->defaultValue(10000),
-            'logsRetention' => $this->integer()->notNull()->defaultValue(30),
-            'autoTrimLogs' => $this->boolean()->notNull()->defaultValue(true),
+            // SMS Logs settings
+            'enableSmsLogs' => $this->boolean()->notNull()->defaultValue(true),
+            'smsLogsLimit' => $this->integer()->notNull()->defaultValue(10000),
+            'smsLogsRetention' => $this->integer()->notNull()->defaultValue(30),
+            'autoTrimSmsLogs' => $this->boolean()->notNull()->defaultValue(true),
             // Interface settings
             'itemsPerPage' => $this->integer()->notNull()->defaultValue(100),
             'refreshIntervalSecs' => $this->integer()->notNull()->defaultValue(30),

@@ -121,7 +121,7 @@
         totalCount: totalCount,
         itemLabel: {singular: 'log'|t('sms-manager'), plural: 'logs'|t('sms-manager')},
     },
-    checkboxes: currentUser.can('smsManager:deleteLogs'),
+    checkboxes: currentUser.can('smsManager:deleteSmsLogs'),
     footerActions: [],
     ajax: {
         enabled: settings.refreshIntervalSecs > 0,
@@ -145,7 +145,7 @@
    ============================================================================ #}
 
 {% block bulkActions %}
-    {% if currentUser.can('smsManager:deleteLogs') %}
+    {% if currentUser.can('smsManager:deleteSmsLogs') %}
         <button type="button" class="btn secondary" id="lr-delete-btn">
             {{ 'Delete'|t('sms-manager') }} (<span id="lr-selected-count">0</span>)
         </button>
@@ -158,10 +158,10 @@
    ============================================================================ #}
 
 {% block extraFooter %}
-    {% if currentUser.can('smsManager:downloadLogs') %}
+    {% if currentUser.can('smsManager:exportSmsLogs') %}
         {% include 'lindemannrock-base/_components/export-menu' with {
             action: 'sms-manager/sms-logs/export',
-            permission: 'smsManager:downloadLogs',
+            permission: 'smsManager:exportSmsLogs',
             pluginHandle: pluginHandle,
             selectionAware: true,
             idsParam: 'logIds',
@@ -181,12 +181,12 @@
             type: 'menu',
             icon: 'settings',
             title: 'Actions'|t('app'),
-            permission: 'smsManager:deleteLogs',
+            permission: 'smsManager:deleteSmsLogs',
             items: [
                 {
                     label: 'Delete'|t('app'),
                     class: 'error',
-                    permission: 'smsManager:deleteLogs',
+                    permission: 'smsManager:deleteSmsLogs',
                     jsAction: 'delete',
                 },
             ],

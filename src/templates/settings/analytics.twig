@@ -97,16 +97,16 @@
         {{ forms.lightswitchField({
             label: "Enable Delivery Logs"|t('sms-manager'),
             instructions: "Store individual SMS delivery records for auditing and debugging"|t('sms-manager'),
-            id: 'enableLogs',
-            name: 'settings[enableLogs]',
-            on: settings.enableLogs ?? true,
+            id: 'enableSmsLogs',
+            name: 'settings[enableSmsLogs]',
+            on: settings.enableSmsLogs ?? true,
             toggle: 'logs-settings',
-            disabled: settings.isOverriddenByConfig('enableLogs'),
-            warning: settings.isOverriddenByConfig('enableLogs') ?
-                "This is being overridden by the <code>enableLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+            disabled: settings.isOverriddenByConfig('enableSmsLogs'),
+            warning: settings.isOverriddenByConfig('enableSmsLogs') ?
+                "This is being overridden by the <code>enableSmsLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
         }) }}
 
-        <div id="logs-settings" class="{{ not (settings.enableLogs ?? true) ? 'hidden' }}">
+        <div id="logs-settings" class="{{ not (settings.enableSmsLogs ?? true) ? 'hidden' }}">
             <div class="field">
                 <p class="light">{{ "When enabled, individual SMS records will be stored including recipient, message, status, and provider response."|t('sms-manager') }}</p>
             </div>
@@ -114,38 +114,38 @@
             {{ forms.textField({
                 label: 'Logs Retention (Days)'|t('sms-manager'),
                 instructions: 'Number of days to retain delivery logs (0 = keep forever)'|t('sms-manager'),
-                id: 'logsRetention',
-                name: 'settings[logsRetention]',
+                id: 'smsLogsRetention',
+                name: 'settings[smsLogsRetention]',
                 type: 'number',
-                value: settings.logsRetention,
+                value: settings.smsLogsRetention,
                 required: true,
-                disabled: settings.isOverriddenByConfig('logsRetention'),
-                warning: settings.isOverriddenByConfig('logsRetention') ?
-                    "This is being overridden by the <code>logsRetention</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+                disabled: settings.isOverriddenByConfig('smsLogsRetention'),
+                warning: settings.isOverriddenByConfig('smsLogsRetention') ?
+                    "This is being overridden by the <code>smsLogsRetention</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
             }) }}
 
             {{ forms.textField({
                 label: 'Logs Limit'|t('sms-manager'),
                 instructions: 'Maximum number of log records to retain'|t('sms-manager'),
-                id: 'logsLimit',
-                name: 'settings[logsLimit]',
+                id: 'smsLogsLimit',
+                name: 'settings[smsLogsLimit]',
                 type: 'number',
-                value: settings.logsLimit,
+                value: settings.smsLogsLimit,
                 required: true,
-                disabled: settings.isOverriddenByConfig('logsLimit'),
-                warning: settings.isOverriddenByConfig('logsLimit') ?
-                    "This is being overridden by the <code>logsLimit</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+                disabled: settings.isOverriddenByConfig('smsLogsLimit'),
+                warning: settings.isOverriddenByConfig('smsLogsLimit') ?
+                    "This is being overridden by the <code>smsLogsLimit</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
             }) }}
 
             {{ forms.lightswitchField({
                 label: 'Auto Trim Logs'|t('sms-manager'),
                 instructions: 'Automatically trim logs to respect the limit'|t('sms-manager'),
-                id: 'autoTrimLogs',
-                name: 'settings[autoTrimLogs]',
-                on: settings.autoTrimLogs,
-                disabled: settings.isOverriddenByConfig('autoTrimLogs'),
-                warning: settings.isOverriddenByConfig('autoTrimLogs') ?
-                    "This is being overridden by the <code>autoTrimLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
+                id: 'autoTrimSmsLogs',
+                name: 'settings[autoTrimSmsLogs]',
+                on: settings.autoTrimSmsLogs,
+                disabled: settings.isOverriddenByConfig('autoTrimSmsLogs'),
+                warning: settings.isOverriddenByConfig('autoTrimSmsLogs') ?
+                    "This is being overridden by the <code>autoTrimSmsLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
             }) }}
         </div>
 

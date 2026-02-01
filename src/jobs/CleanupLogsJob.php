@@ -64,7 +64,7 @@ class CleanupLogsJob extends BaseJob
         $settings = SmsManager::$plugin->getSettings();
 
         // Only run if retention is enabled
-        if ($settings->logsRetention <= 0) {
+        if ($settings->smsLogsRetention <= 0) {
             return;
         }
 
@@ -73,7 +73,7 @@ class CleanupLogsJob extends BaseJob
 
         // Also trim by count if auto-trim is enabled
         $trimmed = 0;
-        if ($settings->autoTrimLogs) {
+        if ($settings->autoTrimSmsLogs) {
             $trimmed = $this->trimLogs();
         }
 
@@ -111,7 +111,7 @@ class CleanupLogsJob extends BaseJob
     private function cleanupOldLogs(): int
     {
         $settings = SmsManager::$plugin->getSettings();
-        $retention = $settings->logsRetention;
+        $retention = $settings->smsLogsRetention;
 
         if ($retention <= 0) {
             return 0;
@@ -142,7 +142,7 @@ class CleanupLogsJob extends BaseJob
     private function trimLogs(): int
     {
         $settings = SmsManager::$plugin->getSettings();
-        $limit = $settings->logsLimit;
+        $limit = $settings->smsLogsLimit;
 
         // Get current count
         $currentCount = (new Query())
@@ -187,7 +187,7 @@ class CleanupLogsJob extends BaseJob
         $settings = SmsManager::$plugin->getSettings();
 
         // Only reschedule if logs are enabled and retention is set
-        if (!$settings->enableLogs || $settings->logsRetention <= 0) {
+        if (!$settings->enableSmsLogs || $settings->smsLogsRetention <= 0) {
             return;
         }
 

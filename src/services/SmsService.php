@@ -111,11 +111,11 @@ class SmsService extends Component
         ]);
 
         // Save log if logging is enabled
-        if ($settings->enableLogs) {
+        if ($settings->enableSmsLogs) {
             $log->save(false);
 
             // Trim logs if auto-trim is enabled
-            if ($settings->autoTrimLogs) {
+            if ($settings->autoTrimSmsLogs) {
                 $this->trimLogs();
             }
         }
@@ -303,11 +303,11 @@ class SmsService extends Component
         ]);
 
         // Save log if logging is enabled
-        if ($settings->enableLogs) {
+        if ($settings->enableSmsLogs) {
             $log->save(false);
 
             // Trim logs if auto-trim is enabled
-            if ($settings->autoTrimLogs) {
+            if ($settings->autoTrimSmsLogs) {
                 $this->trimLogs();
             }
         }
@@ -450,7 +450,7 @@ class SmsService extends Component
         ?string $messageId = null,
         ?string $response = null,
     ): void {
-        if (!SmsManager::$plugin->getSettings()->enableLogs) {
+        if (!SmsManager::$plugin->getSettings()->enableSmsLogs) {
             return;
         }
 
@@ -540,7 +540,7 @@ class SmsService extends Component
     private function trimLogs(): void
     {
         $settings = SmsManager::$plugin->getSettings();
-        $limit = $settings->logsLimit;
+        $limit = $settings->smsLogsLimit;
 
         // Get current count
         $currentCount = (new Query())

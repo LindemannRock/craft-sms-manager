@@ -99,7 +99,7 @@ class SmsManagerUtility extends Utility
 
         // Get logs count
         $logsCount = 0;
-        if ($settings->enableLogs) {
+        if ($settings->enableSmsLogs) {
             $logsCount = (new Query())
                 ->from('{{%smsmanager_logs}}')
                 ->count();
