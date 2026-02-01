@@ -208,7 +208,7 @@ class SmsManager extends Plugin
      * @param Settings $settings
      * @param bool $includeDashboard
      * @return array
-     * @since 5.14.0
+     * @since 5.9.0
      */
     public function getCpSections(Settings $settings, bool $includeDashboard = true): array
     {
