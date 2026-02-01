@@ -87,6 +87,19 @@ class SmsManager extends Plugin
             ['smsManager:viewSystemLogs'],
             ['smsManager:downloadSystemLogs'],
             [
+                'logMenu' => [
+                    'label' => Craft::t('sms-manager', 'Logs'),
+                    'items' => [
+                        'system' => [
+                            'label' => Craft::t('sms-manager', 'System'),
+                            'url' => $this->handle . '/logs',
+                        ],
+                        'sms' => [
+                            'label' => Craft::t('sms-manager', 'SMS'),
+                            'url' => $this->handle . '/logs/sms',
+                        ],
+                    ],
+                ],
                 'colorSets' => [
                     'smsStatus' => [
                         'sent' => ColorHelper::getPaletteColor('teal'),
@@ -291,12 +304,15 @@ class SmsManager extends Plugin
     private function getCpUrlRules(): array
     {
         return [
-            // SMS Logs (main landing page)
-            'sms-manager' => 'sms-manager/sms-logs/index',
-            'sms-manager/sms-logs' => 'sms-manager/sms-logs/index',
-            'sms-manager/sms-logs/<logId:\d+>' => 'sms-manager/sms-logs/view',
-            'sms-manager/sms-logs/export' => 'sms-manager/sms-logs/export',
-            'sms-manager/sms-logs/clear' => 'sms-manager/sms-logs/clear',
+            // Dashboard (main landing page)
+            'sms-manager' => 'sms-manager/dashboard/index',
+
+            // Logs section (sidebar: System via logging-library, SMS via sms-logs controller)
+            'sms-manager/logs' => 'logging-library/logs/index',
+            'sms-manager/logs/sms' => 'sms-manager/sms-logs/index',
+            'sms-manager/logs/sms/<logId:\d+>' => 'sms-manager/sms-logs/view',
+            'sms-manager/logs/sms/export' => 'sms-manager/sms-logs/export',
+            'sms-manager/logs/sms/clear' => 'sms-manager/sms-logs/clear',
 
             // Badges test page
             'sms-manager/badges' => 'sms-manager/dashboard/badges',

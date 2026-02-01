@@ -15,6 +15,7 @@ use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\DateTimeHelper;
 use lindemannrock\base\helpers\ExportHelper;
+use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\records\SenderIdRecord;
@@ -165,7 +166,24 @@ class SmsLogsController extends Controller
             ->andWhere(['not', ['sourcePlugin' => '']])
             ->column();
 
-        return $this->renderTemplate('sms-manager/dashboard/index', [
+        // Get log menu config from LoggingLibrary
+        $logMenuItems = null;
+        $logMenuLabel = null;
+
+        if (class_exists(LoggingLibrary::class)) {
+            $config = LoggingLibrary::getConfig('sms-manager');
+            $logMenuItems = $config['logMenuItems'] ?? null;
+            $logMenuLabel = $config['logMenuLabel'] ?? null;
+
+            // Filter out 'system' item if system log viewer is disabled
+            if ($logMenuItems && !($config['enableLogViewer'] ?? false)) {
+                unset($logMenuItems['system']);
+            }
+        }
+
+        return $this->renderTemplate('sms-manager/logs/sms', [
+            'logMenuItems' => $logMenuItems,
+            'logMenuLabel' => $logMenuLabel,
             'logs' => $logs,
             'settings' => $settings,
             'providers' => $providers,
@@ -206,7 +224,7 @@ class SmsLogsController extends Controller
         $provider = ProviderRecord::findOne($log->providerId);
         $senderId = SenderIdRecord::findOne($log->senderIdId);
 
-        return $this->renderTemplate('sms-manager/dashboard/view', [
+        return $this->renderTemplate('sms-manager/logs/view', [
             'log' => $log,
             'provider' => $provider,
             'senderId' => $senderId,
