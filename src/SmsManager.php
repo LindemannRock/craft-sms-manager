@@ -214,8 +214,7 @@ class SmsManager extends Plugin
             }
 
             // System Logs (using logging library)
-            if (Craft::$app->getPlugins()->isPluginInstalled('logging-library') &&
-                Craft::$app->getPlugins()->isPluginEnabled('logging-library')) {
+            if (PluginHelper::isPluginEnabled('logging-library')) {
                 $item = LoggingLibrary::addLogsNav($item, $this->handle, [
                     'smsManager:viewLogs',
                 ]);
