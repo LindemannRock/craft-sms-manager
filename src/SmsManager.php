@@ -20,6 +20,7 @@ use craft\services\UserPermissions;
 use craft\services\Utilities;
 use craft\web\UrlManager;
 use lindemannrock\base\helpers\ColorHelper;
+use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -163,55 +164,14 @@ class SmsManager extends Plugin
         $item = parent::getCpNavItem();
         $user = Craft::$app->getUser();
 
-        // Check permissions
-        $hasProvidersAccess = $user->checkPermission('smsManager:viewProviders');
-        $hasSenderIdsAccess = $user->checkPermission('smsManager:viewSenderIds');
-        $hasLogsAccess = $user->checkPermission('smsManager:viewLogs');
-        $hasAnalyticsAccess = $user->checkPermission('smsManager:viewAnalytics');
-        $hasSettingsAccess = $user->checkPermission('smsManager:manageSettings');
-
-        // If no access at all, hide from nav
-        if (!$hasProvidersAccess && !$hasSenderIdsAccess && !$hasLogsAccess && !$hasAnalyticsAccess && !$hasSettingsAccess) {
-            return null;
-        }
-
         if ($item) {
-            $item['label'] = $this->getSettings()->getFullName();
+            $settings = $this->getSettings();
+
+            $item['label'] = $settings->getFullName();
             $item['icon'] = '@appicons/paper-plane.svg';
 
-            $item['subnav'] = [];
-
-            // Dashboard (shows SMS Logs)
-            if ($this->getSettings()->enableLogs && $hasLogsAccess) {
-                $item['subnav']['dashboard'] = [
-                    'label' => Craft::t('sms-manager', 'Dashboard'),
-                    'url' => 'sms-manager',
-                ];
-            }
-
-            // Providers
-            if ($hasProvidersAccess) {
-                $item['subnav']['providers'] = [
-                    'label' => Craft::t('sms-manager', 'Providers'),
-                    'url' => 'sms-manager/providers',
-                ];
-            }
-
-            // Sender IDs
-            if ($hasSenderIdsAccess) {
-                $item['subnav']['sender-ids'] = [
-                    'label' => Craft::t('sms-manager', 'Sender IDs'),
-                    'url' => 'sms-manager/sender-ids',
-                ];
-            }
-
-            // Analytics
-            if ($this->getSettings()->enableAnalytics && $hasAnalyticsAccess) {
-                $item['subnav']['analytics'] = [
-                    'label' => Craft::t('sms-manager', 'Analytics'),
-                    'url' => 'sms-manager/analytics',
-                ];
-            }
+            $sections = $this->getCpSections($settings);
+            $item['subnav'] = CpNavHelper::buildSubnav($user, $settings, $sections);
 
             // System Logs (using logging library)
             if (PluginHelper::isPluginEnabled('logging-library')) {
@@ -220,16 +180,67 @@ class SmsManager extends Plugin
                 ]);
             }
 
-            // Settings
-            if ($hasSettingsAccess) {
-                $item['subnav']['settings'] = [
-                    'label' => Craft::t('sms-manager', 'Settings'),
-                    'url' => 'sms-manager/settings',
-                ];
+            // Hide from nav if no accessible subnav items
+            if (empty($item['subnav'])) {
+                return null;
             }
         }
 
         return $item;
+    }
+
+    /**
+     * Get CP sections for nav + default route resolution
+     *
+     * @param Settings $settings
+     * @param bool $includeDashboard
+     * @return array
+     * @since 5.14.0
+     */
+    public function getCpSections(Settings $settings, bool $includeDashboard = true): array
+    {
+        $sections = [];
+
+        if ($includeDashboard) {
+            $sections[] = [
+                'key' => 'dashboard',
+                'label' => Craft::t('sms-manager', 'Dashboard'),
+                'url' => 'sms-manager',
+                'permissionsAll' => ['smsManager:viewLogs'],
+                'settingsFlag' => 'enableLogs',
+            ];
+        }
+
+        $sections[] = [
+            'key' => 'providers',
+            'label' => Craft::t('sms-manager', 'Providers'),
+            'url' => 'sms-manager/providers',
+            'permissionsAll' => ['smsManager:viewProviders'],
+        ];
+
+        $sections[] = [
+            'key' => 'sender-ids',
+            'label' => Craft::t('sms-manager', 'Sender IDs'),
+            'url' => 'sms-manager/sender-ids',
+            'permissionsAll' => ['smsManager:viewSenderIds'],
+        ];
+
+        $sections[] = [
+            'key' => 'analytics',
+            'label' => Craft::t('sms-manager', 'Analytics'),
+            'url' => 'sms-manager/analytics',
+            'permissionsAll' => ['smsManager:viewAnalytics'],
+            'settingsFlag' => 'enableAnalytics',
+        ];
+
+        $sections[] = [
+            'key' => 'settings',
+            'label' => Craft::t('sms-manager', 'Settings'),
+            'url' => 'sms-manager/settings',
+            'permissionsAll' => ['smsManager:manageSettings'],
+        ];
+
+        return $sections;
     }
 
     /**

@@ -11,6 +11,7 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\db\Query;
 use craft\web\Controller;
+use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\DateTimeHelper;
 use lindemannrock\base\helpers\ExportHelper;
@@ -56,17 +57,10 @@ class SmsLogsController extends Controller
 
         // If user doesn't have viewLogs permission, redirect to first accessible section
         if (!$user->checkPermission('smsManager:viewLogs') || !$settings->enableLogs) {
-            if ($user->checkPermission('smsManager:viewProviders')) {
-                return $this->redirect('sms-manager/providers');
-            }
-            if ($user->checkPermission('smsManager:viewSenderIds')) {
-                return $this->redirect('sms-manager/sender-ids');
-            }
-            if ($settings->enableAnalytics && $user->checkPermission('smsManager:viewAnalytics')) {
-                return $this->redirect('sms-manager/analytics');
-            }
-            if ($user->checkPermission('smsManager:manageSettings')) {
-                return $this->redirect('sms-manager/settings');
+            $sections = SmsManager::$plugin->getCpSections($settings, false);
+            $route = CpNavHelper::firstAccessibleRoute($user, $settings, $sections);
+            if ($route) {
+                return $this->redirect($route);
             }
 
             // No access at all - require permission (will show 403)
