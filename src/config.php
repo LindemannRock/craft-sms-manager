@@ -118,6 +118,17 @@ return [
         // Global defaults: vendor/lindemannrock/craft-plugin-base/src/config.php
         // To customize globally: copy to config/lindemannrock-base.php
 
+         /**
+         * Date/time formatting overrides
+         * Override base plugin date/time display settings for this plugin
+         * Defaults: from config/lindemannrock-base.php
+         */
+        // 'timeFormat' => '24',      // '12' (AM/PM) or '24' (military)
+        // 'monthFormat' => 'short',  // 'numeric' (01), 'short' (Jan), 'long' (January)
+        // 'dateOrder' => 'dmy',      // 'dmy', 'mdy', 'ymd'
+        // 'dateSeparator' => '/',    // '/', '-', '.'
+        // 'showSeconds' => false,    // Show seconds in time display
+
         /**
          * Default date range for analytics, logs, and dashboard pages
          * Options: 'today', 'yesterday', 'last7days', 'last30days', 'last90days',
@@ -136,17 +147,6 @@ return [
         //     'json' => true,
         //     'excel' => true,
         // ],
-
-        /**
-         * Date/time formatting overrides
-         * Override base plugin date/time display settings for this plugin
-         * Defaults: from config/lindemannrock-base.php
-         */
-        // 'timeFormat' => '24',      // '12' (AM/PM) or '24' (military)
-        // 'monthFormat' => 'short',  // 'numeric' (01), 'short' (Jan), 'long' (January)
-        // 'dateOrder' => 'dmy',      // 'dmy', 'mdy', 'ymd'
-        // 'dateSeparator' => '/',    // '/', '-', '.'
-        // 'showSeconds' => false,    // Show seconds in time display
 
         // ========================================
         // DEFAULT PROVIDER & SENDER ID
