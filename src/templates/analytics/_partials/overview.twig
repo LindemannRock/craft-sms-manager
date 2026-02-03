@@ -11,14 +11,12 @@
     {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.sent,
         description: 'Sent Successfully'|t('sms-manager'),
-        valueColor: lrPaletteColor('emerald').color,
         align: 'center',
     } only %}
 
     {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.failed,
         description: 'Failed'|t('sms-manager'),
-        valueColor: lrPaletteColor('red').color,
         align: 'center',
     } only %}
 

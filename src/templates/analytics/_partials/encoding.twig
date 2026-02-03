@@ -1,26 +1,23 @@
 {# Encoding Tab - SMS encoding distribution analytics #}
 
 {# Encoding Summary Stats #}
-<div class="lr-analytics-stats">
-    {% include 'lindemannrock-base/_components/stat-box' with {
+<div class="lr-unified-cards">
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.english,
-        label: encodingLabels.gsm7 ~ ' ' ~ 'Messages'|t('sms-manager'),
-        id: 'gsm7-count',
-        color: '#3b82f6',
+        description: encodingLabels.gsm7 ~ ' ' ~ 'Messages'|t('sms-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.arabic,
-        label: encodingLabels.ucs2 ~ ' ' ~ 'Messages'|t('sms-manager'),
-        id: 'ucs2-count',
-        color: '#8b5cf6',
+        description: encodingLabels.ucs2 ~ ' ' ~ 'Messages'|t('sms-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.other,
-        label: encodingLabels.mixed ~ ' ' ~ 'Messages'|t('sms-manager'),
-        id: 'mixed-count',
-        color: '#6b7280',
+        description: encodingLabels.mixed ~ ' ' ~ 'Messages'|t('sms-manager'),
+        align: 'center',
     } only %}
 </div>
 
