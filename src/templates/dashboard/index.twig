@@ -1,432 +1,173 @@
 {#
- # SMS Logs Index - Using cp-table layout
+ # SMS Manager Dashboard
  #
- # This template extends the base plugin's cp-table layout to provide
- # a consistent interface for viewing SMS logs with filters, sorting,
- # and expandable row details.
+ # Overview page with stats, recent logs, and quick actions.
  #}
 
-{% extends 'lindemannrock-base/_layouts/cp-table' %}
+{% extends "_layouts/cp" %}
+{% set title = smsHelper.fullName %}
+{% set selectedSubnavItem = 'dashboard' %}
 
-{# ============================================================================
-   BUILD FILTER OPTIONS
-   ============================================================================ #}
-
-{# Build language options from Craft sites #}
-{% set languageOptions = [{value: 'all', label: 'All Languages'|t('sms-manager')}] %}
-{% set seenLanguages = [] %}
-{% for site in craft.app.sites.getAllSites() %}
-    {% set langCode = site.language|split('-')|first %}
-    {% if langCode not in seenLanguages %}
-        {% set seenLanguages = seenLanguages|merge([langCode]) %}
-        {% set languageOptions = languageOptions|merge([{
-            value: langCode,
-            label: site.language ~ ' (' ~ site.name ~ ')'
-        }]) %}
-    {% endif %}
-{% endfor %}
-
-{# Build source options #}
-{% set sourceOptions = [
-    {value: 'all', label: 'All Sources'|t('sms-manager')},
-    {value: 'direct', label: 'Direct'|t('sms-manager')},
+{% set crumbs = [
+    { label: smsHelper.fullName, url: url('sms-manager') },
 ] %}
-{% for source in sources %}
-    {% set sourceOptions = sourceOptions|merge([{value: source, label: source}]) %}
-{% endfor %}
 
+{# Permission checks #}
+{% set canViewSmsLogs = currentUser.can('smsManager:viewSmsLogs') %}
+{% set canViewProviders = currentUser.can('smsManager:viewProviders') %}
+{% set canViewSenderIds = currentUser.can('smsManager:viewSenderIds') %}
+{% set canViewAnalytics = currentUser.can('smsManager:viewAnalytics') %}
+{% set canCreateProviders = currentUser.can('smsManager:createProviders') %}
+{% set canCreateSenderIds = currentUser.can('smsManager:createSenderIds') %}
+{% set canManageSettings = currentUser.can('smsManager:manageSettings') %}
 
-{# ============================================================================
-   TABLE CONFIGURATION
-   ============================================================================ #}
+{% block content %}
 
-{% set tableConfig = {
-    plugin: {
-        handle: 'sms-manager',
-        name: smsHelper.fullName,
-    },
-    page: {
-        title: 'SMS Logs'|t('sms-manager'),
-        subnav: 'dashboard',
-        crumbs: [
-            { label: smsHelper.fullName, url: url('sms-manager') },
-        ],
-    },
-    filters: [
-        {
-            type: 'status',
-            param: 'status',
-            current: statusFilter,
-            label: 'All Status'|t('sms-manager'),
-            colorSet: 'smsStatus',
-            options: [
-                {value: 'all', label: 'All'|t('sms-manager'), status: 'all'},
-                {value: 'sent', label: 'Sent'|t('sms-manager'), colorKey: 'sent'},
-                {value: 'failed', label: 'Failed'|t('sms-manager'), colorKey: 'failed'},
-                {value: 'pending', label: 'Pending'|t('sms-manager'), colorKey: 'pending'},
-            ],
-        },
-        {
-            type: 'dropdown',
-            param: 'language',
-            current: languageFilter,
-            label: 'All Languages'|t('sms-manager'),
-            options: languageOptions,
-        },
-        {
-            type: 'dropdown',
-            param: 'source',
-            current: sourceFilter,
-            label: 'All Sources'|t('sms-manager'),
-            options: sourceOptions,
-        },
-        {
-            type: 'dateRange',
-            param: 'dateRange',
-            current: dateRange,
-            label: 'Date Range'|t('sms-manager'),
-        },
-        {
-            type: 'hidden',
-            param: 'provider',
-            current: providerFilter,
-        },
-    ],
-    search: {
-        placeholder: 'Search logs...'|t('sms-manager'),
-        value: search,
-    },
-    sort: {
-        field: sort,
-        direction: dir,
-    },
-    table: {
-        columns: [
-            {key: 'dateCreated', label: 'Sent'|t('sms-manager'), sortable: true},
-            {key: 'recipient', label: 'Recipient'|t('sms-manager'), sortable: true},
-            {key: 'message', label: 'Message'|t('sms-manager')},
-            {key: 'language', label: 'Language'|t('sms-manager'), sortable: true, hideable: true},
-            {key: 'status', label: 'Status'|t('sms-manager'), sortable: true},
-            {key: 'providerName', label: 'Provider'|t('sms-manager'), hideable: true},
-            {key: 'senderIdValue', label: 'Sender ID'|t('sms-manager'), hideable: true},
-            {key: 'sourcePlugin', label: 'Source'|t('sms-manager'), hideable: true},
-        ],
-        items: logs,
-        emptyMessage: 'No logs found.'|t('sms-manager'),
-        expandable: true,
-    },
-    pagination: {
-        page: page,
-        limit: limit,
-        totalCount: totalCount,
-        itemLabel: {singular: 'log'|t('sms-manager'), plural: 'logs'|t('sms-manager')},
-    },
-    checkboxes: currentUser.can('smsManager:deleteSmsLogs'),
-    footerActions: [],
-    ajax: {
-        enabled: settings.refreshIntervalSecs > 0,
-        interval: settings.refreshIntervalSecs,
-        endpoint: actionUrl('sms-manager/logs/get-logs-data'),
-    },
-} %}
+<div class="readable" style="margin-bottom: 24px;">
+    <p>{{ "SMS gateway and management with multi-provider support"|t('sms-manager') }}</p>
+</div>
 
-
-{# ============================================================================
-   TOOLBAR ACTIONS
-   ============================================================================ #}
-
-{% block toolbarActions %}
-    {# Export moved to extraFooter for consistent layout #}
-{% endblock %}
-
-
-{# ============================================================================
-   BULK ACTIONS (shown when items selected)
-   ============================================================================ #}
-
-{% block bulkActions %}
-    {% if currentUser.can('smsManager:deleteSmsLogs') %}
-        <button type="button" class="btn secondary" id="lr-delete-btn">
-            {{ 'Delete'|t('sms-manager') }} (<span id="lr-selected-count">0</span>)
-        </button>
-    {% endif %}
-{% endblock %}
-
-
-{# ============================================================================
-   EXTRA FOOTER (always visible - export button)
-   ============================================================================ #}
-
-{% block extraFooter %}
-    {% if currentUser.can('smsManager:exportSmsLogs') %}
-        {% include 'lindemannrock-base/_components/export-menu' with {
-            action: 'sms-manager/sms-logs/export',
-            permission: 'smsManager:exportSmsLogs',
-            pluginHandle: pluginHandle,
-            selectionAware: true,
-            idsParam: 'logIds',
-        } only %}
-    {% endif %}
-{% endblock %}
-
-
-{# ============================================================================
-   ROW ACTIONS (per-row delete button)
-   ============================================================================ #}
-
-{% block rowActions %}
-    {% include 'lindemannrock-base/_components/row-actions' with {
-        item: item,
-        actions: {
-            type: 'menu',
-            icon: 'settings',
-            title: 'Actions'|t('app'),
-            permission: 'smsManager:deleteSmsLogs',
-            items: [
-                {
-                    label: 'Delete'|t('app'),
-                    class: 'error',
-                    permission: 'smsManager:deleteSmsLogs',
-                    jsAction: 'delete',
-                },
-            ],
-        },
-    } only %}
-{% endblock %}
-
-
-{# ============================================================================
-   CUSTOM TABLE ROW RENDERING
-   ============================================================================ #}
-
-{% block tableRow %}
-    {# Sent date #}
-    <td class="light">{{ item.dateCreated|lrDatetime('medium') }}</td>
-
-    {# Recipient #}
-    <td><code>{{ item.recipient }}</code></td>
-
-    {# Message (truncated) #}
-    <td class="message-cell" title="{{ item.message }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-        {{ item.message|slice(0, 50) }}{% if item.message|length > 50 %}...{% endif %}
-    </td>
-
-    {# Language #}
-    <td>
-        {% set langLabel = item.language %}
-        {% for lang in languageOptions %}
-            {% if lang.value == item.language %}
-                {% set langLabel = lang.label %}
+{# Stats Overview Cards #}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
+    {# SMS Today Card #}
+    {% if canViewSmsLogs and settings.enableSmsLogs %}
+    <a href="{{ url('sms-manager/logs/sms') }}" class="pane" style="padding: 24px; margin-block: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); text-decoration: none; display: block;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #0ea5e9;"></div>
+            <h4 style="margin: 0; color: #374151; font-size: 14px; font-weight: 600;">{{ "SMS Today"|t('sms-manager') }}</h4>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
+            <div style="font-size: 32px; font-weight: 700; color: #0ea5e9; line-height: 1;">{{ smsToday|number_format }}</div>
+            {% if smsYesterday > 0 %}
+                {% set change = ((smsToday - smsYesterday) / smsYesterday * 100)|round %}
+                <div style="font-size: 13px; padding: 2px 8px; border-radius: 12px; background: {{ change >= 0 ? '#dcfce7' : '#fee2e2' }}; color: {{ change >= 0 ? '#166534' : '#991b1b' }};">
+                    {{ change >= 0 ? '+' : '' }}{{ change|number_format }}%
+                </div>
             {% endif %}
-        {% endfor %}
-        <span class="light">{{ langLabel }}</span>
-    </td>
-
-    {# Status badge #}
-    <td>
-        {% include 'lindemannrock-base/_components/badge' with {
-            label: item.status|capitalize,
-            value: item.status,
-            colorSet: 'smsStatus',
-        } only %}
-    </td>
-
-    {# Provider #}
-    <td><span class="light">{{ item.providerName }}</span></td>
-
-    {# Sender ID #}
-    <td><span class="light">{{ item.senderIdValue }}</span></td>
-
-    {# Source #}
-    <td>
-        {% if item.sourcePlugin %}
-            <span class="light">{{ item.sourcePlugin }}</span>
-        {% else %}
-            <span class="light">{{ 'Direct'|t('sms-manager') }}</span>
-        {% endif %}
-    </td>
-{% endblock %}
-
-
-{# ============================================================================
-   EXPANDABLE ROW DETAILS
-   ============================================================================ #}
-
-{% block expandableRow %}
-    {% set isRtl = item.language|slice(0, 2) == 'ar' %}
-
-    <style>
-        .context-label {
-            font-size: 11px;
-            color: #606d7b;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        .context-value {
-            font-family: Monaco, 'Courier New', monospace;
-            font-size: 12px;
-            background: #ffffff;
-            border: 1px solid #e1e8ed;
-            border-radius: 4px;
-            padding: 8px 12px;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .context-grid {
-            display: grid;
-            gap: 12px;
-        }
-        .lr-context-row.error .lr-context-content {
-            border-left-color: #ef4444;
-        }
-    </style>
-
-    <div class="context-grid">
-        {# Full message #}
-        <div>
-            <div class="context-label">{{ 'Full Message'|t('sms-manager') }}</div>
-            <div class="context-value"{{ isRtl ? ' dir="rtl"' : '' }}>{{ item.message }}</div>
         </div>
+        <div style="font-size: 13px; color: #6b7280;">{{ smsYesterday|number_format }} {{ "yesterday"|t('sms-manager') }}</div>
+    </a>
+    {% endif %}
 
-        {# Error message (if failed) #}
-        {% if item.errorMessage %}
-            <div>
-                <div class="context-label" style="color: #dc2626;">{{ 'Error'|t('sms-manager') }}</div>
-                <div class="context-value" style="border-color: #fecaca; background: #fef2f2;">{{ item.errorMessage }}</div>
-            </div>
-        {% endif %}
-
-        {# Provider response #}
-        {% if item.providerResponse %}
-            <div>
-                <div class="context-label">{{ 'Provider Response'|t('sms-manager') }}</div>
-                <div class="context-value">{{ item.providerResponse }}</div>
-            </div>
-        {% endif %}
-
-        {# Sender ID used #}
-        <div>
-            <div class="context-label">{{ 'Sender ID'|t('sms-manager') }}</div>
-            <div class="context-value">{{ item.senderIdValue ?? 'Unknown' }}</div>
+    {# Success Rate Card #}
+    {% if canViewSmsLogs and settings.enableSmsLogs %}
+    <a href="{{ url('sms-manager/logs/sms') }}" class="pane" style="padding: 24px; margin-block: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); text-decoration: none; display: block;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #059669;"></div>
+            <h4 style="margin: 0; color: #374151; font-size: 14px; font-weight: 600;">{{ "Success Rate"|t('sms-manager') }}</h4>
         </div>
+        <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
+            <div style="font-size: 32px; font-weight: 700; color: #059669; line-height: 1;">{{ successRate }}%</div>
+        </div>
+        <div style="font-size: 13px; color: #6b7280;">{{ "Last 7 days"|t('sms-manager') }}</div>
+    </a>
+    {% endif %}
 
-        {# Provider Message ID #}
-        {% if item.providerMessageId %}
-            <div>
-                <div class="context-label">{{ 'Message ID'|t('sms-manager') }}</div>
-                <div class="context-value">{{ item.providerMessageId }}</div>
-            </div>
+    {# Failed Today Card #}
+    {% if canViewSmsLogs and settings.enableSmsLogs %}
+    <a href="{{ url('sms-manager/logs/sms') }}?status=failed" class="pane" style="padding: 24px; margin-block: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); text-decoration: none; display: block;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: {{ failedToday > 0 ? '#ef4444' : '#9ca3af' }};"></div>
+            <h4 style="margin: 0; color: #374151; font-size: 14px; font-weight: 600;">{{ "Failed Today"|t('sms-manager') }}</h4>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
+            <div style="font-size: 32px; font-weight: 700; color: {{ failedToday > 0 ? '#ef4444' : '#9ca3af' }}; line-height: 1;">{{ failedToday|number_format }}</div>
+        </div>
+        <div style="font-size: 13px; color: #6b7280;">{{ "messages failed"|t('sms-manager') }}</div>
+    </a>
+    {% endif %}
+
+    {# Providers Card #}
+    {% if canViewProviders %}
+    <a href="{{ url('sms-manager/providers') }}" class="pane" style="padding: 24px; margin-block: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); text-decoration: none; display: block;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #8b5cf6;"></div>
+            <h4 style="margin: 0; color: #374151; font-size: 14px; font-weight: 600;">{{ "Providers"|t('sms-manager') }}</h4>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
+            <div style="font-size: 32px; font-weight: 700; color: #8b5cf6; line-height: 1;">{{ enabledProviders|number_format }}</div>
+            {% if totalProviders > enabledProviders %}
+                <div style="font-size: 14px; color: #6b7280;">/ {{ totalProviders|number_format }}</div>
+            {% endif %}
+        </div>
+        <div style="font-size: 13px; color: #6b7280;">{{ "active providers"|t('sms-manager') }}</div>
+    </a>
+    {% endif %}
+</div>
+
+{# Recent SMS Logs #}
+{% if canViewSmsLogs and settings.enableSmsLogs %}
+<div class="pane" style="margin-bottom: 32px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0;">{{ "Recent SMS"|t('sms-manager') }}</h3>
+        <span style="font-size: 12px; color: #6b7280;">{{ "Latest messages"|t('sms-manager') }}</span>
+    </div>
+
+    {% if recentLogs|length %}
+        <table class="data fullwidth" style="margin: 0;">
+            <thead>
+                <tr>
+                    <th>{{ "Recipient"|t('sms-manager') }}</th>
+                    <th>{{ "Message"|t('sms-manager') }}</th>
+                    <th>{{ "Status"|t('sms-manager') }}</th>
+                    <th style="text-align: right;">{{ "Sent"|t('sms-manager') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recentLogs %}
+                    <tr>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                            <code style="font-family: monospace; font-size: 13px;">{{ log.recipient }}</code>
+                        </td>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ log.message }}">
+                            {{ log.message|slice(0, 50) }}{% if log.message|length > 50 %}...{% endif %}
+                        </td>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                            {% include 'lindemannrock-base/_components/badge' with {
+                                label: log.status|capitalize,
+                                value: log.status,
+                                colorSet: 'smsStatus',
+                            } only %}
+                        </td>
+                        <td style="text-align: right; padding: 12px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; white-space: nowrap; font-size: 13px;">
+                            {{ log.dateCreated|date('M j, g:i a') }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top: 16px;">
+            <a href="{{ url('sms-manager/logs/sms') }}" class="go">{{ "View all SMS logs"|t('sms-manager') }}</a>
+        </div>
+    {% else %}
+        <p class="light" style="margin: 0;">{{ "No SMS logs yet"|t('sms-manager') }}</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{# Quick Actions #}
+{% set hasAnyQuickAction = canCreateProviders or canCreateSenderIds or canManageSettings or (settings.enableAnalytics and canViewAnalytics) %}
+{% if hasAnyQuickAction %}
+<div class="pane">
+    <h2 style="margin-top: 0;">{{ "Quick Actions"|t('sms-manager') }}</h2>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        {% if canCreateProviders %}
+            <a href="{{ url('sms-manager/providers/new') }}" class="btn submit">{{ "New Provider"|t('sms-manager') }}</a>
+        {% endif %}
+        {% if canCreateSenderIds %}
+            <a href="{{ url('sms-manager/sender-ids/new') }}" class="btn">{{ "New Sender ID"|t('sms-manager') }}</a>
+        {% endif %}
+        {% if settings.enableAnalytics and canViewAnalytics %}
+            <a href="{{ url('sms-manager/analytics') }}" class="btn">{{ "View Analytics"|t('sms-manager') }}</a>
+        {% endif %}
+        {% if canManageSettings %}
+            <a href="{{ url('sms-manager/settings') }}" class="btn">{{ "Settings"|t('sms-manager') }}</a>
         {% endif %}
     </div>
-{% endblock %}
+</div>
+{% endif %}
 
+{% include 'lindemannrock-base/_components/plugin-credit' %}
 
-{# ============================================================================
-   CUSTOM SCRIPTS
-   ============================================================================ #}
-
-{% block scripts %}
-    <script>
-    // Add error class to context rows for failed items
-    document.querySelectorAll('.lr-data-row').forEach(row => {
-        const statusCell = row.querySelector('td:nth-child(5) .status-label');
-        if (statusCell) {
-            const statusText = statusCell.textContent.trim().toLowerCase();
-            if (statusText === 'failed') {
-                const entryId = row.dataset.entryId;
-                const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + entryId + '"]');
-                if (contextRow) {
-                    contextRow.classList.add('error');
-                }
-            }
-        }
-    });
-
-    // Handle AJAX refresh rendering (when auto-refresh is enabled)
-    document.addEventListener('lr:refresh', function(e) {
-        const data = e.detail;
-        if (!data.logs) return;
-
-        // For now, just reload the page on refresh
-        // Future: implement proper client-side row rendering
-        window.location.reload();
-    });
-
-    // Selection state
-    let selectedIds = new Set();
-
-    // Update selected count when selection changes
-    document.addEventListener('lr:selectionChanged', function(e) {
-        selectedIds = new Set(e.detail.selectedIds);
-        const countSpan = document.getElementById('lr-selected-count');
-        if (countSpan) {
-            countSpan.textContent = selectedIds.size;
-        }
-    });
-
-    // Delete button - handles selected items only
-    const deleteBtn = document.getElementById('lr-delete-btn');
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const ids = Array.from(selectedIds);
-
-            if (ids.length === 0) return;
-
-            if (!confirm('{{ "Are you sure you want to delete {count} log(s)?"|t("sms-manager")|e("js") }}'.replace('{count}', ids.length))) {
-                return;
-            }
-
-            Craft.sendActionRequest('POST', 'sms-manager/logs/bulk-delete', {
-                data: { logIds: ids }
-            })
-            .then(response => {
-                if (response.data.success) {
-                    Craft.cp.displayNotice('{{ "Logs deleted successfully."|t("sms-manager")|e("js") }}');
-                    window.location.reload();
-                } else {
-                    Craft.cp.displayError(response.data.message || '{{ "Failed to delete logs."|t("sms-manager")|e("js") }}');
-                }
-            })
-            .catch(error => {
-                Craft.cp.displayError('{{ "Failed to delete logs."|t("sms-manager")|e("js") }}');
-            });
-        });
-    }
-
-    // Individual row delete handler
-    document.querySelectorAll('[data-action="delete"]').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const id = this.dataset.id;
-            if (!id) return;
-
-            if (!confirm('{{ "Are you sure you want to delete this log?"|t("sms-manager")|e("js") }}')) {
-                return;
-            }
-
-            Craft.sendActionRequest('POST', 'sms-manager/logs/bulk-delete', {
-                data: { logIds: [id] }
-            })
-            .then(response => {
-                if (response.data.success) {
-                    Craft.cp.displayNotice('{{ "Log deleted successfully."|t("sms-manager")|e("js") }}');
-                    // Remove the row from the table
-                    const row = this.closest('tr');
-                    const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + row.dataset.entryId + '"]');
-                    if (row) row.remove();
-                    if (contextRow) contextRow.remove();
-                } else {
-                    Craft.cp.displayError(response.data.message || '{{ "Failed to delete log."|t("sms-manager")|e("js") }}');
-                }
-            })
-            .catch(error => {
-                Craft.cp.displayError('{{ "Failed to delete log."|t("sms-manager")|e("js") }}');
-            });
-        });
-    });
-    </script>
 {% endblock %}

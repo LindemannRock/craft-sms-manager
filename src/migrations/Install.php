@@ -82,7 +82,7 @@ class Install extends Migration
             'autoTrimSmsLogs' => $this->boolean()->notNull()->defaultValue(true),
             // Interface settings
             'itemsPerPage' => $this->integer()->notNull()->defaultValue(100),
-            'refreshIntervalSecs' => $this->integer()->notNull()->defaultValue(30),
+            'refreshIntervalSecs' => $this->integer()->null()->defaultValue(null),
             // Logging library
             'logLevel' => $this->string(20)->notNull()->defaultValue('error'),
             // Standard columns
@@ -252,7 +252,7 @@ class Install extends Migration
             'providerId' => $this->integer()->null(),
             'senderIdId' => $this->integer()->null(),
             // Aggregation period
-            'date' => $this->date()->notNull(), // Date of stats (daily aggregation)
+            'date' => $this->dateTime()->notNull(), // Datetime of stats
             // Counts
             'totalSent' => $this->integer()->notNull()->defaultValue(0),
             'totalDelivered' => $this->integer()->notNull()->defaultValue(0),
@@ -278,13 +278,6 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['senderIdId'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['date'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['sourcePlugin'], false);
-        // Unique index for daily aggregation per provider/senderId/source
-        $this->createIndex(
-            null,
-            '{{%smsmanager_analytics}}',
-            ['date', 'providerId', 'senderIdId', 'sourcePlugin'],
-            true
-        );
 
         // Foreign keys
         $this->addForeignKey(

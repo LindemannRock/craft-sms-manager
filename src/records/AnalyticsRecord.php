@@ -22,7 +22,7 @@ use craft\db\ActiveRecord;
  * @property int $id
  * @property int|null $providerId
  * @property int|null $senderIdId
- * @property string $date
+ * @property \DateTime|string $date
  * @property int $totalSent
  * @property int $totalDelivered
  * @property int $totalFailed

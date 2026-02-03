@@ -118,9 +118,9 @@ class Settings extends Model
     public int $itemsPerPage = 100;
 
     /**
-     * @var int Dashboard refresh interval in seconds
+     * @var int|null Dashboard refresh interval in seconds (null = disabled)
      */
-    public int $refreshIntervalSecs = 30;
+    public ?int $refreshIntervalSecs = null;
 
     // =========================================================================
     // LOGGING LIBRARY SETTINGS
@@ -244,8 +244,8 @@ class Settings extends Model
             ['smsLogsRetention', 'default', 'value' => 30],
             ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],
             ['itemsPerPage', 'default', 'value' => 100],
-            ['refreshIntervalSecs', 'integer', 'min' => 0],
-            ['refreshIntervalSecs', 'default', 'value' => 30],
+            ['refreshIntervalSecs', 'integer', 'min' => 0, 'skipOnEmpty' => true],
+            ['refreshIntervalSecs', 'default', 'value' => null],
             [['logLevel'], 'in', 'range' => ['debug', 'info', 'warning', 'error']],
             [['logLevel'], 'validateLogLevel'],
         ];

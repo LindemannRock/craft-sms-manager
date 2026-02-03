@@ -10,6 +10,7 @@ namespace lindemannrock\smsmanager\controllers;
 
 use Craft;
 use craft\db\Query;
+use craft\helpers\Db;
 use craft\web\Controller;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
@@ -68,9 +69,9 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->from(AnalyticsRecord::tableName());
 
-        // Apply date filters (DATE column, so format as Y-m-d)
-        $query->andWhere(['>=', 'date', $startDate->format('Y-m-d')]);
-        $query->andWhere(['<=', 'date', $endDate->format('Y-m-d')]);
+        // Apply date filters (DATETIME column)
+        $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        $query->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)]);
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -214,15 +215,15 @@ class AnalyticsController extends Controller
     {
         $query = (new Query())
             ->select([
-                'date',
+                'DATE(date) as date',
                 'SUM(totalSent) as sent',
                 'SUM(totalFailed) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', $startDate->format('Y-m-d')])
-            ->andWhere(['<=', 'date', $endDate->format('Y-m-d')])
-            ->groupBy(['date'])
-            ->orderBy(['date' => SORT_ASC]);
+            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
+            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)])
+            ->groupBy(['DATE(date)'])
+            ->orderBy(['DATE(date)' => SORT_ASC]);
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -266,8 +267,8 @@ class AnalyticsController extends Controller
                 'SUM(totalFailed) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', $startDate->format('Y-m-d')])
-            ->andWhere(['<=', 'date', $endDate->format('Y-m-d')])
+            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
+            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)])
             ->groupBy(['providerId'])
             ->all();
 
@@ -298,8 +299,8 @@ class AnalyticsController extends Controller
                 'SUM(totalFailed) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', $startDate->format('Y-m-d')])
-            ->andWhere(['<=', 'date', $endDate->format('Y-m-d')])
+            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
+            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)])
             ->groupBy(['senderIdId']);
 
         if ($providerId !== 'all') {
@@ -337,8 +338,8 @@ class AnalyticsController extends Controller
                 'COUNT(*) as count',
             ])
             ->from('{{%smsmanager_logs}}')
-            ->where(['>=', 'dateCreated', $startDate->format('Y-m-d 00:00:00')])
-            ->andWhere(['<=', 'dateCreated', $endDate->format('Y-m-d 23:59:59')])
+            ->where(['>=', 'dateCreated', Db::prepareDateForDb($startDate)])
+            ->andWhere(['<=', 'dateCreated', Db::prepareDateForDb($endDate)])
             ->groupBy(['language'])
             ->orderBy(['count' => SORT_DESC]);
 
@@ -402,8 +403,8 @@ class AnalyticsController extends Controller
                 'SUM(otherCount) as mixed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', $startDate->format('Y-m-d')])
-            ->andWhere(['<=', 'date', $endDate->format('Y-m-d')]);
+            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
+            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)]);
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -432,16 +433,16 @@ class AnalyticsController extends Controller
     {
         $query = (new Query())
             ->select([
-                'date',
+                'DATE(date) as date',
                 'SUM(englishCount) as gsm7',
                 'SUM(arabicCount) as ucs2',
                 'SUM(otherCount) as mixed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', $startDate->format('Y-m-d')])
-            ->andWhere(['<=', 'date', $endDate->format('Y-m-d')])
-            ->groupBy(['date'])
-            ->orderBy(['date' => SORT_ASC]);
+            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
+            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)])
+            ->groupBy(['DATE(date)'])
+            ->orderBy(['DATE(date)' => SORT_ASC]);
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -504,9 +505,9 @@ class AnalyticsController extends Controller
             ->from(AnalyticsRecord::tableName())
             ->orderBy(['date' => SORT_ASC]);
 
-        // Apply date filters (DATE column, so format as Y-m-d)
-        $query->andWhere(['>=', 'date', $startDate->format('Y-m-d')]);
-        $query->andWhere(['<=', 'date', $endDate->format('Y-m-d')]);
+        // Apply date filters (DATETIME column)
+        $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        $query->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)]);
 
         $data = $query->all();
 
@@ -580,15 +581,15 @@ class AnalyticsController extends Controller
         $olderThan = $request->getBodyParam('olderThan');
 
         $query = AnalyticsRecord::find();
-        $date = null;
+        $cutoffDate = null;
 
         if ($olderThan) {
-            $date = (new \DateTime())->modify("-{$olderThan} days")->format('Y-m-d');
-            $query->where(['<', 'date', $date]);
+            $cutoffDate = (new \DateTime())->modify("-{$olderThan} days");
+            $query->where(['<', 'date', Db::prepareDateForDb($cutoffDate)]);
         }
 
         $count = $query->count();
-        AnalyticsRecord::deleteAll($olderThan ? ['<', 'date', $date] : []);
+        AnalyticsRecord::deleteAll($cutoffDate ? ['<', 'date', Db::prepareDateForDb($cutoffDate)] : []);
 
         $this->logInfo('Analytics cleared', ['count' => $count, 'olderThan' => $olderThan]);
 

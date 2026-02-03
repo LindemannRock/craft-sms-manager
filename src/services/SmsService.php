@@ -479,52 +479,28 @@ class SmsService extends Component
         bool $success,
         ?string $sourcePlugin,
     ): void {
-        $today = (new \DateTime())->format('Y-m-d');
+        $now = new \DateTime();
 
-        // Find or create analytics record for today
-        $analytics = AnalyticsRecord::findOne([
-            'date' => $today,
+        // Create analytics record for this event (one row per SMS)
+        $analytics = new AnalyticsRecord([
+            'date' => $now,
             'providerId' => $providerId,
             'senderIdId' => $senderIdId,
             'sourcePlugin' => $sourcePlugin,
+            'totalSent' => $success ? 1 : 0,
+            'totalDelivered' => 0,
+            'totalFailed' => $success ? 0 : 1,
+            'totalPending' => 0,
+            'totalCharacters' => 0,
+            'totalMessages' => 0,
+            'englishCount' => $language === 'en' ? 1 : 0,
+            'arabicCount' => $language === 'ar' ? 1 : 0,
+            'otherCount' => ($language !== 'en' && $language !== 'ar') ? 1 : 0,
+            'uid' => StringHelper::UUID(),
+            'dateCreated' => $now,
+            'dateUpdated' => $now,
         ]);
 
-        if (!$analytics) {
-            $analytics = new AnalyticsRecord([
-                'date' => $today,
-                'providerId' => $providerId,
-                'senderIdId' => $senderIdId,
-                'sourcePlugin' => $sourcePlugin,
-                'totalSent' => 0,
-                'totalDelivered' => 0,
-                'totalFailed' => 0,
-                'totalPending' => 0,
-                'totalCharacters' => 0,
-                'totalMessages' => 0,
-                'englishCount' => 0,
-                'arabicCount' => 0,
-                'otherCount' => 0,
-                'uid' => StringHelper::UUID(),
-                'dateCreated' => new \DateTime(),
-                'dateUpdated' => new \DateTime(),
-            ]);
-        }
-
-        // Update counts
-        if ($success) {
-            $analytics->totalSent++;
-        } else {
-            $analytics->totalFailed++;
-        }
-
-        // Update language counts
-        match ($language) {
-            'en' => $analytics->englishCount++,
-            'ar' => $analytics->arabicCount++,
-            default => $analytics->otherCount++,
-        };
-
-        $analytics->dateUpdated = new \DateTime();
         $analytics->save(false);
 
         // Trim analytics if auto-trim is enabled
