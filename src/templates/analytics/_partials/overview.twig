@@ -1,32 +1,31 @@
 {# Overview Tab - Summary stats and daily trend chart #}
 
 {# Summary Stats Grid #}
-<div class="lr-analytics-stats">
-    {% include 'lindemannrock-base/_components/stat-box' with {
+<div class="lr-unified-cards">
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.total,
-        label: 'Total Messages'|t('sms-manager'),
-        id: 'total-messages',
+        description: 'Total Messages'|t('sms-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.sent,
-        label: 'Sent Successfully'|t('sms-manager'),
-        id: 'total-sent',
-        color: '#10b981',
+        description: 'Sent Successfully'|t('sms-manager'),
+        valueColor: lrPaletteColor('emerald').color,
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.failed,
-        label: 'Failed'|t('sms-manager'),
-        id: 'total-failed',
-        color: '#ef4444',
+        description: 'Failed'|t('sms-manager'),
+        valueColor: lrPaletteColor('red').color,
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
-        value: summaryStats.successRate,
-        label: 'Success Rate'|t('sms-manager'),
-        id: 'success-rate',
-        suffix: '%',
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        value: summaryStats.successRate ~ '%',
+        description: 'Success Rate'|t('sms-manager'),
+        align: 'center',
     } only %}
 </div>
 
