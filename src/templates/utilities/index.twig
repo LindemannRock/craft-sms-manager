@@ -1,3 +1,5 @@
+{% extends 'lindemannrock-base/_layouts/cp-utilities' %}
+
 {# Permission checks #}
 {% set canViewProviders = currentUser.can('smsManager:viewProviders') %}
 {% set canViewSenderIds = currentUser.can('smsManager:viewSenderIds') %}
@@ -7,360 +9,143 @@
 {% set canClearLogs = currentUser.can('smsManager:deleteSmsLogs') %}
 {% set canManageSettings = currentUser.can('smsManager:manageSettings') %}
 
-{# ============================================
-   TEMPORARY: Card Comparison Section
-   Remove this section after reviewing
-   ============================================ #}
-<div style="margin-bottom: 40px; padding: 24px; background: #fef3c7; border: 2px dashed #f59e0b; border-radius: 8px;">
-    <h2 style="color: #92400e; margin-bottom: 8px;">🔍 Card Comparison (TEMPORARY)</h2>
-    <p class="light" style="margin-bottom: 24px;">Compare all three card types to decide if we can unify them.</p>
-
-    {# --- STAT CARD --- #}
-    <h3 style="margin-bottom: 12px; color: #374151;">1. Stat Card (Analytics)</h3>
-    <p class="light" style="margin-bottom: 12px;">Simple stat display. Used in analytics dashboards.</p>
-    <div class="lr-analytics-stats" style="margin-bottom: 32px;">
-        {% include 'lindemannrock-base/_components/cards/stat-card' with {
-            value: 1234,
-            label: 'Total Messages',
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/stat-card' with {
-            value: 567,
-            label: 'Sent Today',
-            palette: 'green',
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/stat-card' with {
-            value: 23,
-            label: 'Failed',
-            palette: 'red',
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/stat-card' with {
-            value: 89,
-            label: 'Success Rate',
-            suffix: '%',
-            palette: 'teal',
-        } only %}
-    </div>
-
-    {# --- DASHBOARD CARD --- #}
-    <h3 style="margin-bottom: 12px; color: #374151;">2. Dashboard Card (Clickable Navigation)</h3>
-    <p class="light" style="margin-bottom: 12px;">Clickable cards that link to sections. Has hover effect.</p>
-    <div class="lr-dashboard-cards" style="margin-bottom: 32px;">
-        {% include 'lindemannrock-base/_components/cards/dashboard-card' with {
-            url: '#',
-            title: 'Active Providers',
-            color: '#059669',
-            value: 3,
-            description: 'providers currently active',
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/dashboard-card' with {
-            url: '#',
-            title: 'Messages Sent',
-            color: '#0ea5e9',
-            value: 150,
-            secondary: 200,
-            description: 'of total capacity',
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/dashboard-card' with {
-            url: '#',
-            title: 'Today vs Yesterday',
-            color: '#8b5cf6',
-            value: 45,
-            change: 15,
-            changeLabel: 'vs yesterday',
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/dashboard-card' with {
-            url: '#',
-            title: 'Failed Today',
-            color: '#ef4444',
-            value: 3,
-            change: -25,
-            changeLabel: 'vs yesterday',
-        } only %}
-    </div>
-
-    {# --- OVERVIEW CARD --- #}
-    <h3 style="margin-bottom: 12px; color: #374151;">3. Overview Card (Utilities/Complex)</h3>
-    <p class="light" style="margin-bottom: 12px;">Non-clickable. Has sub-boxes for nested metrics. Supports badges.</p>
-    <div class="lr-overview-cards" style="margin-bottom: 32px;">
-        {% include 'lindemannrock-base/_components/cards/overview-card' with {
-            title: 'With Badge',
-            color: '#059669',
-            value: 5,
-            valueColor: '#059669',
-            badge: 'Active',
-            badgeColor: '#059669',
-            description: 'Total configured',
-            subBoxes: [
-                {value: 3, label: 'Enabled'},
-                {value: 2, label: 'Disabled'},
-            ],
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/overview-card' with {
-            title: 'Colored Sub-boxes',
-            color: '#8b5cf6',
-            value: 1523,
-            description: 'Total tracked',
-            subBoxes: [
-                {value: 1250, label: 'Sent', color: '#10b981'},
-                {value: 23, label: 'Failed', color: '#ef4444'},
-                {value: 250, label: 'Pending', color: '#f59e0b'},
-            ],
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/overview-card' with {
-            title: 'Checkmarks (Redis)',
-            color: '#22c55e',
-            value: 'Active',
-            subBoxes: [
-                {value: '✓', label: 'Search'},
-                {value: '✓', label: 'Cache'},
-            ],
-        } only %}
-
-        {% include 'lindemannrock-base/_components/cards/overview-card' with {
-            title: 'Dynamic Color',
-            color: '#dc2626',
-            value: '45%',
-            valueColor: '#dc2626',
-            badge: 'Needs Attention',
-            badgeColor: '#dc2626',
-            description: 'Coverage rate',
-            subBoxes: [
-                {value: 45, label: 'Complete'},
-                {value: 55, label: 'Remaining'},
-            ],
-        } only %}
-    </div>
-
-    <div style="padding: 16px; background: #fff; border-radius: 6px; border: 1px solid #e5e7eb;">
-        <h4 style="margin-bottom: 8px;">Key Differences:</h4>
-        <ul style="margin: 0; padding-left: 20px; color: #4b5563;">
-            <li><strong>Stat Card:</strong> Simple value + label. Palette colors. No sub-items.</li>
-            <li><strong>Dashboard Card:</strong> Clickable link. Hover effect. Change percentage. Secondary value.</li>
-            <li><strong>Overview Card:</strong> Non-clickable. Sub-boxes grid. Badges. Most flexible.</li>
-        </ul>
-    </div>
-</div>
-{# END TEMPORARY SECTION #}
-
-<div style="margin-bottom: 32px;">
-    <h2>{{ "{pluginName} Overview"|t('sms-manager', {pluginName: smsHelper.fullName}) }}</h2>
-    <p class="light">{{ "Manage SMS providers, sender IDs, and clear analytics data."|t('sms-manager') }}</p>
-</div>
-
-<div style="margin-bottom: 40px;">
-    <h2>{{ "System Overview"|t('sms-manager') }}</h2>
-
-    <div class="lr-overview-cards">
-        {# Providers Card #}
-        {% include 'lindemannrock-base/_components/cards/overview-card' with {
-            title: 'SMS Providers'|t('sms-manager'),
-            color: '#059669',
-            value: providersCount,
-            valueColor: '#059669',
-            badge: activeProviders > 0 ? 'Active'|t('sms-manager') : 'None Active'|t('sms-manager'),
-            badgeColor: activeProviders > 0 ? '#059669' : '#9ca3af',
-            description: 'Total providers configured'|t('sms-manager'),
-            subBoxes: [
-                {value: activeProviders, label: 'Active Providers'|t('sms-manager')},
-            ],
-        } only %}
-
-        {# Sender IDs Card #}
-        {% include 'lindemannrock-base/_components/cards/overview-card' with {
-            title: 'Sender IDs'|t('sms-manager'),
-            color: '#0ea5e9',
-            value: senderIdsCount,
-            valueColor: '#0ea5e9',
-            badge: activeSenderIds > 0 ? 'Active'|t('sms-manager') : 'None Active'|t('sms-manager'),
-            badgeColor: activeSenderIds > 0 ? '#0ea5e9' : '#9ca3af',
-            description: 'Total sender IDs configured'|t('sms-manager'),
-            subBoxes: [
-                {value: activeSenderIds, label: 'Active Sender IDs'|t('sms-manager')},
-            ],
-        } only %}
-
-        {# Analytics & Logs Card #}
-        {% if settings.enableAnalytics or settings.enableSmsLogs %}
-            {% include 'lindemannrock-base/_components/cards/overview-card' with {
-                title: 'Analytics & Logs'|t('sms-manager'),
-                color: '#8b5cf6',
-                value: totalSent + totalFailed,
-                description: 'SMS tracking and message logs'|t('sms-manager'),
-                subBoxes: [
-                    {value: totalSent, label: 'Sent'|t('sms-manager'), color: '#10b981'},
-                    {value: totalFailed, label: 'Failed'|t('sms-manager'), color: '#ef4444'},
-                    {value: logsCount, label: 'Logs'|t('sms-manager'), color: '#f59e0b'},
-                ],
-            } only %}
-        {% endif %}
-    </div>
-</div>
-
-{# Determine what sections to show #}
 {% set hasNavigation = canViewProviders or canViewSenderIds or (settings.enableAnalytics and canViewAnalytics) or (settings.enableSmsLogs and canViewLogs) or canManageSettings %}
 {% set hasAnalyticsManagement = canClearAnalytics and settings.enableAnalytics %}
 {% set hasLogsManagement = canClearLogs and settings.enableSmsLogs %}
 {% set hasAnyQuickAction = hasNavigation or hasAnalyticsManagement or hasLogsManagement %}
 
-{# Quick Actions #}
-{% if hasAnyQuickAction %}
-<div style="margin-bottom: 40px;">
-    <h2>{{ 'Quick Actions'|t('sms-manager') }}</h2>
+{% set utilitiesConfig = {
+    plugin: {
+        handle: 'sms-manager',
+        name: smsHelper.fullName,
+    },
+    page: {
+        title: 'Overview'|t('sms-manager'),
+        description: 'Manage SMS providers, sender IDs, and clear analytics data.'|t('sms-manager'),
+    },
+} %}
 
-    <div class="pane">
+{% block overview %}
+    {# Providers Card #}
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        title: 'SMS Providers'|t('sms-manager'),
+        color: lrPaletteColor('emerald').color,
+        value: providersCount,
+        valueColor: lrPaletteColor('emerald').color,
+        badge: activeProviders > 0 ? 'Active'|t('sms-manager') : 'None Active'|t('sms-manager'),
+        badgeColor: activeProviders > 0 ? lrPaletteColor('emerald').color : lrPaletteColor('gray').color,
+        description: 'Total providers configured'|t('sms-manager'),
+        subBoxes: [
+            {value: activeProviders, label: 'Active Providers'|t('sms-manager')},
+        ],
+    } only %}
+
+    {# Sender IDs Card #}
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        title: 'Sender IDs'|t('sms-manager'),
+        color: lrPaletteColor('sky').color,
+        value: senderIdsCount,
+        valueColor: lrPaletteColor('sky').color,
+        badge: activeSenderIds > 0 ? 'Active'|t('sms-manager') : 'None Active'|t('sms-manager'),
+        badgeColor: activeSenderIds > 0 ? lrPaletteColor('sky').color : lrPaletteColor('gray').color,
+        description: 'Total sender IDs configured'|t('sms-manager'),
+        subBoxes: [
+            {value: activeSenderIds, label: 'Active Sender IDs'|t('sms-manager')},
+        ],
+    } only %}
+
+    {# Analytics & Logs Card #}
+    {% if settings.enableAnalytics or settings.enableSmsLogs %}
+        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            title: 'Analytics & Logs'|t('sms-manager'),
+            color: lrPaletteColor('violet').color,
+            value: totalSent + totalFailed,
+            description: 'SMS tracking and message logs'|t('sms-manager'),
+            subBoxes: [
+                {value: totalSent, label: 'Sent'|t('sms-manager'), color: lrPaletteColor('emerald').color},
+                {value: totalFailed, label: 'Failed'|t('sms-manager'), color: lrPaletteColor('red').color},
+                {value: logsCount, label: 'Logs'|t('sms-manager'), color: lrPaletteColor('amber').color},
+            ],
+        } only %}
+    {% endif %}
+{% endblock %}
+
+{% block quickActions %}
+    {% if hasAnyQuickAction %}
+        {# Navigation Section #}
         {% if hasNavigation %}
-        <div style="margin-bottom: 24px;">
-            <h3 style="margin-bottom: 8px;">{{ "Navigation"|t('sms-manager') }}</h3>
-            <p class="light" style="margin-bottom: 16px;">{{ "Access main plugin sections"|t('sms-manager') }}</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                {% if canViewProviders %}
-                <a href="{{ url('sms-manager/providers') }}" class="btn">
-                    {{ "Manage Providers"|t('sms-manager') }}
-                </a>
-                {% endif %}
-                {% if canViewSenderIds %}
-                <a href="{{ url('sms-manager/sender-ids') }}" class="btn">
-                    {{ "Manage Sender IDs"|t('sms-manager') }}
-                </a>
-                {% endif %}
-                {% if settings.enableAnalytics and canViewAnalytics %}
-                    <a href="{{ url('sms-manager/analytics') }}" class="btn">
-                        {{ "View Analytics"|t('sms-manager') }}
-                    </a>
-                {% endif %}
-                {% if settings.enableSmsLogs and canViewLogs %}
-                    <a href="{{ url('sms-manager/sms-logs') }}" class="btn">
-                        {{ "View SMS Logs"|t('sms-manager') }}
-                    </a>
-                {% endif %}
-                {% if canManageSettings %}
-                <a href="{{ url('sms-manager/settings') }}" class="btn">
-                    {{ "View Settings"|t('sms-manager') }}
-                </a>
-                {% endif %}
-            </div>
-        </div>
+            {% set navButtons = [] %}
+            {% if canViewProviders %}
+                {% set navButtons = navButtons|merge([{type: 'link', label: 'Manage Providers'|t('sms-manager'), url: url('sms-manager/providers')}]) %}
+            {% endif %}
+            {% if canViewSenderIds %}
+                {% set navButtons = navButtons|merge([{type: 'link', label: 'Manage Sender IDs'|t('sms-manager'), url: url('sms-manager/sender-ids')}]) %}
+            {% endif %}
+            {% if settings.enableAnalytics and canViewAnalytics %}
+                {% set navButtons = navButtons|merge([{type: 'link', label: 'View Analytics'|t('sms-manager'), url: url('sms-manager/analytics')}]) %}
+            {% endif %}
+            {% if settings.enableSmsLogs and canViewLogs %}
+                {% set navButtons = navButtons|merge([{type: 'link', label: 'View SMS Logs'|t('sms-manager'), url: url('sms-manager/sms-logs')}]) %}
+            {% endif %}
+            {% if canManageSettings %}
+                {% set navButtons = navButtons|merge([{type: 'link', label: 'View Settings'|t('sms-manager'), url: url('sms-manager/settings')}]) %}
+            {% endif %}
+
+            {% include 'lindemannrock-base/_layouts/cp-utilities/_action-section' with {
+                title: 'Navigation'|t('sms-manager'),
+                description: 'Access main plugin sections'|t('sms-manager'),
+                buttons: navButtons,
+            } only %}
         {% endif %}
 
+        {# Analytics Management Section #}
         {% if hasAnalyticsManagement %}
-            {% if hasNavigation %}<hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">{% endif %}
-
-            <div>
-                <h3 style="margin-bottom: 8px;">{{ "Analytics Data Management"|t('sms-manager') }}</h3>
-                <p class="light" style="margin-bottom: 16px;">{{ "Permanently delete all SMS analytics data. This action cannot be undone!"|t('sms-manager') }}</p>
-
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button type="button" class="btn secondary" id="clear-all-analytics">
-                        {{ "Clear All Analytics"|t('sms-manager') }} ({{ analyticsCount|number_format }})
-                    </button>
-                </div>
-            </div>
+            {% include 'lindemannrock-base/_layouts/cp-utilities/_action-section' with {
+                title: 'Analytics Data Management'|t('sms-manager'),
+                description: 'Permanently delete all SMS analytics data. This action cannot be undone!'|t('sms-manager'),
+                showSeparator: hasNavigation,
+                buttons: [
+                    {id: 'clear-all-analytics', label: 'Clear All Analytics'|t('sms-manager'), class: 'btn secondary', count: analyticsCount},
+                ],
+            } only %}
         {% endif %}
 
+        {# Logs Management Section #}
         {% if hasLogsManagement %}
-            {% if hasNavigation or hasAnalyticsManagement %}<hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">{% endif %}
-
-            <div>
-                <h3 style="margin-bottom: 8px;">{{ "SMS Logs Management"|t('sms-manager') }}</h3>
-                <p class="light" style="margin-bottom: 16px;">{{ "Permanently delete all SMS logs. This action cannot be undone!"|t('sms-manager') }}</p>
-
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button type="button" class="btn secondary" id="clear-all-logs">
-                        {{ "Clear All SMS Logs"|t('sms-manager') }} ({{ logsCount|number_format }})
-                    </button>
-                </div>
-            </div>
+            {% include 'lindemannrock-base/_layouts/cp-utilities/_action-section' with {
+                title: 'SMS Logs Management'|t('sms-manager'),
+                description: 'Permanently delete all SMS logs. This action cannot be undone!'|t('sms-manager'),
+                showSeparator: hasNavigation or hasAnalyticsManagement,
+                buttons: [
+                    {id: 'clear-all-logs', label: 'Clear All SMS Logs'|t('sms-manager'), class: 'btn secondary', count: logsCount},
+                ],
+            } only %}
         {% endif %}
-    </div>
-</div>
-{% endif %}
+    {% endif %}
+{% endblock %}
 
+{% block scripts %}
 {% js %}
 {% if settings.enableAnalytics %}
-$('#clear-all-analytics').on('click', function() {
-    if (!confirm('{{ "Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!"|t('sms-manager')|e('js') }}')) {
-        return;
-    }
-
-    // Second confirmation for extra safety
-    if (!confirm('{{ "This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?"|t('sms-manager')|e('js') }}')) {
-        return;
-    }
-
-    const $btn = $(this);
-    $btn.addClass('loading').prop('disabled', true);
-
-    $.ajax({
-        url: '{{ actionUrl('sms-manager/utilities/clear-all-analytics')|raw }}',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            {{ craft.app.config.general.csrfTokenName }}: '{{ craft.app.request.csrfToken }}'
-        },
-        success: function(response) {
-            if (response.success) {
-                Craft.cp.displayNotice(response.message);
-                setTimeout(() => window.location.reload(), 2000);
-            } else {
-                Craft.cp.displayError(response.error || '{{ "Failed to clear analytics"|t('sms-manager')|e('js') }}');
-            }
-        },
-        error: function() {
-            Craft.cp.displayError('{{ "Failed to clear analytics"|t('sms-manager')|e('js') }}');
-        },
-        complete: function() {
-            $btn.removeClass('loading').prop('disabled', false);
-        }
-    });
-});
+{% include 'lindemannrock-base/_layouts/cp-utilities/_ajax-button' with {
+    id: 'clear-all-analytics',
+    action: actionUrl('sms-manager/utilities/clear-all-analytics'),
+    confirm: 'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!'|t('sms-manager'),
+    confirmSecond: 'This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?'|t('sms-manager'),
+    errorMessage: 'Failed to clear analytics'|t('sms-manager'),
+    reloadDelay: 2000,
+} only %}
 {% endif %}
 
 {% if settings.enableSmsLogs %}
-$('#clear-all-logs').on('click', function() {
-    if (!confirm('{{ "Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!"|t('sms-manager')|e('js') }}')) {
-        return;
-    }
-
-    // Second confirmation for extra safety
-    if (!confirm('{{ "This will delete all SMS log entries. Are you absolutely sure?"|t('sms-manager')|e('js') }}')) {
-        return;
-    }
-
-    const $btn = $(this);
-    $btn.addClass('loading').prop('disabled', true);
-
-    $.ajax({
-        url: '{{ actionUrl('sms-manager/utilities/clear-all-logs')|raw }}',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            {{ craft.app.config.general.csrfTokenName }}: '{{ craft.app.request.csrfToken }}'
-        },
-        success: function(response) {
-            if (response.success) {
-                Craft.cp.displayNotice(response.message);
-                setTimeout(() => window.location.reload(), 2000);
-            } else {
-                Craft.cp.displayError(response.error || '{{ "Failed to clear SMS logs"|t('sms-manager')|e('js') }}');
-            }
-        },
-        error: function() {
-            Craft.cp.displayError('{{ "Failed to clear SMS logs"|t('sms-manager')|e('js') }}');
-        },
-        complete: function() {
-            $btn.removeClass('loading').prop('disabled', false);
-        }
-    });
-});
+{% include 'lindemannrock-base/_layouts/cp-utilities/_ajax-button' with {
+    id: 'clear-all-logs',
+    action: actionUrl('sms-manager/utilities/clear-all-logs'),
+    confirm: 'Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!'|t('sms-manager'),
+    confirmSecond: 'This will delete all SMS log entries. Are you absolutely sure?'|t('sms-manager'),
+    errorMessage: 'Failed to clear SMS logs'|t('sms-manager'),
+    reloadDelay: 2000,
+} only %}
 {% endif %}
 {% endjs %}
-
-{% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}
