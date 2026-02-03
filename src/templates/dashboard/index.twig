@@ -21,11 +21,36 @@
 {% set canCreateSenderIds = currentUser.can('smsManager:createSenderIds') %}
 {% set canManageSettings = currentUser.can('smsManager:manageSettings') %}
 
+{% block actionButton %}
+    {% set hasAnyQuickAction = canCreateProviders or canCreateSenderIds or canManageSettings or (settings.enableAnalytics and canViewAnalytics) or (settings.enableSmsLogs and canViewSmsLogs) %}
+    {% if hasAnyQuickAction %}
+        <div class="btngroup">
+            <button type="button" class="btn menubtn">{{ "Quick Actions"|t('sms-manager') }}</button>
+            <div class="menu">
+                <ul>
+                    {% if canCreateProviders %}
+                        <li><a href="{{ url('sms-manager/providers/new') }}">{{ "New Provider"|t('sms-manager') }}</a></li>
+                    {% endif %}
+                    {% if canCreateSenderIds %}
+                        <li><a href="{{ url('sms-manager/sender-ids/new') }}">{{ "New Sender ID"|t('sms-manager') }}</a></li>
+                    {% endif %}
+                    {% if settings.enableSmsLogs and canViewSmsLogs %}
+                        <li><a href="{{ url('sms-manager/logs/sms') }}">{{ "View SMS Logs"|t('sms-manager') }}</a></li>
+                    {% endif %}
+                    {% if settings.enableAnalytics and canViewAnalytics %}
+                        <li><a href="{{ url('sms-manager/analytics') }}">{{ "View Analytics"|t('sms-manager') }}</a></li>
+                    {% endif %}
+                    {% if canManageSettings %}
+                        <li><a href="{{ url('sms-manager/settings') }}">{{ "Settings"|t('sms-manager') }}</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
 
-<div class="readable" style="margin-bottom: 24px;">
-    <p>{{ "SMS gateway and management with multi-provider support"|t('sms-manager') }}</p>
-</div>
 
 {# Stats Overview Cards #}
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
@@ -97,20 +122,16 @@
 
 {# Recent SMS Logs #}
 {% if canViewSmsLogs and settings.enableSmsLogs %}
+<h3 style="margin-bottom: 12px;">{{ "Recent SMS"|t('sms-manager') }} <span style="font-weight: normal;">({{ "Latest {count}"|t('sms-manager', { count: recentLogs|length }) }})</span></h3>
 <div class="pane" style="margin-bottom: 32px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin: 0;">{{ "Recent SMS"|t('sms-manager') }}</h3>
-        <span style="font-size: 12px; color: #6b7280;">{{ "Latest messages"|t('sms-manager') }}</span>
-    </div>
-
     {% if recentLogs|length %}
         <table class="data fullwidth" style="margin: 0;">
             <thead>
                 <tr>
-                    <th>{{ "Recipient"|t('sms-manager') }}</th>
-                    <th>{{ "Message"|t('sms-manager') }}</th>
-                    <th>{{ "Status"|t('sms-manager') }}</th>
-                    <th style="text-align: right;">{{ "Sent"|t('sms-manager') }}</th>
+                    <th style="padding: 0 0 12px 0;">{{ "Recipient"|t('sms-manager') }}</th>
+                    <th style="padding: 0 0 12px 0;">{{ "Message"|t('sms-manager') }}</th>
+                    <th style="padding: 0 0 12px 0;">{{ "Status"|t('sms-manager') }}</th>
+                    <th style="text-align: right; padding: 0 0 12px 0;">{{ "Sent"|t('sms-manager') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -129,8 +150,8 @@
                                 colorSet: 'smsStatus',
                             } only %}
                         </td>
-                        <td style="text-align: right; padding: 12px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; white-space: nowrap; font-size: 13px;">
-                            {{ log.dateCreated|date('M j, g:i a') }}
+                        <td style="text-align: right; padding: 12px 0; padding-right: 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; white-space: nowrap; font-size: 13px;">
+                            {{ log.dateCreated|lrDatetime('medium') }}
                         </td>
                     </tr>
                 {% endfor %}
@@ -142,29 +163,6 @@
     {% else %}
         <p class="light" style="margin: 0;">{{ "No SMS logs yet"|t('sms-manager') }}</p>
     {% endif %}
-</div>
-{% endif %}
-
-{# Quick Actions #}
-{% set hasAnyQuickAction = canCreateProviders or canCreateSenderIds or canManageSettings or (settings.enableAnalytics and canViewAnalytics) %}
-{% if hasAnyQuickAction %}
-<div class="pane">
-    <h2 style="margin-top: 0;">{{ "Quick Actions"|t('sms-manager') }}</h2>
-
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        {% if canCreateProviders %}
-            <a href="{{ url('sms-manager/providers/new') }}" class="btn submit">{{ "New Provider"|t('sms-manager') }}</a>
-        {% endif %}
-        {% if canCreateSenderIds %}
-            <a href="{{ url('sms-manager/sender-ids/new') }}" class="btn">{{ "New Sender ID"|t('sms-manager') }}</a>
-        {% endif %}
-        {% if settings.enableAnalytics and canViewAnalytics %}
-            <a href="{{ url('sms-manager/analytics') }}" class="btn">{{ "View Analytics"|t('sms-manager') }}</a>
-        {% endif %}
-        {% if canManageSettings %}
-            <a href="{{ url('sms-manager/settings') }}" class="btn">{{ "Settings"|t('sms-manager') }}</a>
-        {% endif %}
-    </div>
 </div>
 {% endif %}
 
