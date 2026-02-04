@@ -9,7 +9,7 @@
 {% extends 'lindemannrock-base/_layouts/cp-table' %}
 
 {# ============================================================================
-   PERMISSION CHECKS
+   PERMISSION CHECKSf
    ============================================================================ #}
 
 {% set canCreate = currentUser.can('smsManager:createSenderIds') %}
@@ -211,15 +211,7 @@
 
 {% block beforeTable %}
     <style>
-        .config-tooltip::before {
-            content: 'config/sms-manager.php';
-            display: block;
-            color: #8f98a3;
-            font-size: 10px;
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e3e5e8;
-        }
+        /* Config tooltip header handled by base components */
     </style>
 
     {# Warning if default sender ID is missing or disabled #}
@@ -235,7 +227,7 @@
                 {{ 'Please set a different sender ID as default.'|t('sms-manager') }}
             {% endif %}
             {% endset %}
-            <div class="info-box-table-wrapper">
+            <div class="lr-info-box-table-wrapper">
                 {% include 'lindemannrock-base/_components/info-box' with {
                     message: warningMessage,
                     type: 'warning',
@@ -253,7 +245,7 @@
                 {{ 'Update your config/sms-manager.php to fix this.'|t('sms-manager') }}
             {% endif %}
             {% endset %}
-            <div class="info-box-table-wrapper">
+            <div class="lr-info-box-table-wrapper">
                 {% include 'lindemannrock-base/_components/info-box' with {
                     message: warningMessage,
                     type: 'warning',
@@ -267,7 +259,7 @@
         <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
         {{ 'No default sender ID is configured. Please set one of the sender IDs as default.'|t('sms-manager') }}
         {% endset %}
-        <div class="info-box-table-wrapper">
+        <div class="lr-info-box-table-wrapper">
             {% include 'lindemannrock-base/_components/info-box' with {
                 message: warningMessage,
                 type: 'warning',
@@ -289,7 +281,7 @@
         {{ 'Config takes precedence; database entries with the same handle are ignored.'|t('sms-manager') }}
         {{ 'Update your config/sms-manager.php or remove the database entries to resolve this.'|t('sms-manager') }}
         {% endset %}
-        <div class="info-box-table-wrapper">
+        <div class="lr-info-box-table-wrapper">
             {% include 'lindemannrock-base/_components/info-box' with {
                 message: warningMessage,
                 type: 'warning',
@@ -401,7 +393,7 @@
             <a class="label-link" href="{{ url('sms-manager/sender-ids/view/' ~ item.handle) }}">
                 <span>{{ item.name }}</span>
             </a>
-            <span class="config-info-icon" data-config="{{ item.rawConfigDisplay|e('html_attr') }}"></span>
+            <span class="lr-config-info-icon" data-config="{{ item.rawConfigDisplay|e('html_attr') }}" data-config-source="config/sms-manager.php"></span>
         {% endif %}
     </td>
 

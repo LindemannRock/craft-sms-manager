@@ -216,7 +216,7 @@ class AnalyticsController extends Controller
     /**
      * Get daily chart data
      */
-    private function getDailyChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
+    private function getDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
@@ -249,26 +249,39 @@ class AnalyticsController extends Controller
             ];
         }
 
-        if (!$startDate) {
-            $startDate = new \DateTime($data[0]['date']);
-        }
+        $tz = new \DateTimeZone(Craft::$app->getTimeZone());
+
+        $startDate = $this->toMutableDateTime($startDate ?: new \DateTime($data[0]['date'], new \DateTimeZone('UTC')));
+        $startDate->setTimezone($tz)->setTime(0, 0, 0);
+
         $endDateIsExclusive = $endDate !== null;
-        if (!$endDate) {
-            $endDate = new \DateTime(end($data)['date']);
-        }
+        $endDate = $this->toMutableDateTime($endDate ?: new \DateTime('now', new \DateTimeZone('UTC')));
+        $endDate->setTimezone($tz)->setTime(0, 0, 0);
 
         $rangeEnd = clone $endDate;
-        if ($endDateIsExclusive && $endDate->format('H:i:s') === '00:00:00') {
+        if ($endDateIsExclusive) {
             $rangeEnd->modify('-1 day');
         }
 
-        // Fill in missing dates
+        $dataByDate = [];
+        foreach ($data as $row) {
+            $rowDate = $row['date'] ?? null;
+            $rowDateObj = $this->toMutableDateTime(
+                $rowDate instanceof \DateTimeInterface
+                    ? $rowDate
+                    : new \DateTime((string)$rowDate, new \DateTimeZone('UTC'))
+            );
+            $rowDateObj->setTimezone($tz);
+            $rowDateStr = $rowDateObj->format('Y-m-d');
+            $dataByDate[$rowDateStr] = $row;
+        }
+
+        // Fill in missing dates (local timezone labels)
         $chartData = [];
         $date = clone $startDate;
         while ($date <= $rangeEnd) {
             $dateStr = $date->format('Y-m-d');
-            $dayData = array_filter($data, fn($row) => $row['date'] === $dateStr);
-            $dayData = $dayData ? array_values($dayData)[0] : null;
+            $dayData = $dataByDate[$dateStr] ?? null;
 
             $chartData[] = [
                 'date' => $date->format('M j'),
@@ -482,7 +495,7 @@ class AnalyticsController extends Controller
     /**
      * Get encoding daily chart data
      */
-    private function getEncodingDailyChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
+    private function getEncodingDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
@@ -517,26 +530,39 @@ class AnalyticsController extends Controller
             ];
         }
 
-        if (!$startDate) {
-            $startDate = new \DateTime($data[0]['date']);
-        }
+        $tz = new \DateTimeZone(Craft::$app->getTimeZone());
+
+        $startDate = $this->toMutableDateTime($startDate ?: new \DateTime($data[0]['date'], new \DateTimeZone('UTC')));
+        $startDate->setTimezone($tz)->setTime(0, 0, 0);
+
         $endDateIsExclusive = $endDate !== null;
-        if (!$endDate) {
-            $endDate = new \DateTime(end($data)['date']);
-        }
+        $endDate = $this->toMutableDateTime($endDate ?: new \DateTime('now', new \DateTimeZone('UTC')));
+        $endDate->setTimezone($tz)->setTime(0, 0, 0);
 
         $rangeEnd = clone $endDate;
-        if ($endDateIsExclusive && $endDate->format('H:i:s') === '00:00:00') {
+        if ($endDateIsExclusive) {
             $rangeEnd->modify('-1 day');
         }
 
-        // Fill in missing dates
+        $dataByDate = [];
+        foreach ($data as $row) {
+            $rowDate = $row['date'] ?? null;
+            $rowDateObj = $this->toMutableDateTime(
+                $rowDate instanceof \DateTimeInterface
+                    ? $rowDate
+                    : new \DateTime((string)$rowDate, new \DateTimeZone('UTC'))
+            );
+            $rowDateObj->setTimezone($tz);
+            $rowDateStr = $rowDateObj->format('Y-m-d');
+            $dataByDate[$rowDateStr] = $row;
+        }
+
+        // Fill in missing dates (local timezone labels)
         $chartData = [];
         $date = clone $startDate;
         while ($date <= $rangeEnd) {
             $dateStr = $date->format('Y-m-d');
-            $dayData = array_filter($data, fn($row) => $row['date'] === $dateStr);
-            $dayData = $dayData ? array_values($dayData)[0] : null;
+            $dayData = $dataByDate[$dateStr] ?? null;
 
             $chartData[] = [
                 'date' => $date->format('M j'),
@@ -554,6 +580,21 @@ class AnalyticsController extends Controller
             'ucs2' => array_column($chartData, 'ucs2'),
             'mixed' => array_column($chartData, 'mixed'),
         ];
+    }
+
+    /**
+     * Normalize a DateTimeInterface into a mutable DateTime.
+     *
+     * @param \DateTimeInterface $dateTime
+     * @return \DateTime
+     */
+    private function toMutableDateTime(\DateTimeInterface $dateTime): \DateTime
+    {
+        if ($dateTime instanceof \DateTime) {
+            return $dateTime;
+        }
+
+        return new \DateTime($dateTime->format('Y-m-d H:i:s'), $dateTime->getTimezone());
     }
 
     /**

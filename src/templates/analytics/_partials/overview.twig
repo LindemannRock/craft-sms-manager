@@ -31,7 +31,7 @@
 <div class="lr-analytics-charts">
     <div class="lr-chart-container full-width">
         <h3>{{ 'Daily SMS Volume'|t('sms-manager') }}</h3>
-        <div style="height: 250px;">
+        <div class="lr-chart-height-250">
             <canvas id="daily-trend-chart"></canvas>
         </div>
     </div>
@@ -50,16 +50,16 @@
 </div>
 
 {# Top Providers Table #}
-<div class="lr-chart-container" style="margin-top: 24px;">
+<div class="lr-chart-container lr-mt-24">
     <h3>{{ 'Provider Performance'|t('sms-manager') }}</h3>
     <div class="lr-table-scroll">
         <table class="data fullwidth">
             <thead>
                 <tr>
                     <th>{{ 'Provider'|t('sms-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Sent'|t('sms-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Failed'|t('sms-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Success Rate'|t('sms-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Sent'|t('sms-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Failed'|t('sms-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Success Rate'|t('sms-manager') }}</th>
                 </tr>
             </thead>
             <tbody id="provider-table-body">
@@ -69,14 +69,14 @@
                         {% set itemRate = itemTotal > 0 ? ((item.sent|default(0)) / itemTotal * 100)|round(1) : 0 %}
                         <tr>
                             <td><strong>{{ item.providerName }}</strong></td>
-                            <td style="text-align: right; color: #10b981;">{{ item.sent|number_format }}</td>
-                            <td style="text-align: right; color: #ef4444;">{{ item.failed|number_format }}</td>
-                            <td style="text-align: right;">{{ itemRate }}%</td>
+                            <td class="lr-text-end lr-text-green">{{ item.sent|number_format }}</td>
+                            <td class="lr-text-end lr-text-red">{{ item.failed|number_format }}</td>
+                            <td class="lr-text-end">{{ itemRate }}%</td>
                         </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="4" class="light" style="text-align: center;">{{ 'No data available'|t('sms-manager') }}</td>
+                        <td colspan="4" class="light lr-text-center">{{ 'No data available'|t('sms-manager') }}</td>
                     </tr>
                 {% endif %}
             </tbody>
