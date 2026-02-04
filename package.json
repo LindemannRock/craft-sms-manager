@@ -1,6 +1,7 @@
 {
-  "name": "craft-sms-manager",
-  "version": "5.1.0",
+  "name": "@lindemannrock/sms-manager",
+  "version": "1.0.0",
+  "private": true,
   "description": "Build tools for SMS Manager analytics assets",
   "scripts": {
     "minify": "npm run minify:analytics",
@@ -8,5 +9,15 @@
   },
   "devDependencies": {
     "terser": "^5.31.6"
-  }
+  },
+  "author": {
+    "name": "Bilal Harry Lindemann",
+    "email": "hello@lindemannrock.com",
+    "url": "https://lindemannrock.com"
+  },
+  "company": {
+    "name": "LindemannRock",
+    "url": "https://lindemannrock.com"
+  },
+  "license": "Proprietary"
 }
