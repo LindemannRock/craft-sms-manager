@@ -9,9 +9,11 @@
 namespace lindemannrock\smsmanager\controllers;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\StringHelper;
 use craft\web\Controller;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\helpers\ConfigFileHelper;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\NotFoundHttpException;
@@ -57,6 +59,14 @@ class SenderIdsController extends Controller
         $senderIds = SmsManager::$plugin->senderIds->getAllSenderIds();
         $providers = SmsManager::$plugin->providers->getAllProviders();
 
+        // Detect handle collisions between config and database
+        $configHandles = ConfigFileHelper::getHandles('senderIds');
+        $databaseHandles = (new Query())
+            ->select(['handle'])
+            ->from('{{%smsmanager_senderids}}')
+            ->column();
+        $collisionHandles = array_values(array_intersect($configHandles, $databaseHandles));
+
         // Auto-assign default if needed (only if not set via config file)
         if (!$isDefaultFromConfig) {
             $defaultHandle = $settings->defaultSenderIdHandle;
@@ -94,6 +104,7 @@ class SenderIdsController extends Controller
             'providerFilter' => $providerFilter,
             'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
             'isDefaultFromConfig' => $isDefaultFromConfig,
+            'collisionHandles' => $collisionHandles,
         ]);
     }
 

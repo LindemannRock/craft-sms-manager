@@ -276,6 +276,28 @@
             } %}
         </div>
     {% endif %}
+
+    {# Warning for handle collisions between config and database #}
+    {% if collisionHandles is defined and collisionHandles|length %}
+        {% set boldHandles = [] %}
+        {% for handle in collisionHandles %}
+            {% set boldHandles = boldHandles|merge(['<strong>' ~ handle ~ '</strong>']) %}
+        {% endfor %}
+        {% set warningMessage %}
+        <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
+        {{ 'These sender ID handles exist in both config/sms-manager.php and the database:'|t('sms-manager') }} {{ boldHandles|join(', ')|raw }}.
+        {{ 'Config takes precedence; database entries with the same handle are ignored.'|t('sms-manager') }}
+        {{ 'Update your config/sms-manager.php or remove the database entries to resolve this.'|t('sms-manager') }}
+        {% endset %}
+        <div class="info-box-table-wrapper">
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: warningMessage,
+                type: 'warning',
+                margin: 'none',
+                stretch: true,
+            } %}
+        </div>
+    {% endif %}
 {% endblock %}
 
 
@@ -454,6 +476,17 @@
 {% block scripts %}
     <script>
     (function() {
+        // Highlight rows with handle collisions
+        const collisionHandles = {{ collisionHandles|json_encode|raw }};
+        if (collisionHandles.length > 0) {
+            document.querySelectorAll('#lr-data-table tbody tr.lr-data-row').forEach(row => {
+                const handleCell = row.querySelector('td:nth-child(3) code');
+                if (handleCell && collisionHandles.includes(handleCell.textContent.trim())) {
+                    row.style.backgroundColor = '#fef3c7';
+                }
+            });
+        }
+
         // Update selected count when selection changes
         document.addEventListener('lr:selectionChanged', function(e) {
             const countSpan = document.getElementById('lr-selected-count');
