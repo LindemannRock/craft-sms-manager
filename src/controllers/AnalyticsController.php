@@ -62,16 +62,20 @@ class AnalyticsController extends Controller
 
         // Calculate date range (supports all options: thisMonth, lastYear, etc.)
         $bounds = DateRangeHelper::getBounds($dateRange);
-        $startDate = $bounds['start'] ?? new \DateTime('-30 days');
-        $endDate = $bounds['end'] ?? new \DateTime();
+        $startDate = $bounds['start'] ?? null;
+        $endDate = $bounds['end'] ?? null;
 
         // Build query
         $query = (new Query())
             ->from(AnalyticsRecord::tableName());
 
         // Apply date filters (DATETIME column)
-        $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        $query->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)]);
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -168,6 +172,7 @@ class AnalyticsController extends Controller
             'senderIdData' => $senderIdData,
             'providers' => $providers,
             'senderIds' => $senderIds,
+            'pluginHandle' => SmsManager::$plugin->id,
         ]);
     }
 
@@ -189,8 +194,8 @@ class AnalyticsController extends Controller
 
         // Calculate date range (supports all options: thisMonth, lastYear, etc.)
         $bounds = DateRangeHelper::getBounds($dateRange);
-        $startDate = $bounds['start'] ?? new \DateTime('-30 days');
-        $endDate = $bounds['end'] ?? new \DateTime();
+        $startDate = $bounds['start'] ?? null;
+        $endDate = $bounds['end'] ?? null;
 
         $data = match ($type) {
             'daily' => $this->getDailyChartData($startDate, $endDate, $providerId),
@@ -211,7 +216,7 @@ class AnalyticsController extends Controller
     /**
      * Get daily chart data
      */
-    private function getDailyChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
+    private function getDailyChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
@@ -220,10 +225,15 @@ class AnalyticsController extends Controller
                 'SUM(totalFailed) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
-            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)])
             ->groupBy(['DATE(date)'])
             ->orderBy(['DATE(date)' => SORT_ASC]);
+
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -231,10 +241,31 @@ class AnalyticsController extends Controller
 
         $data = $query->all();
 
+        if (empty($data)) {
+            return [
+                'labels' => [],
+                'sent' => [],
+                'failed' => [],
+            ];
+        }
+
+        if (!$startDate) {
+            $startDate = new \DateTime($data[0]['date']);
+        }
+        $endDateIsExclusive = $endDate !== null;
+        if (!$endDate) {
+            $endDate = new \DateTime(end($data)['date']);
+        }
+
+        $rangeEnd = clone $endDate;
+        if ($endDateIsExclusive && $endDate->format('H:i:s') === '00:00:00') {
+            $rangeEnd->modify('-1 day');
+        }
+
         // Fill in missing dates
         $chartData = [];
         $date = clone $startDate;
-        while ($date <= $endDate) {
+        while ($date <= $rangeEnd) {
             $dateStr = $date->format('Y-m-d');
             $dayData = array_filter($data, fn($row) => $row['date'] === $dateStr);
             $dayData = $dayData ? array_values($dayData)[0] : null;
@@ -258,19 +289,26 @@ class AnalyticsController extends Controller
     /**
      * Get provider chart data
      */
-    private function getProviderChartData(\DateTime $startDate, \DateTime $endDate): array
+    private function getProviderChartData(?\DateTime $startDate, ?\DateTime $endDate): array
     {
-        $data = (new Query())
+        $query = (new Query())
             ->select([
                 'providerId',
                 'SUM(totalSent) as sent',
                 'SUM(totalFailed) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
-            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)])
             ->groupBy(['providerId'])
-            ->all();
+            ;
+
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
+
+        $data = $query->all();
 
         $labels = [];
         $values = [];
@@ -290,7 +328,7 @@ class AnalyticsController extends Controller
     /**
      * Get sender ID chart data
      */
-    private function getSenderIdChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
+    private function getSenderIdChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
@@ -299,9 +337,14 @@ class AnalyticsController extends Controller
                 'SUM(totalFailed) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
-            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)])
             ->groupBy(['senderIdId']);
+
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -330,7 +373,7 @@ class AnalyticsController extends Controller
     /**
      * Get language chart data from actual log records
      */
-    private function getLanguageChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
+    private function getLanguageChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
@@ -338,10 +381,15 @@ class AnalyticsController extends Controller
                 'COUNT(*) as count',
             ])
             ->from('{{%smsmanager_logs}}')
-            ->where(['>=', 'dateCreated', Db::prepareDateForDb($startDate)])
-            ->andWhere(['<=', 'dateCreated', Db::prepareDateForDb($endDate)])
             ->groupBy(['language'])
             ->orderBy(['count' => SORT_DESC]);
+
+        if ($startDate) {
+            $query->andWhere(['>=', 'dateCreated', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'dateCreated', Db::prepareDateForDb($endDate)]);
+        }
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -394,7 +442,7 @@ class AnalyticsController extends Controller
     /**
      * Get encoding chart data (GSM-7 vs UCS-2)
      */
-    private function getEncodingChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
+    private function getEncodingChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
@@ -402,9 +450,14 @@ class AnalyticsController extends Controller
                 'SUM(arabicCount) as ucs2',
                 'SUM(otherCount) as mixed',
             ])
-            ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
-            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)]);
+            ->from(AnalyticsRecord::tableName());
+
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -429,7 +482,7 @@ class AnalyticsController extends Controller
     /**
      * Get encoding daily chart data
      */
-    private function getEncodingDailyChartData(\DateTime $startDate, \DateTime $endDate, string $providerId): array
+    private function getEncodingDailyChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
     {
         $query = (new Query())
             ->select([
@@ -439,10 +492,15 @@ class AnalyticsController extends Controller
                 'SUM(otherCount) as mixed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->where(['>=', 'date', Db::prepareDateForDb($startDate)])
-            ->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)])
             ->groupBy(['DATE(date)'])
             ->orderBy(['DATE(date)' => SORT_ASC]);
+
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
 
         if ($providerId !== 'all') {
             $query->andWhere(['providerId' => $providerId]);
@@ -450,10 +508,32 @@ class AnalyticsController extends Controller
 
         $data = $query->all();
 
+        if (empty($data)) {
+            return [
+                'labels' => [],
+                'gsm7' => [],
+                'ucs2' => [],
+                'mixed' => [],
+            ];
+        }
+
+        if (!$startDate) {
+            $startDate = new \DateTime($data[0]['date']);
+        }
+        $endDateIsExclusive = $endDate !== null;
+        if (!$endDate) {
+            $endDate = new \DateTime(end($data)['date']);
+        }
+
+        $rangeEnd = clone $endDate;
+        if ($endDateIsExclusive && $endDate->format('H:i:s') === '00:00:00') {
+            $rangeEnd->modify('-1 day');
+        }
+
         // Fill in missing dates
         $chartData = [];
         $date = clone $startDate;
-        while ($date <= $endDate) {
+        while ($date <= $rangeEnd) {
             $dateStr = $date->format('Y-m-d');
             $dayData = array_filter($data, fn($row) => $row['date'] === $dateStr);
             $dayData = $dayData ? array_values($dayData)[0] : null;
@@ -498,16 +578,20 @@ class AnalyticsController extends Controller
 
         // Calculate date range (supports all options: thisMonth, lastYear, etc.)
         $bounds = DateRangeHelper::getBounds($dateRange);
-        $startDate = $bounds['start'] ?? new \DateTime('-30 days');
-        $endDate = $bounds['end'] ?? new \DateTime();
+        $startDate = $bounds['start'] ?? null;
+        $endDate = $bounds['end'] ?? null;
 
         $query = (new Query())
             ->from(AnalyticsRecord::tableName())
             ->orderBy(['date' => SORT_ASC]);
 
         // Apply date filters (DATETIME column)
-        $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        $query->andWhere(['<=', 'date', Db::prepareDateForDb($endDate)]);
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
 
         $data = $query->all();
 

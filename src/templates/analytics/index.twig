@@ -17,9 +17,10 @@
    ANALYTICS CONFIGURATION
    ============================================================================ #}
 
+{% set pluginHandle = pluginHandle ?? 'sms-manager' %}
 {% set analyticsConfig = {
     plugin: {
-        handle: 'sms-manager',
+        handle: pluginHandle,
         name: smsHelper.fullName,
     },
     page: {
@@ -78,9 +79,13 @@
    ============================================================================ #}
 
 {% block scripts %}
-<script>
+<script data-analytics-reinit="true">
 (function() {
     'use strict';
+    if (window.lrSmsAnalyticsBound) {
+        return;
+    }
+    window.lrSmsAnalyticsBound = true;
 
     // Chart colors
     const chartColors = window.lrChartColors || [
@@ -95,56 +100,132 @@
         mixed: '{{ encodingLabels.mixed|e('js') }}'
     };
 
+    function destroyChart(canvasId, prefix) {
+        const chartKey = canvasId.replace(/-/g, '_');
+        if (window.lrChartInstances && window.lrChartInstances[prefix] && window.lrChartInstances[prefix][chartKey]) {
+            window.lrChartInstances[prefix][chartKey].destroy();
+            delete window.lrChartInstances[prefix][chartKey];
+        }
+    }
+
+    function resetChartState(canvas) {
+        if (!canvas) return;
+        canvas.style.display = '';
+        const parent = canvas.parentElement || canvas.parentNode;
+        if (!parent) return;
+        parent.querySelectorAll('.zilch').forEach(el => el.remove());
+    }
+
+    function renderEmptyState(canvasId, message, prefix) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+        resetChartState(ctx);
+        destroyChart(canvasId, prefix);
+        ctx.style.display = 'none';
+        const parent = ctx.parentElement || ctx.parentNode;
+        if (!parent) return;
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'zilch';
+        emptyMsg.style.padding = '48px 24px';
+        emptyMsg.style.textAlign = 'center';
+        emptyMsg.innerHTML = '<p>' + message + '</p>';
+        parent.appendChild(emptyMsg);
+    }
+
     // Initialize on analytics init event
     document.addEventListener('lr:analyticsInit', function(e) {
+        const config = e.detail && e.detail.config ? e.detail.config : (window.lrAnalyticsConfig || {});
+        window.lrSmsChartPrefix = config.prefix || 'analytics';
         loadAllChartData();
     });
 
     // Load all chart data
     function loadAllChartData() {
+        const prefix = window.lrSmsChartPrefix || 'analytics';
+
         // Daily trend chart
         window.lrLoadChartData('daily', function(data) {
-            renderDailyChart(data);
+            if (data && data.labels && data.labels.length) {
+                const hasData = Array.isArray(data.sent) && data.sent.some(v => Number(v) > 0) ||
+                    Array.isArray(data.failed) && data.failed.some(v => Number(v) > 0);
+                if (hasData) {
+                    renderDailyChart(data);
+                } else {
+                    renderEmptyState('daily-trend-chart', '{{ "No activity data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
+                }
+            } else {
+                renderEmptyState('daily-trend-chart', '{{ "No activity data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
+            }
         });
 
         // Provider chart
         window.lrLoadChartData('providers', function(data) {
-            if (data && data.labels && data.labels.length > 0) {
+            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(v => Number(v) > 0)) {
                 renderProviderChart(data);
+            } else {
+                renderEmptyState('provider-chart', '{{ "No provider data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
             }
         });
 
         // Language chart
         window.lrLoadChartData('languages', function(data) {
-            if (data && data.labels) {
+            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(v => Number(v) > 0)) {
                 renderLanguageChart(data);
+            } else {
+                renderEmptyState('language-chart', '{{ "No language data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
             }
         });
 
         // Sender ID chart
         window.lrLoadChartData('senderids', function(data) {
             if (data && data.labels && data.labels.length > 0) {
-                renderSenderIdCharts(data);
+                const hasData = Array.isArray(data.sent) && data.sent.some(v => Number(v) > 0) ||
+                    Array.isArray(data.failed) && data.failed.some(v => Number(v) > 0);
+                if (hasData) {
+                    renderSenderIdCharts(data);
+                } else {
+                    renderEmptyState('senderid-bar-chart', '{{ "No sender ID data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
+                    renderEmptyState('senderid-pie-chart', '{{ "No sender ID data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
+                    renderEmptyState('senderid-success-chart', '{{ "No sender ID data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
+                }
+            } else {
+                renderEmptyState('senderid-bar-chart', '{{ "No sender ID data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
+                renderEmptyState('senderid-pie-chart', '{{ "No sender ID data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
+                renderEmptyState('senderid-success-chart', '{{ "No sender ID data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
             }
         });
 
         // Encoding distribution
         window.lrLoadChartData('encoding', function(data) {
-            if (data && data.labels) {
+            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(v => Number(v) > 0)) {
                 renderEncodingPieChart(data);
+            } else {
+                renderEmptyState('encoding-pie-chart', '{{ "No encoding data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
             }
         });
 
         // Encoding daily
         window.lrLoadChartData('encoding-daily', function(data) {
-            if (data) {
-                renderEncodingDailyChart(data);
+            if (data && data.labels && data.labels.length > 0) {
+                const hasData = Array.isArray(data.gsm7) && data.gsm7.some(v => Number(v) > 0) ||
+                    Array.isArray(data.ucs2) && data.ucs2.some(v => Number(v) > 0) ||
+                    Array.isArray(data.mixed) && data.mixed.some(v => Number(v) > 0);
+                if (hasData) {
+                    renderEncodingDailyChart(data);
+                } else {
+                    renderEmptyState('encoding-daily-chart', '{{ "No encoding data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
+                }
+            } else {
+                renderEmptyState('encoding-daily-chart', '{{ "No encoding data available for the selected filters."|t('sms-manager')|e('js') }}', prefix);
             }
         });
     }
 
     // Chart rendering functions
     function renderDailyChart(data) {
+        const ctx = document.getElementById('daily-trend-chart');
+        if (!ctx) return;
+        resetChartState(ctx);
         window.lrCreateChart('daily-trend-chart', 'line', {
             labels: data.labels,
             datasets: [
@@ -172,6 +253,9 @@
     }
 
     function renderProviderChart(data) {
+        const ctx = document.getElementById('provider-chart');
+        if (!ctx) return;
+        resetChartState(ctx);
         window.lrCreateChart('provider-chart', 'doughnut', {
             labels: data.labels,
             datasets: [{
@@ -182,6 +266,9 @@
     }
 
     function renderLanguageChart(data) {
+        const ctx = document.getElementById('language-chart');
+        if (!ctx) return;
+        resetChartState(ctx);
         window.lrCreateChart('language-chart', 'doughnut', {
             labels: data.labels,
             datasets: [{
@@ -192,6 +279,9 @@
     }
 
     function renderEncodingPieChart(data) {
+        const ctx = document.getElementById('encoding-pie-chart');
+        if (!ctx) return;
+        resetChartState(ctx);
         window.lrCreateChart('encoding-pie-chart', 'pie', {
             labels: data.labels,
             datasets: [{
@@ -202,6 +292,9 @@
     }
 
     function renderEncodingDailyChart(data) {
+        const ctx = document.getElementById('encoding-daily-chart');
+        if (!ctx) return;
+        resetChartState(ctx);
         window.lrCreateChart('encoding-daily-chart', 'bar', {
             labels: data.labels,
             datasets: [
@@ -232,6 +325,13 @@
     }
 
     function renderSenderIdCharts(data) {
+        const barCtx = document.getElementById('senderid-bar-chart');
+        const pieCtx = document.getElementById('senderid-pie-chart');
+        const successCtx = document.getElementById('senderid-success-chart');
+        if (!barCtx || !pieCtx || !successCtx) return;
+        resetChartState(barCtx);
+        resetChartState(pieCtx);
+        resetChartState(successCtx);
         // Bar chart
         window.lrCreateChart('senderid-bar-chart', 'bar', {
             labels: data.labels,
