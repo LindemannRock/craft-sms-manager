@@ -174,7 +174,7 @@
 {% block extraFooter %}
     {% if currentUser.can('smsManager:exportSmsLogs') %}
         {% include 'lindemannrock-base/_components/export-menu' with {
-            action: 'sms-manager/sms-logs/export',
+            action: 'sms-manager/logs/sms/export',
             permission: 'smsManager:exportSmsLogs',
             pluginHandle: pluginHandle,
             selectionAware: true,
