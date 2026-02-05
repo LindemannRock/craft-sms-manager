@@ -130,11 +130,11 @@
     table: {
         columns: [
             {key: 'name', label: 'Name'|t('sms-manager'), sortable: true},
-            {key: 'handle', label: 'Handle'|t('sms-manager'), sortable: true},
-            {key: 'type', label: 'Type'|t('sms-manager'), sortable: true},
-            {key: 'source', label: 'Source'|t('sms-manager'), sortable: true},
-            {key: 'enabled', label: 'Status'|t('sms-manager'), sortable: true},
-            {key: 'default', label: 'Default'|t('sms-manager')},
+            {key: 'handle', label: 'Handle'|t('sms-manager'), sortable: true, hideable: true},
+            {key: 'type', label: 'Type'|t('sms-manager'), sortable: true, hideable: true},
+            {key: 'source', label: 'Source'|t('sms-manager'), sortable: true, hideable: true},
+            {key: 'enabled', label: 'Status'|t('sms-manager'), sortable: true, hideable: true},
+            {key: 'default', label: 'Default'|t('sms-manager'), hideable: true},
         ],
         items: paginatedProviders,
         emptyMessage: 'No providers found.'|t('sms-manager'),
