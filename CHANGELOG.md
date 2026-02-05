@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.9.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.0...v5.9.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* 'smsManager:viewSmsLogs' permission to logging navigation ([831b375](https://github.com/LindemannRock/craft-sms-manager/commit/831b3754f9cf3a9b2a57009c9efe8bb231b9a25b))
+
 ## [5.9.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.8.0...v5.9.0) (2026-02-05)
 
 
