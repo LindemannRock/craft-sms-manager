@@ -122,15 +122,6 @@ class SmsManager extends Plugin
             'integrations' => IntegrationsService::class,
         ]);
 
-        // Register translations
-        Craft::$app->i18n->translations['sms-manager'] = [
-            'class' => \craft\i18n\PhpMessageSource::class,
-            'sourceLanguage' => 'en',
-            'basePath' => __DIR__ . '/translations',
-            'forceTranslation' => true,
-            'allowOverrides' => true,
-        ];
-
         // Register CP routes
         Event::on(
             UrlManager::class,
