@@ -181,6 +181,7 @@ class SmsManager extends Plugin
             if (PluginHelper::isPluginEnabled('logging-library')) {
                 $item = LoggingLibrary::addLogsNav($item, $this->handle, [
                     'smsManager:viewSystemLogs',
+                    'smsManager:viewSmsLogs',
                 ]);
             }
 
