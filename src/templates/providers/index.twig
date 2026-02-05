@@ -172,7 +172,7 @@
             {# Default provider doesn't exist #}
             {% set warningMessage %}
             <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
-            {{ 'The default provider handle "{handle}" does not exist.'|t('sms-manager', {handle: defaultProviderHandle}) }}
+            {{ 'The default provider handle "{handle}" does not exist.'|t('sms-manager', {handle: '<strong>' ~ defaultProviderHandle ~ '</strong>'})|raw }}
             {% if isDefaultFromConfig %}
                 {{ 'Update your config/sms-manager.php to point to a valid provider handle.'|t('sms-manager') }}
             {% else %}
@@ -191,7 +191,7 @@
             {# Default provider exists but is disabled #}
             {% set warningMessage %}
             <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
-            {{ 'The default provider "{name}" is disabled. SMS functionality may not work.'|t('sms-manager', {name: defaultProvider.name}) }}
+            {{ 'The default provider "{name}" is disabled. SMS functionality may not work.'|t('sms-manager', {name: '<strong>' ~ defaultProvider.name ~ '</strong>'})|raw }}
             {% if not isDefaultFromConfig %}
                 {{ 'Please enable it or set a different provider as default.'|t('sms-manager') }}
             {% else %}

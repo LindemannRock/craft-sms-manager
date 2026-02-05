@@ -220,7 +220,7 @@
         {% if not defaultSenderId %}
             {% set warningMessage %}
             <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
-            {{ 'The default sender ID handle "{handle}" does not exist.'|t('sms-manager', {handle: defaultSenderIdHandle}) }}
+            {{ 'The default sender ID handle "{handle}" does not exist.'|t('sms-manager', {handle: '<strong>' ~ defaultSenderIdHandle ~ '</strong>'})|raw }}
             {% if isDefaultFromConfig %}
                 {{ 'Update your config/sms-manager.php to point to a valid sender ID handle.'|t('sms-manager') }}
             {% else %}
@@ -238,7 +238,7 @@
         {% elseif not defaultSenderId.enabled %}
             {% set warningMessage %}
             <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
-            {{ 'The default sender ID "{name}" is disabled. SMS functionality may not work.'|t('sms-manager', {name: defaultSenderId.name}) }}
+            {{ 'The default sender ID "{name}" is disabled. SMS functionality may not work.'|t('sms-manager', {name: '<strong>' ~ defaultSenderId.name ~ '</strong>'})|raw }}
             {% if not isDefaultFromConfig %}
                 {{ 'Please enable it or set a different sender ID as default.'|t('sms-manager') }}
             {% else %}
