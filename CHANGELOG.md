@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.9.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.8.0...v5.9.0) (2026-02-05)
+
+
+### Features
+
+* **analytics:** enhance analytics record structure and SMS logging ([dd6598e](https://github.com/LindemannRock/craft-sms-manager/commit/dd6598ebbe370400775031c02d80e3a618656efb))
+* **dashboard:** enhance SMS logs filtering and sorting functionality ([804bb7d](https://github.com/LindemannRock/craft-sms-manager/commit/804bb7dd62f70fb2794ea45044b04c24b97b473a))
+* **dashboard:** implement quick actions menu for SMS management ([6019333](https://github.com/LindemannRock/craft-sms-manager/commit/60193336c6d8e67b095c144490868a8c876e5f98))
+* **logs:** implement SMS logs page with filtering and sorting ([f20ca7f](https://github.com/LindemannRock/craft-sms-manager/commit/f20ca7f4027ebfd2994d5d14320c6035fc435373))
+* **providers, senderIds:** add handle collision detection for config and database ([657f574](https://github.com/LindemannRock/craft-sms-manager/commit/657f57411c2483c5bf46afc843d2b18d3e2d4ec9))
+* **providers:** pass provider to MPP-SMS settings component ([172a821](https://github.com/LindemannRock/craft-sms-manager/commit/172a821c175a902e5522a55c4617e75be1efd608))
+
+
+### Bug Fixes
+
+* **sms.twig:** correct export action URL for SMS logs ([c83184d](https://github.com/LindemannRock/craft-sms-manager/commit/c83184d2652e48383df9efa4b4f682faca373027))
+* **SmsManager:** update [@since](https://github.com/since) version for getCpSections method to 5.9.0 ([7033c3b](https://github.com/LindemannRock/craft-sms-manager/commit/7033c3bedb9b1d16e2d4fec3d33412953782092f))
+
+
+### Miscellaneous Chores
+
+* **package.json:** update package name and version, add author and company details ([fd7c6b1](https://github.com/LindemannRock/craft-sms-manager/commit/fd7c6b1af7865609145114f0adc2b6f6f98ad77a))
+
 ## [5.8.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.7.0...v5.8.0) (2026-01-28)
 
 
