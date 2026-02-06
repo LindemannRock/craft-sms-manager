@@ -12,8 +12,8 @@ use Craft;
 use craft\db\Query;
 use craft\web\Controller;
 use lindemannrock\base\helpers\CpNavHelper;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
-use lindemannrock\base\helpers\DateTimeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -476,7 +476,7 @@ class SmsLogsController extends Controller
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
             $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
             // Format date for display using centralized DateTimeHelper
-            $log['datetimeFormatted'] = DateTimeHelper::formatDatetime($log['dateCreated'], 'medium');
+            $log['datetimeFormatted'] = DateFormatHelper::formatDatetime($log['dateCreated'], 'medium');
         }
 
         // Get status counts

@@ -12,6 +12,7 @@ use Craft;
 use craft\db\Query;
 use craft\helpers\Db;
 use craft\web\Controller;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -218,15 +219,17 @@ class AnalyticsController extends Controller
      */
     private function getDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId): array
     {
+        $localDate = DateFormatHelper::localDateExpression('date');
+
         $query = (new Query())
             ->select([
-                'DATE(date) as date',
+                'date' => $localDate,
                 'SUM(totalSent) as sent',
                 'SUM(totalFailed) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->groupBy(['DATE(date)'])
-            ->orderBy(['DATE(date)' => SORT_ASC]);
+            ->groupBy([$localDate])
+            ->orderBy(['date' => SORT_ASC]);
 
         if ($startDate) {
             $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
@@ -497,16 +500,18 @@ class AnalyticsController extends Controller
      */
     private function getEncodingDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId): array
     {
+        $localDate = DateFormatHelper::localDateExpression('date');
+
         $query = (new Query())
             ->select([
-                'DATE(date) as date',
+                'date' => $localDate,
                 'SUM(englishCount) as gsm7',
                 'SUM(arabicCount) as ucs2',
                 'SUM(otherCount) as mixed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->groupBy(['DATE(date)'])
-            ->orderBy(['DATE(date)' => SORT_ASC]);
+            ->groupBy([$localDate])
+            ->orderBy(['date' => SORT_ASC]);
 
         if ($startDate) {
             $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
