@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.9.2](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.1...v5.9.2) (2026-02-07)
+
+
+### Bug Fixes
+
+* **AnalyticsController, SmsLogsController:** update date handling with DateFormatHelper ([3674411](https://github.com/LindemannRock/craft-sms-manager/commit/3674411346d9899c72cbeabd7fc7a7a069436878))
+
 ## [5.9.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.0...v5.9.1) (2026-02-05)
 
 
