@@ -99,17 +99,6 @@ class AnalyticsController extends Controller
             ])
             ->one();
 
-        // Get daily breakdown
-        $dailyData = (clone $query)
-            ->select([
-                'date',
-                'SUM(totalSent) as sent',
-                'SUM(totalFailed) as failed',
-            ])
-            ->groupBy(['date'])
-            ->orderBy(['date' => SORT_ASC])
-            ->all();
-
         // Get provider breakdown
         $providerData = (clone $query)
             ->select([
@@ -124,22 +113,6 @@ class AnalyticsController extends Controller
         foreach ($providerData as &$row) {
             $provider = ProviderRecord::findOne($row['providerId']);
             $row['providerName'] = $provider ? $provider->name : 'Unknown';
-        }
-
-        // Get sender ID breakdown
-        $senderIdData = (clone $query)
-            ->select([
-                'senderIdId',
-                'SUM(totalSent) as sent',
-                'SUM(totalFailed) as failed',
-            ])
-            ->groupBy(['senderIdId'])
-            ->all();
-
-        // Enrich sender ID data with names
-        foreach ($senderIdData as &$row) {
-            $senderId = SenderIdRecord::findOne($row['senderIdId']);
-            $row['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
         }
 
         // Get providers and sender IDs for filters
@@ -168,9 +141,7 @@ class AnalyticsController extends Controller
                 'total' => $total,
                 'successRate' => $successRate,
             ],
-            'dailyData' => $dailyData,
             'providerData' => $providerData,
-            'senderIdData' => $senderIdData,
             'providers' => $providers,
             'senderIds' => $senderIds,
             'pluginHandle' => SmsManager::$plugin->id,
@@ -190,6 +161,12 @@ class AnalyticsController extends Controller
 
         $request = Craft::$app->getRequest();
         $type = $request->getBodyParam('type', 'daily');
+
+        $validTypes = ['daily', 'providers', 'senderids', 'languages', 'encoding', 'encoding-daily', 'sender-id-table'];
+        if (!in_array($type, $validTypes, true)) {
+            throw new \yii\web\BadRequestHttpException('Invalid data type.');
+        }
+
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
         $providerId = $request->getBodyParam('providerId', 'all');
 
@@ -205,7 +182,7 @@ class AnalyticsController extends Controller
             'languages' => $this->getLanguageChartData($startDate, $endDate, $providerId),
             'encoding' => $this->getEncodingChartData($startDate, $endDate, $providerId),
             'encoding-daily' => $this->getEncodingDailyChartData($startDate, $endDate, $providerId),
-            default => [],
+            'sender-id-table' => $this->getSenderIdTableData($startDate, $endDate, $providerId),
         };
 
         return $this->asJson([
@@ -384,6 +361,44 @@ class AnalyticsController extends Controller
             'sent' => $sent,
             'failed' => $failed,
         ];
+    }
+
+    /**
+     * Get sender ID table data for AJAX lazy-loading
+     */
+    private function getSenderIdTableData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
+    {
+        $query = (new Query())
+            ->select([
+                'senderIdId',
+                'SUM(totalSent) as sent',
+                'SUM(totalFailed) as failed',
+            ])
+            ->from(AnalyticsRecord::tableName())
+            ->groupBy(['senderIdId']);
+
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
+
+        if ($providerId !== 'all') {
+            $query->andWhere(['providerId' => $providerId]);
+        }
+
+        $data = $query->all();
+
+        foreach ($data as &$row) {
+            $senderId = SenderIdRecord::findOne($row['senderIdId']);
+            $row['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            $row['sent'] = (int)$row['sent'];
+            $row['failed'] = (int)$row['failed'];
+        }
+        unset($row);
+
+        return $data;
     }
 
     /**
@@ -611,11 +626,12 @@ class AnalyticsController extends Controller
      */
     public function actionExport(): Response
     {
+        $this->requirePostRequest();
         $this->requirePermission('smsManager:exportAnalytics');
 
         $request = Craft::$app->getRequest();
-        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
-        $format = $request->getQueryParam('format', 'csv');
+        $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
+        $format = $request->getBodyParam('format', 'csv');
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, SmsManager::$plugin->id)) {
