@@ -28,6 +28,54 @@ abstract class BaseProvider implements ProviderInterface
     /**
      * @inheritdoc
      */
+    public static function shortName(): string
+    {
+        return static::displayName();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function website(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function docsUrl(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function dashboardUrl(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function supportsUnicode(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function supportsDeliveryReports(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function iconUrl(): ?string
     {
         return null;

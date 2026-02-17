@@ -240,14 +240,15 @@ class SmsLogsController extends Controller
      */
     public function actionExport(): Response
     {
+        $this->requirePostRequest();
         $this->requirePermission('smsManager:exportSmsLogs');
 
         $request = Craft::$app->getRequest();
-        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
-        $format = $request->getQueryParam('format', 'csv');
+        $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
+        $format = $request->getBodyParam('format', 'csv');
 
-        // Check for specific log IDs (selection-aware export via query or body params)
-        $logIdsJson = $request->getQueryParam('logIds') ?? $request->getBodyParam('logIds');
+        // Check for specific log IDs (selection-aware export)
+        $logIdsJson = $request->getBodyParam('logIds');
         $logIds = $logIdsJson ? json_decode($logIdsJson, true) : null;
 
         // Validate format is enabled

@@ -54,6 +54,54 @@ interface ProviderInterface
     public static function iconUrl(): ?string;
 
     /**
+     * Get a short name for the provider (for badges, compact UI)
+     *
+     * @return string Short name (e.g., 'MPP', 'Twilio')
+     * @since 5.10.0
+     */
+    public static function shortName(): string;
+
+    /**
+     * Get the provider's website URL
+     *
+     * @return string|null Provider website URL
+     * @since 5.10.0
+     */
+    public static function website(): ?string;
+
+    /**
+     * Get the provider's API documentation URL
+     *
+     * @return string|null API docs URL
+     * @since 5.10.0
+     */
+    public static function docsUrl(): ?string;
+
+    /**
+     * Get the provider's dashboard/portal URL
+     *
+     * @return string|null Dashboard URL
+     * @since 5.10.0
+     */
+    public static function dashboardUrl(): ?string;
+
+    /**
+     * Check if the provider supports Unicode (non-Latin) messages
+     *
+     * @return bool
+     * @since 5.10.0
+     */
+    public static function supportsUnicode(): bool;
+
+    /**
+     * Check if the provider supports delivery reports/callbacks
+     *
+     * @return bool
+     * @since 5.10.0
+     */
+    public static function supportsDeliveryReports(): bool;
+
+    /**
      * Check if the provider supports connection testing
      *
      * @return bool

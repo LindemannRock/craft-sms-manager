@@ -92,9 +92,36 @@ class ProvidersService extends Component
             $options[] = [
                 'label' => $class::displayName(),
                 'value' => $handle,
+                'shortName' => $class::shortName(),
             ];
         }
         return $options;
+    }
+
+    /**
+     * Get static metadata for a provider type
+     *
+     * @param string $type Provider type handle
+     * @return array{shortName: string, website: string|null, docsUrl: string|null, dashboardUrl: string|null, supportsUnicode: bool, supportsDeliveryReports: bool, supportsConnectionTest: bool}|null
+     * @since 5.10.0
+     */
+    public function getProviderTypeMetadata(string $type): ?array
+    {
+        if (!isset($this->providerTypes[$type])) {
+            return null;
+        }
+
+        $class = $this->providerTypes[$type];
+
+        return [
+            'shortName' => $class::shortName(),
+            'website' => $class::website(),
+            'docsUrl' => $class::docsUrl(),
+            'dashboardUrl' => $class::dashboardUrl(),
+            'supportsUnicode' => $class::supportsUnicode(),
+            'supportsDeliveryReports' => $class::supportsDeliveryReports(),
+            'supportsConnectionTest' => $class::supportsConnectionTest(),
+        ];
     }
 
     /**

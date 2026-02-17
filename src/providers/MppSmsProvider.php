@@ -62,6 +62,54 @@ class MppSmsProvider extends BaseProvider
     /**
      * @inheritdoc
      */
+    public static function shortName(): string
+    {
+        return 'MPP';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function website(): ?string
+    {
+        return 'https://www.mpp-sms.com';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function docsUrl(): ?string
+    {
+        return 'https://www.mpp-sms.com';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function dashboardUrl(): ?string
+    {
+        return 'https://www.mpp-sms.com';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function supportsUnicode(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function supportsDeliveryReports(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function supportsConnectionTest(): bool
     {
         // MPP-SMS doesn't provide a test endpoint
