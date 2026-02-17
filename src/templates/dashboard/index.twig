@@ -56,7 +56,7 @@
 <div class="lr-unified-cards" style="margin-bottom: 32px;">
     {# SMS Today Card #}
     {% if canViewSmsLogs and settings.enableSmsLogs %}
-        {% set change = smsYesterday > 0 ? ((smsToday - smsYesterday) / smsYesterday * 100)|round : null %}
+        {% set change = (smsToday > 0 and smsYesterday > 0) ? ((smsToday - smsYesterday) / smsYesterday * 100)|round : null %}
         {% include 'lindemannrock-base/_components/cards/unified-card' with {
             title: 'SMS Today'|t('sms-manager'),
             color: '#0ea5e9',
