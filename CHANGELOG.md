@@ -1,5 +1,20 @@
 # Changelog
 
+## [5.9.3](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.2...v5.9.3) (2026-02-17)
+
+
+### Bug Fixes
+
+* **analytics:** update sender ID and encoding permissions and loading states ([efb3f47](https://github.com/LindemannRock/craft-sms-manager/commit/efb3f476584dd2eb308c21f551a435ff761cb587))
+* **dashboard:** prevent division by zero in SMS change calculation ([d2c414a](https://github.com/LindemannRock/craft-sms-manager/commit/d2c414a978113e1f58627d4fa76ce94a1ed55ec5))
+* **ProvidersController, SenderIdsController:** update permissions for managing providers and sender IDs ([4b17ade](https://github.com/LindemannRock/craft-sms-manager/commit/4b17adef3b892e98ff8ab2a7d0d9861987d99624))
+
+
+### Miscellaneous Chores
+
+* add .gitattributes with export-ignore for Packagist distribution ([370fde6](https://github.com/LindemannRock/craft-sms-manager/commit/370fde63e4ef5acb8df9488737e932e647c4f3d9))
+* switch to Craft License for commercial release ([dfd378a](https://github.com/LindemannRock/craft-sms-manager/commit/dfd378a2a31523b8371c7384695c50863ad353bb))
+
 ## [5.9.2](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.1...v5.9.2) (2026-02-07)
 
 
