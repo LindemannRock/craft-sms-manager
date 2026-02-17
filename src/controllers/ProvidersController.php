@@ -48,7 +48,7 @@ class ProvidersController extends Controller
      */
     public function actionIndex(): Response
     {
-        $this->requirePermission('smsManager:viewProviders');
+        $this->requirePermission('smsManager:manageProviders');
 
         $settings = SmsManager::$plugin->getSettings();
         $providers = SmsManager::$plugin->providers->getAllProviders();
@@ -110,7 +110,7 @@ class ProvidersController extends Controller
      */
     public function actionView(?string $handle = null): Response
     {
-        $this->requirePermission('smsManager:viewProviders');
+        $this->requirePermission('smsManager:manageProviders');
 
         if (!$handle) {
             throw new NotFoundHttpException('Provider handle required');
@@ -137,6 +137,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
+            'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($provider->type),
         ]);
     }
 
@@ -169,6 +170,8 @@ class ProvidersController extends Controller
         $providerCount = ProviderRecord::find()->count();
         $settings = SmsManager::$plugin->getSettings();
 
+        $providerType = $provider ? $provider->type : 'mpp-sms';
+
         return $this->renderTemplate('sms-manager/providers/edit', [
             'provider' => $provider,
             'providerSettings' => $providerSettings,
@@ -178,6 +181,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
+            'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($providerType),
         ]);
     }
 
@@ -241,6 +245,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
+            'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($provider->type),
         ]);
     }
 
@@ -314,7 +319,7 @@ class ProvidersController extends Controller
     public function actionTestConnection(): Response
     {
         $this->requirePostRequest();
-        $this->requirePermission('smsManager:viewProviders');
+        $this->requirePermission('smsManager:manageProviders');
 
         $request = Craft::$app->getRequest();
         $providerId = $request->getRequiredBodyParam('providerId');

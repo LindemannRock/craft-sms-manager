@@ -220,14 +220,14 @@ class SmsManager extends Plugin
             'key' => 'providers',
             'label' => Craft::t('sms-manager', 'Providers'),
             'url' => 'sms-manager/providers',
-            'permissionsAll' => ['smsManager:viewProviders'],
+            'permissionsAll' => ['smsManager:manageProviders'],
         ];
 
         $sections[] = [
             'key' => 'sender-ids',
             'label' => Craft::t('sms-manager', 'Sender IDs'),
             'url' => 'sms-manager/sender-ids',
-            'permissionsAll' => ['smsManager:viewSenderIds'],
+            'permissionsAll' => ['smsManager:manageSenderIds'],
         ];
 
         $sections[] = [
@@ -344,9 +344,6 @@ class SmsManager extends Plugin
             'smsManager:manageProviders' => [
                 'label' => Craft::t('sms-manager', 'Manage providers'),
                 'nested' => [
-                    'smsManager:viewProviders' => [
-                        'label' => Craft::t('sms-manager', 'View providers'),
-                    ],
                     'smsManager:createProviders' => [
                         'label' => Craft::t('sms-manager', 'Create providers'),
                     ],
@@ -362,9 +359,6 @@ class SmsManager extends Plugin
             'smsManager:manageSenderIds' => [
                 'label' => Craft::t('sms-manager', 'Manage sender IDs'),
                 'nested' => [
-                    'smsManager:viewSenderIds' => [
-                        'label' => Craft::t('sms-manager', 'View sender IDs'),
-                    ],
                     'smsManager:createSenderIds' => [
                         'label' => Craft::t('sms-manager', 'Create sender IDs'),
                     ],

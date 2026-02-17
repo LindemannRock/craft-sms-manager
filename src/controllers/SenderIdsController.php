@@ -47,7 +47,7 @@ class SenderIdsController extends Controller
      */
     public function actionIndex(): Response
     {
-        $this->requirePermission('smsManager:viewSenderIds');
+        $this->requirePermission('smsManager:manageSenderIds');
 
         $request = Craft::$app->getRequest();
         $settings = SmsManager::$plugin->getSettings();
@@ -117,7 +117,7 @@ class SenderIdsController extends Controller
      */
     public function actionView(?string $handle = null): Response
     {
-        $this->requirePermission('smsManager:viewSenderIds');
+        $this->requirePermission('smsManager:manageSenderIds');
 
         if (!$handle) {
             throw new NotFoundHttpException('Sender ID handle required');
@@ -389,7 +389,7 @@ class SenderIdsController extends Controller
      */
     public function actionGetByProvider(): Response
     {
-        $this->requirePermission('smsManager:viewSenderIds');
+        $this->requirePermission('smsManager:manageSenderIds');
         $this->requireAcceptsJson();
 
         $providerId = Craft::$app->getRequest()->getQueryParam('providerId');
