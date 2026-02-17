@@ -37,27 +37,7 @@
                 </tr>
             </thead>
             <tbody id="senderid-table-body">
-                {% if senderIdData|length %}
-                    {% for item in senderIdData %}
-                        {% set itemTotal = (item.sent|default(0)) + (item.failed|default(0)) %}
-                        {% set itemRate = itemTotal > 0 ? ((item.sent|default(0)) / itemTotal * 100)|round(1) : 0 %}
-                        <tr>
-                            <td><strong>{{ item.senderIdName }}</strong></td>
-                            <td class="lr-text-end">{{ itemTotal|number_format }}</td>
-                            <td class="lr-text-end lr-text-green">{{ item.sent|number_format }}</td>
-                            <td class="lr-text-end lr-text-red">{{ item.failed|number_format }}</td>
-                            <td class="lr-text-end">
-                                <span class="{{ itemRate >= 90 ? 'lr-text-green' : (itemRate >= 70 ? 'lr-text-amber' : 'lr-text-red') }}">
-                                    {{ itemRate }}%
-                                </span>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="5" class="light lr-text-center">{{ 'No data available'|t('sms-manager') }}</td>
-                    </tr>
-                {% endif %}
+                <tr><td colspan="5" class="light lr-text-center">{{ "Loading..."|t('sms-manager') }}</td></tr>
             </tbody>
         </table>
     </div>

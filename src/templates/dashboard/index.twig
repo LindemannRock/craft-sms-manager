@@ -14,8 +14,8 @@
 
 {# Permission checks #}
 {% set canViewSmsLogs = currentUser.can('smsManager:viewSmsLogs') %}
-{% set canViewProviders = currentUser.can('smsManager:viewProviders') %}
-{% set canViewSenderIds = currentUser.can('smsManager:viewSenderIds') %}
+{% set canViewProviders = currentUser.can('smsManager:manageProviders') %}
+{% set canViewSenderIds = currentUser.can('smsManager:manageSenderIds') %}
 {% set canViewAnalytics = currentUser.can('smsManager:viewAnalytics') %}
 {% set canCreateProviders = currentUser.can('smsManager:createProviders') %}
 {% set canCreateSenderIds = currentUser.can('smsManager:createSenderIds') %}

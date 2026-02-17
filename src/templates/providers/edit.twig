@@ -319,6 +319,46 @@
         </dl>
     </fieldset>
     {% endif %}
+
+    {% if providerMeta is defined and providerMeta %}
+        <fieldset>
+            <legend class="h6">{{ 'Provider Info'|t('sms-manager') }}</legend>
+            <dl class="meta read-only">
+                {% if providerMeta.website %}
+                    <div class="data">
+                        <dt class="heading">{{ 'Website'|t('sms-manager') }}</dt>
+                        <dd class="value"><a href="{{ providerMeta.website }}" target="_blank" rel="noopener">{{ providerMeta.website|replace({'https://www.': '', 'https://': ''}) }}</a></dd>
+                    </div>
+                {% endif %}
+                {% if providerMeta.docsUrl %}
+                    <div class="data">
+                        <dt class="heading">{{ 'API Docs'|t('sms-manager') }}</dt>
+                        <dd class="value"><a href="{{ providerMeta.docsUrl }}" target="_blank" rel="noopener">{{ 'View Docs'|t('sms-manager') }} &rarr;</a></dd>
+                    </div>
+                {% endif %}
+                {% if providerMeta.dashboardUrl %}
+                    <div class="data">
+                        <dt class="heading">{{ 'Dashboard'|t('sms-manager') }}</dt>
+                        <dd class="value"><a href="{{ providerMeta.dashboardUrl }}" target="_blank" rel="noopener">{{ 'Open Dashboard'|t('sms-manager') }} &rarr;</a></dd>
+                    </div>
+                {% endif %}
+                <div class="data">
+                    <dt class="heading">{{ 'Unicode'|t('sms-manager') }}</dt>
+                    <dd class="value">
+                        <span class="status {{ providerMeta.supportsUnicode ? 'live' : 'disabled' }}"></span>
+                        {{ providerMeta.supportsUnicode ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}
+                    </dd>
+                </div>
+                <div class="data">
+                    <dt class="heading">{{ 'Delivery Reports'|t('sms-manager') }}</dt>
+                    <dd class="value">
+                        <span class="status {{ providerMeta.supportsDeliveryReports ? 'live' : 'disabled' }}"></span>
+                        {{ providerMeta.supportsDeliveryReports ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}
+                    </dd>
+                </div>
+            </dl>
+        </fieldset>
+    {% endif %}
 {% endblock %}
 
 {% if canEdit %}

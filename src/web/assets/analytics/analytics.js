@@ -26,6 +26,10 @@
     const encodingLabels = config.encodingLabels || {};
     const strings = config.strings || {};
 
+    // Tab lazy-loading guard flags
+    var senderIdLoaded = false;
+    var encodingLoaded = false;
+
     function destroyChart(canvasId, prefix) {
         const chartKey = canvasId.replace(/-/g, '_');
         if (window.lrChartInstances && window.lrChartInstances[prefix] && window.lrChartInstances[prefix][chartKey]) {
@@ -58,22 +62,21 @@
         parent.appendChild(emptyMsg);
     }
 
-    // Initialize on analytics init event
-    document.addEventListener('lr:analyticsInit', function(e) {
-        const config = e.detail && e.detail.config ? e.detail.config : (window.lrAnalyticsConfig || {});
-        window.lrSmsChartPrefix = config.prefix || 'analytics';
-        loadAllChartData();
-    });
+    function getActiveTabId() {
+        var hash = window.location.hash ? window.location.hash.substring(1) : '';
+        if (hash && document.getElementById(hash)) return hash;
+        var visible = document.querySelector('.lr-tab-content:not(.hidden)');
+        return visible ? visible.id : 'overview';
+    }
 
-    // Load all chart data
-    function loadAllChartData() {
-        const prefix = window.lrSmsChartPrefix || 'analytics';
+    // Per-tab loaders
+    function loadOverviewCharts() {
+        var prefix = window.lrSmsChartPrefix || 'analytics';
 
-        // Daily trend chart
         window.lrLoadChartData('daily', function(data) {
             if (data && data.labels && data.labels.length) {
-                const hasData = Array.isArray(data.sent) && data.sent.some(v => Number(v) > 0) ||
-                    Array.isArray(data.failed) && data.failed.some(v => Number(v) > 0);
+                var hasData = Array.isArray(data.sent) && data.sent.some(function(v) { return Number(v) > 0; }) ||
+                    Array.isArray(data.failed) && data.failed.some(function(v) { return Number(v) > 0; });
                 if (hasData) {
                     renderDailyChart(data);
                 } else {
@@ -84,29 +87,30 @@
             }
         });
 
-        // Provider chart
         window.lrLoadChartData('providers', function(data) {
-            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(v => Number(v) > 0)) {
+            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(function(v) { return Number(v) > 0; })) {
                 renderProviderChart(data);
             } else {
                 renderEmptyState('provider-chart', strings.noProvider, prefix);
             }
         });
 
-        // Language chart
         window.lrLoadChartData('languages', function(data) {
-            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(v => Number(v) > 0)) {
+            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(function(v) { return Number(v) > 0; })) {
                 renderLanguageChart(data);
             } else {
                 renderEmptyState('language-chart', strings.noLanguage, prefix);
             }
         });
+    }
 
-        // Sender ID chart
+    function loadSenderIdData() {
+        var prefix = window.lrSmsChartPrefix || 'analytics';
+
         window.lrLoadChartData('senderids', function(data) {
             if (data && data.labels && data.labels.length > 0) {
-                const hasData = Array.isArray(data.sent) && data.sent.some(v => Number(v) > 0) ||
-                    Array.isArray(data.failed) && data.failed.some(v => Number(v) > 0);
+                var hasData = Array.isArray(data.sent) && data.sent.some(function(v) { return Number(v) > 0; }) ||
+                    Array.isArray(data.failed) && data.failed.some(function(v) { return Number(v) > 0; });
                 if (hasData) {
                     renderSenderIdCharts(data);
                 } else {
@@ -121,21 +125,27 @@
             }
         });
 
-        // Encoding distribution
+        window.lrLoadChartData('sender-id-table', function(data) {
+            renderSenderIdTable(data);
+        });
+    }
+
+    function loadEncodingData() {
+        var prefix = window.lrSmsChartPrefix || 'analytics';
+
         window.lrLoadChartData('encoding', function(data) {
-            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(v => Number(v) > 0)) {
+            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(function(v) { return Number(v) > 0; })) {
                 renderEncodingPieChart(data);
             } else {
                 renderEmptyState('encoding-pie-chart', strings.noEncoding, prefix);
             }
         });
 
-        // Encoding daily
         window.lrLoadChartData('encoding-daily', function(data) {
             if (data && data.labels && data.labels.length > 0) {
-                const hasData = Array.isArray(data.gsm7) && data.gsm7.some(v => Number(v) > 0) ||
-                    Array.isArray(data.ucs2) && data.ucs2.some(v => Number(v) > 0) ||
-                    Array.isArray(data.mixed) && data.mixed.some(v => Number(v) > 0);
+                var hasData = Array.isArray(data.gsm7) && data.gsm7.some(function(v) { return Number(v) > 0; }) ||
+                    Array.isArray(data.ucs2) && data.ucs2.some(function(v) { return Number(v) > 0; }) ||
+                    Array.isArray(data.mixed) && data.mixed.some(function(v) { return Number(v) > 0; });
                 if (hasData) {
                     renderEncodingDailyChart(data);
                 } else {
@@ -145,6 +155,66 @@
                 renderEmptyState('encoding-daily-chart', strings.noEncoding, prefix);
             }
         });
+    }
+
+    function loadTabData(tabName) {
+        if (tabName === 'senderids' && !senderIdLoaded) {
+            senderIdLoaded = true;
+            loadSenderIdData();
+        }
+        if (tabName === 'encoding' && !encodingLoaded) {
+            encodingLoaded = true;
+            loadEncodingData();
+        }
+    }
+
+    // Initialize on analytics init event
+    document.addEventListener('lr:analyticsInit', function(e) {
+        var eventConfig = e.detail && e.detail.config ? e.detail.config : (window.lrAnalyticsConfig || {});
+        window.lrSmsChartPrefix = eventConfig.prefix || 'analytics';
+
+        // Reset guard flags
+        senderIdLoaded = false;
+        encodingLoaded = false;
+
+        // Load overview charts (default tab)
+        loadOverviewCharts();
+
+        // Reload currently active tab if not overview
+        var activeTab = getActiveTabId();
+        loadTabData(activeTab);
+    });
+
+    // Lazy-load on tab change
+    document.addEventListener('lr:tabChanged', function(e) {
+        var tabId = e.detail && e.detail.tabId ? e.detail.tabId : getActiveTabId();
+        loadTabData(tabId);
+    });
+
+    // Sender ID table renderer
+    function renderSenderIdTable(data) {
+        var tbody = document.getElementById('senderid-table-body');
+        if (!tbody) return;
+        if (!data || !data.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="light lr-text-center">' +
+                (strings.noSenderId || 'No data available') + '</td></tr>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            var total = item.sent + item.failed;
+            var rate = total > 0 ? Math.round((item.sent / total) * 1000) / 10 : 0;
+            var rateClass = rate >= 90 ? 'lr-text-green' : (rate >= 70 ? 'lr-text-amber' : 'lr-text-red');
+            html += '<tr>' +
+                '<td><strong>' + Craft.escapeHtml(item.senderIdName) + '</strong></td>' +
+                '<td class="lr-text-end">' + total.toLocaleString() + '</td>' +
+                '<td class="lr-text-end lr-text-green">' + item.sent.toLocaleString() + '</td>' +
+                '<td class="lr-text-end lr-text-red">' + item.failed.toLocaleString() + '</td>' +
+                '<td class="lr-text-end"><span class="' + rateClass + '">' + rate + '%</span></td>' +
+                '</tr>';
+        }
+        tbody.innerHTML = html;
     }
 
     // Chart rendering functions

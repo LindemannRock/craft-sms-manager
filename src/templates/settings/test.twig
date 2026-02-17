@@ -6,16 +6,13 @@
 
 {# Build dial code mapping for all countries from base helper - defined at template level for JS #}
 {% set allDialCodes = [] %}
-{% for option in lrDialCodes() %}
-    {% set dc = lrDialCode(option.value) %}
-    {% if dc %}
-        {% set allDialCodes = allDialCodes|merge([{
-            country: option.value,
-            dialCode: dc,
-            label: option.value ~ ' +' ~ dc,
-            name: lrCountryName(option.value)
-        }]) %}
-    {% endif %}
+{% for item in lrCountryDialCodeData() %}
+    {% set allDialCodes = allDialCodes|merge([{
+        country: item.countryCode,
+        dialCode: item.dialCode,
+        label: item.countryCode ~ ' +' ~ item.dialCode,
+        name: item.countryName
+    }]) %}
 {% endfor %}
 
 {% set plugin = craft.app.plugins.getPlugin('sms-manager') %}

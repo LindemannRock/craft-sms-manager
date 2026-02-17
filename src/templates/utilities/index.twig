@@ -1,8 +1,8 @@
 {% extends 'lindemannrock-base/_layouts/cp-utilities' %}
 
 {# Permission checks #}
-{% set canViewProviders = currentUser.can('smsManager:viewProviders') %}
-{% set canViewSenderIds = currentUser.can('smsManager:viewSenderIds') %}
+{% set canViewProviders = currentUser.can('smsManager:manageProviders') %}
+{% set canViewSenderIds = currentUser.can('smsManager:manageSenderIds') %}
 {% set canViewAnalytics = currentUser.can('smsManager:viewAnalytics') %}
 {% set canClearAnalytics = currentUser.can('smsManager:clearAnalytics') %}
 {% set canViewLogs = currentUser.can('smsManager:viewSmsLogs') %}
