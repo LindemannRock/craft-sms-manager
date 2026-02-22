@@ -244,7 +244,9 @@ class SettingsController extends Controller
 
         $settings = SmsManager::$plugin->getSettings();
         $postedSettings = Craft::$app->getRequest()->getBodyParam('settings', []);
-        $section = Craft::$app->getRequest()->getBodyParam('section', 'general');
+        $section = $this->_validSettingsSection(
+            Craft::$app->getRequest()->getBodyParam('section', 'general'),
+        );
 
         // Fields that should be cast to int (nullable)
         $nullableIntFields = ['defaultProviderId', 'defaultSenderIdId'];
@@ -305,5 +307,18 @@ class SettingsController extends Controller
 
         $visibleLength = min(8, strlen($key));
         return substr($key, 0, $visibleLength) . 'XXX';
+    }
+
+    /**
+     * Validate and sanitize the settings section parameter
+     *
+     * @param string $section The section from POST data
+     * @return string A validated section name
+     */
+    private function _validSettingsSection(string $section): string
+    {
+        $allowed = ['general', 'analytics', 'interface', 'test'];
+
+        return in_array($section, $allowed, true) ? $section : 'general';
     }
 }
