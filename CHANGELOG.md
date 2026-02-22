@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.9.4](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.3...v5.9.4) (2026-02-22)
+
+
+### Bug Fixes
+
+* **SmsManager:** add setSettings method with no-op implementation ([a8209e6](https://github.com/LindemannRock/craft-sms-manager/commit/a8209e6180f580354bf9dfb6a8c9ba33cbf94494))
+
 ## [5.9.3](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.2...v5.9.3) (2026-02-17)
 
 
