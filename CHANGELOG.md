@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.9.5](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.4...v5.9.5) (2026-02-23)
+
+
+### Bug Fixes
+
+* **SettingsController:** validate and sanitize settings section parameter ([62cf142](https://github.com/LindemannRock/craft-sms-manager/commit/62cf142058489072f64158c923400420642936fa))
+
 ## [5.9.4](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.3...v5.9.4) (2026-02-22)
 
 
