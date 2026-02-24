@@ -51,7 +51,6 @@ class AnalyticsRecord extends ActiveRecord
      * Get the provider for this analytics record
      *
      * @return \yii\db\ActiveQuery
-     * @since 5.0.0
      */
     public function getProvider(): \yii\db\ActiveQuery
     {
@@ -62,7 +61,6 @@ class AnalyticsRecord extends ActiveRecord
      * Get the sender ID for this analytics record
      *
      * @return \yii\db\ActiveQuery
-     * @since 5.0.0
      */
     public function getSenderId(): \yii\db\ActiveQuery
     {
@@ -73,7 +71,6 @@ class AnalyticsRecord extends ActiveRecord
      * Get total count (all statuses)
      *
      * @return int
-     * @since 5.0.0
      */
     public function getTotalCount(): int
     {
@@ -84,7 +81,6 @@ class AnalyticsRecord extends ActiveRecord
      * Get success rate as percentage
      *
      * @return float
-     * @since 5.0.0
      */
     public function getSuccessRate(): float
     {

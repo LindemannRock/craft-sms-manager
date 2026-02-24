@@ -69,7 +69,6 @@ class SenderIdRecord extends ActiveRecord
      * Get the provider for this sender ID
      *
      * @return \yii\db\ActiveQuery
-     * @since 5.0.0
      */
     public function getProvider(): \yii\db\ActiveQuery
     {
@@ -80,7 +79,6 @@ class SenderIdRecord extends ActiveRecord
      * Get the provider record by handle (works for both config and database providers)
      *
      * @return ProviderRecord|null
-     * @since 5.0.0
      */
     public function getProviderByHandle(): ?ProviderRecord
     {
@@ -100,7 +98,6 @@ class SenderIdRecord extends ActiveRecord
      *
      * @param string $handle Sender ID handle
      * @return self|null
-     * @since 5.0.0
      */
     public static function findByHandleWithConfig(string $handle): ?self
     {
@@ -119,7 +116,6 @@ class SenderIdRecord extends ActiveRecord
      * Get all sender IDs (config + database merged)
      *
      * @return self[]
-     * @since 5.0.0
      */
     public static function findAllWithConfig(): array
     {
@@ -158,7 +154,6 @@ class SenderIdRecord extends ActiveRecord
      *
      * @param int|string $providerIdOrHandle Provider ID or handle
      * @return self[]
-     * @since 5.0.0
      */
     public static function findAllByProviderWithConfig(int|string $providerIdOrHandle): array
     {
@@ -181,7 +176,6 @@ class SenderIdRecord extends ActiveRecord
      * Get all sender IDs defined in config file
      *
      * @return self[]
-     * @since 5.0.0
      */
     public static function findAllFromConfig(): array
     {
@@ -231,7 +225,6 @@ class SenderIdRecord extends ActiveRecord
      * Get all enabled sender IDs (config + database merged)
      *
      * @return self[]
-     * @since 5.0.0
      */
     public static function findAllEnabledWithConfig(): array
     {

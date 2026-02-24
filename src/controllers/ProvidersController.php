@@ -44,7 +44,6 @@ class ProvidersController extends Controller
      * List all providers
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -106,7 +105,6 @@ class ProvidersController extends Controller
      *
      * @param string|null $handle Provider handle
      * @return Response
-     * @since 5.0.0
      */
     public function actionView(?string $handle = null): Response
     {
@@ -146,7 +144,6 @@ class ProvidersController extends Controller
      *
      * @param int|null $providerId
      * @return Response
-     * @since 5.0.0
      */
     public function actionEdit(?int $providerId = null): Response
     {
@@ -189,7 +186,6 @@ class ProvidersController extends Controller
      * Save a provider
      *
      * @return Response|null
-     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {
@@ -253,7 +249,6 @@ class ProvidersController extends Controller
      * Delete a provider
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionDelete(): Response
     {
@@ -281,7 +276,6 @@ class ProvidersController extends Controller
      * Toggle provider enabled status
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionToggleEnabled(): Response
     {
@@ -314,7 +308,6 @@ class ProvidersController extends Controller
      * Test provider connection
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionTestConnection(): Response
     {
@@ -349,7 +342,6 @@ class ProvidersController extends Controller
      * Set a provider as the default
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionSetDefault(): Response
     {
@@ -403,7 +395,6 @@ class ProvidersController extends Controller
      * Bulk enable providers
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionBulkEnable(): Response
     {
@@ -444,7 +435,6 @@ class ProvidersController extends Controller
      * Bulk disable providers
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionBulkDisable(): Response
     {
@@ -491,7 +481,6 @@ class ProvidersController extends Controller
      * Bulk delete providers
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionBulkDelete(): Response
     {

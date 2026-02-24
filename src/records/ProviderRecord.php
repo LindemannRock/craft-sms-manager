@@ -64,7 +64,6 @@ class ProviderRecord extends ActiveRecord
      * Get provider settings as array
      *
      * @return array
-     * @since 5.0.0
      */
     public function getSettingsArray(): array
     {
@@ -79,7 +78,6 @@ class ProviderRecord extends ActiveRecord
      * Set provider settings from array
      *
      * @param array $settings
-     * @since 5.0.0
      */
     public function setSettingsArray(array $settings): void
     {
@@ -90,7 +88,6 @@ class ProviderRecord extends ActiveRecord
      * Get sender IDs for this provider
      *
      * @return \yii\db\ActiveQuery
-     * @since 5.0.0
      */
     public function getSenderIds(): \yii\db\ActiveQuery
     {
@@ -106,7 +103,6 @@ class ProviderRecord extends ActiveRecord
      *
      * @param string $handle Provider handle
      * @return self|null
-     * @since 5.0.0
      */
     public static function findByHandleWithConfig(string $handle): ?self
     {
@@ -125,7 +121,6 @@ class ProviderRecord extends ActiveRecord
      * Get all providers (config + database merged)
      *
      * @return self[]
-     * @since 5.0.0
      */
     public static function findAllWithConfig(): array
     {
@@ -163,7 +158,6 @@ class ProviderRecord extends ActiveRecord
      * Get all providers defined in config file
      *
      * @return self[]
-     * @since 5.0.0
      */
     public static function findAllFromConfig(): array
     {
@@ -201,7 +195,6 @@ class ProviderRecord extends ActiveRecord
      * Get all enabled providers (config + database merged)
      *
      * @return self[]
-     * @since 5.0.0
      */
     public static function findAllEnabledWithConfig(): array
     {

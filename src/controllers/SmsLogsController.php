@@ -49,7 +49,6 @@ class SmsLogsController extends Controller
      * List all logs (main dashboard page)
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -209,7 +208,6 @@ class SmsLogsController extends Controller
      *
      * @param int $logId
      * @return Response
-     * @since 5.0.0
      */
     public function actionView(int $logId): Response
     {
@@ -236,7 +234,6 @@ class SmsLogsController extends Controller
      *
      * @return Response
      * @throws BadRequestHttpException
-     * @since 5.0.0
      */
     public function actionExport(): Response
     {
@@ -333,7 +330,6 @@ class SmsLogsController extends Controller
      * Clear logs
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionClear(): Response
     {
@@ -364,7 +360,6 @@ class SmsLogsController extends Controller
      * Delete a single log
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionDelete(): Response
     {

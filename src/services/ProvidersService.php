@@ -57,7 +57,6 @@ class ProvidersService extends Component
      * Register a provider type
      *
      * @param class-string<ProviderInterface> $class Provider class
-     * @since 5.0.0
      */
     public function registerProviderType(string $class): void
     {
@@ -72,7 +71,6 @@ class ProvidersService extends Component
      * Get all registered provider types
      *
      * @return array<string, class-string<ProviderInterface>>
-     * @since 5.0.0
      */
     public function getProviderTypes(): array
     {
@@ -83,7 +81,6 @@ class ProvidersService extends Component
      * Get provider type options for select fields
      *
      * @return array
-     * @since 5.0.0
      */
     public function getProviderTypeOptions(): array
     {
@@ -129,7 +126,6 @@ class ProvidersService extends Component
      *
      * @param string $type Provider type handle
      * @return ProviderInterface|null
-     * @since 5.0.0
      */
     public function createProviderByType(string $type): ?ProviderInterface
     {
@@ -146,7 +142,6 @@ class ProvidersService extends Component
      *
      * @param bool $enabledOnly Only return enabled providers
      * @return ProviderRecord[]
-     * @since 5.0.0
      */
     public function getAllProviders(bool $enabledOnly = false): array
     {
@@ -164,7 +159,6 @@ class ProvidersService extends Component
      *
      * @param int $id Provider ID
      * @return ProviderRecord|null
-     * @since 5.0.0
      */
     public function getProviderById(int $id): ?ProviderRecord
     {
@@ -176,7 +170,6 @@ class ProvidersService extends Component
      *
      * @param string $handle Provider handle
      * @return ProviderRecord|null
-     * @since 5.0.0
      */
     public function getProviderByHandle(string $handle): ?ProviderRecord
     {
@@ -189,7 +182,6 @@ class ProvidersService extends Component
      * Uses defaultProviderHandle from settings, falls back to first enabled provider.
      *
      * @return ProviderRecord|null
-     * @since 5.0.0
      */
     public function getDefaultProvider(): ?ProviderRecord
     {
@@ -212,7 +204,6 @@ class ProvidersService extends Component
      * Check if the default provider is set from config file
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isDefaultProviderFromConfig(): bool
     {
@@ -224,7 +215,6 @@ class ProvidersService extends Component
      * Get the default provider handle
      *
      * @return string|null
-     * @since 5.0.0
      */
     public function getDefaultProviderHandle(): ?string
     {
@@ -237,7 +227,6 @@ class ProvidersService extends Component
      *
      * @param string $handle Provider handle
      * @return bool
-     * @since 5.0.0
      */
     public function setDefaultProviderByHandle(string $handle): bool
     {
@@ -264,7 +253,6 @@ class ProvidersService extends Component
      * @param ProviderRecord $provider Provider record
      * @param bool $runValidation Whether to run validation
      * @return bool
-     * @since 5.0.0
      */
     public function saveProvider(ProviderRecord $provider, bool $runValidation = true): bool
     {
@@ -322,7 +310,6 @@ class ProvidersService extends Component
      *
      * @param int $id Provider ID
      * @return array Result with success status and optional error
-     * @since 5.0.0
      */
     public function deleteProvider(int $id): array
     {
@@ -373,7 +360,6 @@ class ProvidersService extends Component
      *
      * @param bool $enabledOnly Only return enabled providers
      * @return array
-     * @since 5.0.0
      */
     public function getProviderOptions(bool $enabledOnly = true): array
     {

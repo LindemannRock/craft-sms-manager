@@ -55,7 +55,6 @@ class IntegrationsService extends Component
      * Get all registered integrations
      *
      * @return array<string, array{handle: string, name: string, class: class-string}>
-     * @since 5.0.0
      */
     public function getRegisteredIntegrations(): array
     {
@@ -76,7 +75,6 @@ class IntegrationsService extends Component
      *
      * @param string $handle Integration handle
      * @return IntegrationInterface|null
-     * @since 5.0.0
      */
     public function getIntegration(string $handle): ?IntegrationInterface
     {
@@ -120,7 +118,6 @@ class IntegrationsService extends Component
      *
      * @param int $providerId The provider ID to check
      * @return array<array{plugin: string, pluginName: string, label: string, editUrl: string|null}>
-     * @since 5.0.0
      */
     public function getProviderUsages(int $providerId): array
     {
@@ -152,7 +149,6 @@ class IntegrationsService extends Component
      *
      * @param int $senderIdId The sender ID to check
      * @return array<array{plugin: string, pluginName: string, label: string, editUrl: string|null}>
-     * @since 5.0.0
      */
     public function getSenderIdUsages(int $senderIdId): array
     {
@@ -184,7 +180,6 @@ class IntegrationsService extends Component
      *
      * @param int $providerId The provider ID to check
      * @return bool
-     * @since 5.0.0
      */
     public function isProviderInUse(int $providerId): bool
     {
@@ -196,7 +191,6 @@ class IntegrationsService extends Component
      *
      * @param int $senderIdId The sender ID to check
      * @return bool
-     * @since 5.0.0
      */
     public function isSenderIdInUse(int $senderIdId): bool
     {

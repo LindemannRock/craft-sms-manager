@@ -38,7 +38,6 @@ class DashboardController extends Controller
      * If user doesn't have permission for dashboard, redirect to first accessible section.
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {

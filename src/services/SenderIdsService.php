@@ -42,7 +42,6 @@ class SenderIdsService extends Component
      *
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return SenderIdRecord[]
-     * @since 5.0.0
      */
     public function getAllSenderIds(bool $enabledOnly = false): array
     {
@@ -61,7 +60,6 @@ class SenderIdsService extends Component
      * @param int|string $providerIdOrHandle Provider ID or handle
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return SenderIdRecord[]
-     * @since 5.0.0
      */
     public function getSenderIdsByProvider(int|string $providerIdOrHandle, bool $enabledOnly = false): array
     {
@@ -79,7 +77,6 @@ class SenderIdsService extends Component
      *
      * @param int $id Sender ID
      * @return SenderIdRecord|null
-     * @since 5.0.0
      */
     public function getSenderIdById(int $id): ?SenderIdRecord
     {
@@ -91,7 +88,6 @@ class SenderIdsService extends Component
      *
      * @param string $handle Sender ID handle
      * @return SenderIdRecord|null
-     * @since 5.0.0
      */
     public function getSenderIdByHandle(string $handle): ?SenderIdRecord
     {
@@ -105,7 +101,6 @@ class SenderIdsService extends Component
      *
      * @param int|string|null $providerIdOrHandle Optional provider ID or handle to filter by
      * @return SenderIdRecord|null
-     * @since 5.0.0
      */
     public function getDefaultSenderId(int|string|null $providerIdOrHandle = null): ?SenderIdRecord
     {
@@ -154,7 +149,6 @@ class SenderIdsService extends Component
      * Check if the default sender ID is set from config file
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isDefaultSenderIdFromConfig(): bool
     {
@@ -166,7 +160,6 @@ class SenderIdsService extends Component
      * Get the default sender ID handle
      *
      * @return string|null
-     * @since 5.0.0
      */
     public function getDefaultSenderIdHandle(): ?string
     {
@@ -179,7 +172,6 @@ class SenderIdsService extends Component
      *
      * @param string $handle Sender ID handle
      * @return bool
-     * @since 5.0.0
      */
     public function setDefaultSenderIdByHandle(string $handle): bool
     {
@@ -206,7 +198,6 @@ class SenderIdsService extends Component
      * @param SenderIdRecord $senderId Sender ID record
      * @param bool $runValidation Whether to run validation
      * @return bool
-     * @since 5.0.0
      */
     public function saveSenderId(SenderIdRecord $senderId, bool $runValidation = true): bool
     {
@@ -248,7 +239,6 @@ class SenderIdsService extends Component
      *
      * @param int $id Sender ID
      * @return array Result with success status and optional error
-     * @since 5.0.0
      */
     public function deleteSenderId(int $id): array
     {
@@ -300,7 +290,6 @@ class SenderIdsService extends Component
      * @param int|string|null $providerIdOrHandle Optional provider ID or handle to filter by
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return array
-     * @since 5.0.0
      */
     public function getSenderIdOptions(int|string|null $providerIdOrHandle = null, bool $enabledOnly = true): array
     {
@@ -330,7 +319,6 @@ class SenderIdsService extends Component
      * @param int|string|null $providerIdOrHandle Optional provider ID or handle to filter by
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return array
-     * @since 5.0.0
      */
     public function getSenderIdOptionsArray(int|string|null $providerIdOrHandle = null, bool $enabledOnly = true): array
     {

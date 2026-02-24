@@ -50,7 +50,6 @@ class SmsService extends Component
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID
      * @return bool True if sent successfully
-     * @since 5.0.0
      */
     public function send(
         string $to,
@@ -201,7 +200,6 @@ class SmsService extends Component
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID
      * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
-     * @since 5.0.0
      */
     public function sendWithDetails(
         string $to,
@@ -408,7 +406,6 @@ class SmsService extends Component
      * @param string $language Message language
      * @param string|null $sourcePlugin Source plugin handle
      * @return bool
-     * @since 5.0.0
      */
     public function sendWithHandle(
         string $to,

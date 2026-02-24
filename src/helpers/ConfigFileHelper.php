@@ -27,7 +27,6 @@ class ConfigFileHelper
      * Get the full config from sms-manager.php
      *
      * @return array The config array
-     * @since 5.0.0
      */
     public static function getConfig(): array
     {
@@ -43,7 +42,6 @@ class ConfigFileHelper
      *
      * @param string $key The config key (e.g., 'providers', 'senderIds')
      * @return array The config section or empty array if not found
-     * @since 5.0.0
      */
     public static function getConfigSection(string $key): array
     {
@@ -55,7 +53,6 @@ class ConfigFileHelper
      * Get providers from config file
      *
      * @return array Array of provider configs keyed by handle
-     * @since 5.0.0
      */
     public static function getProviders(): array
     {
@@ -66,7 +63,6 @@ class ConfigFileHelper
      * Get sender IDs from config file
      *
      * @return array Array of sender ID configs keyed by handle
-     * @since 5.0.0
      */
     public static function getSenderIds(): array
     {
@@ -79,7 +75,6 @@ class ConfigFileHelper
      * @param string $section The config section key
      * @param string $handle The handle to check
      * @return bool True if handle exists in config
-     * @since 5.0.0
      */
     public static function handleExistsInConfig(string $section, string $handle): bool
     {
@@ -93,7 +88,6 @@ class ConfigFileHelper
      * @param string $section The config section key
      * @param string $handle The handle to get
      * @return array|null The config array or null if not found
-     * @since 5.0.0
      */
     public static function getConfigByHandle(string $section, string $handle): ?array
     {
@@ -105,8 +99,6 @@ class ConfigFileHelper
      * Clear the config cache
      *
      * Call this if you need to reload the config file (e.g., after file changes)
-     *
-     * @since 5.0.0
      */
     public static function clearCache(): void
     {
@@ -118,7 +110,6 @@ class ConfigFileHelper
      *
      * @param string $section The config section key
      * @return array Array of handles
-     * @since 5.0.0
      */
     public static function getHandles(string $section): array
     {
@@ -135,7 +126,6 @@ class ConfigFileHelper
      * @param array $configItems Items from config file (keyed by handle)
      * @param array $databaseItems Items from database (array of objects with 'handle' property)
      * @return array Merged items keyed by handle
-     * @since 5.0.0
      */
     public static function mergeConfigAndDatabase(array $configItems, array $databaseItems): array
     {
