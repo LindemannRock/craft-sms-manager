@@ -252,7 +252,7 @@ class SettingsController extends Controller
 
         // Update settings with posted values
         foreach ($postedSettings as $key => $value) {
-            if (property_exists($settings, $key)) {
+            if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
                 // Cast to appropriate type
                 if (in_array($key, $nullableIntFields, true)) {
                     $settings->$key = $value !== '' && $value !== null ? (int)$value : null;
@@ -266,8 +266,14 @@ class SettingsController extends Controller
             }
         }
 
-        // Validate
-        if (!$settings->validate()) {
+        // Validate only fields belonging to the current section.
+        $attributesToValidate = $this->_validationAttributesForSection($section);
+        $attributesToValidate = array_values(array_filter(
+            $attributesToValidate,
+            fn(string $attribute): bool => !$settings->isOverriddenByConfig($attribute),
+        ));
+
+        if (!$settings->validate($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('sms-manager', 'Couldn\'t save settings.'));
 
             return $this->renderTemplate('sms-manager/settings/' . $section, [
@@ -275,8 +281,8 @@ class SettingsController extends Controller
             ]);
         }
 
-        // Save to database
-        if (!$settings->saveToDatabase()) {
+        // Save to database (same scoped attributes)
+        if (!$settings->saveToDatabase($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('sms-manager', 'Couldn\'t save settings.'));
 
             return $this->renderTemplate('sms-manager/settings/' . $section, [
@@ -313,5 +319,37 @@ class SettingsController extends Controller
         $allowed = ['general', 'analytics', 'interface', 'test'];
 
         return in_array($section, $allowed, true) ? $section : 'general';
+    }
+
+    /**
+     * Get validation attributes for a settings section.
+     */
+    private function _validationAttributesForSection(string $section): array
+    {
+        return match ($section) {
+            'general' => [
+                'pluginName',
+                'defaultProviderId',
+                'defaultSenderIdId',
+                'defaultProviderHandle',
+                'defaultSenderIdHandle',
+                'logLevel',
+            ],
+            'analytics' => [
+                'enableAnalytics',
+                'analyticsLimit',
+                'analyticsRetention',
+                'autoTrimAnalytics',
+                'enableSmsLogs',
+                'smsLogsLimit',
+                'smsLogsRetention',
+                'autoTrimSmsLogs',
+            ],
+            'interface' => [
+                'itemsPerPage',
+                'refreshIntervalSecs',
+            ],
+            default => [],
+        };
     }
 }

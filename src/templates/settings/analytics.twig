@@ -37,6 +37,7 @@
             name: 'settings[enableAnalytics]',
             on: settings.enableAnalytics ?? true,
             toggle: 'analytics-settings',
+            errors: settings.getErrors('enableAnalytics'),
             disabled: settings.isOverriddenByConfig('enableAnalytics'),
             warning: settings.isOverriddenByConfig('enableAnalytics') ?
                 "This is being overridden by the <code>enableAnalytics</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -58,7 +59,10 @@
                 name: 'settings[analyticsRetention]',
                 type: 'number',
                 value: settings.analyticsRetention,
+                min: 0,
+                max: 3650,
                 required: true,
+                errors: settings.getErrors('analyticsRetention'),
                 disabled: settings.isOverriddenByConfig('analyticsRetention'),
                 warning: settings.isOverriddenByConfig('analyticsRetention') ?
                     "This is being overridden by the <code>analyticsRetention</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -71,7 +75,10 @@
                 name: 'settings[analyticsLimit]',
                 type: 'number',
                 value: settings.analyticsLimit,
+                min: 1,
+                max: 100000,
                 required: true,
+                errors: settings.getErrors('analyticsLimit'),
                 disabled: settings.isOverriddenByConfig('analyticsLimit'),
                 warning: settings.isOverriddenByConfig('analyticsLimit') ?
                     "This is being overridden by the <code>analyticsLimit</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -83,6 +90,7 @@
                 id: 'autoTrimAnalytics',
                 name: 'settings[autoTrimAnalytics]',
                 on: settings.autoTrimAnalytics,
+                errors: settings.getErrors('autoTrimAnalytics'),
                 disabled: settings.isOverriddenByConfig('autoTrimAnalytics'),
                 warning: settings.isOverriddenByConfig('autoTrimAnalytics') ?
                     "This is being overridden by the <code>autoTrimAnalytics</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -101,6 +109,7 @@
             name: 'settings[enableSmsLogs]',
             on: settings.enableSmsLogs ?? true,
             toggle: 'logs-settings',
+            errors: settings.getErrors('enableSmsLogs'),
             disabled: settings.isOverriddenByConfig('enableSmsLogs'),
             warning: settings.isOverriddenByConfig('enableSmsLogs') ?
                 "This is being overridden by the <code>enableSmsLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -118,7 +127,10 @@
                 name: 'settings[smsLogsRetention]',
                 type: 'number',
                 value: settings.smsLogsRetention,
+                min: 0,
+                max: 3650,
                 required: true,
+                errors: settings.getErrors('smsLogsRetention'),
                 disabled: settings.isOverriddenByConfig('smsLogsRetention'),
                 warning: settings.isOverriddenByConfig('smsLogsRetention') ?
                     "This is being overridden by the <code>smsLogsRetention</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -131,7 +143,10 @@
                 name: 'settings[smsLogsLimit]',
                 type: 'number',
                 value: settings.smsLogsLimit,
+                min: 1,
+                max: 100000,
                 required: true,
+                errors: settings.getErrors('smsLogsLimit'),
                 disabled: settings.isOverriddenByConfig('smsLogsLimit'),
                 warning: settings.isOverriddenByConfig('smsLogsLimit') ?
                     "This is being overridden by the <code>smsLogsLimit</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -143,6 +158,7 @@
                 id: 'autoTrimSmsLogs',
                 name: 'settings[autoTrimSmsLogs]',
                 on: settings.autoTrimSmsLogs,
+                errors: settings.getErrors('autoTrimSmsLogs'),
                 disabled: settings.isOverriddenByConfig('autoTrimSmsLogs'),
                 warning: settings.isOverriddenByConfig('autoTrimSmsLogs') ?
                     "This is being overridden by the <code>autoTrimSmsLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,

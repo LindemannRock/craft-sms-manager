@@ -8,6 +8,7 @@
 {% set selectedSubnavItem = 'sender-ids' %}
 {% set saveShortcutRedirect = cpUrl('sms-manager/sender-ids/{id}') %}
 {% set retainScrollOnSaveShortcut = true %}
+{% set errorSummary = '' %}
 
 {% set crumbs = [
     { label: smsHelper.fullName, url: url('sms-manager') },
@@ -23,6 +24,14 @@
             url: '#fields',
         },
     } %}
+{% endif %}
+
+{% if senderId and senderId.hasErrors() %}
+    {% set errorSummary = include('lindemannrock-base/_partials/error-summary', {
+        errors: senderId.getErrors(),
+        linkMode: 'data-key',
+        translationCategory: 'sms-manager'
+    })|trim %}
 {% endif %}
 
 {% block actionButton %}

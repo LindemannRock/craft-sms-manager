@@ -37,6 +37,7 @@
             name: 'settings[pluginName]',
             value: settings.pluginName,
             required: true,
+            errors: settings.getErrors('pluginName'),
             disabled: settings.isOverriddenByConfig('pluginName'),
             warning: settings.isOverriddenByConfig('pluginName') ?
                 "This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -66,6 +67,7 @@
                 name: 'settings[defaultProviderHandle]',
                 value: settings.defaultProviderHandle,
                 options: providerOptions,
+                errors: settings.getErrors('defaultProviderHandle'),
                 disabled: settings.isOverriddenByConfig('defaultProviderHandle'),
                 warning: settings.isOverriddenByConfig('defaultProviderHandle') ?
                     "This is being overridden by the <code>defaultProviderHandle</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -93,6 +95,7 @@
                 name: 'settings[defaultSenderIdHandle]',
                 value: settings.defaultSenderIdHandle,
                 options: senderIdOptions,
+                errors: settings.getErrors('defaultSenderIdHandle'),
                 disabled: settings.isOverriddenByConfig('defaultSenderIdHandle'),
                 warning: settings.isOverriddenByConfig('defaultSenderIdHandle') ?
                     "This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
@@ -122,6 +125,7 @@
             name: 'settings[logLevel]',
             value: settings.logLevel,
             options: logOptions,
+            errors: settings.getErrors('logLevel'),
             disabled: settings.isOverriddenByConfig('logLevel'),
             warning: settings.isOverriddenByConfig('logLevel') ?
                 "This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,

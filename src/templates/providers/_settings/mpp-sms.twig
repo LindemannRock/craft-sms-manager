@@ -3,14 +3,13 @@
 
 {{ forms.autosuggestField({
     label: 'API URL'|t('sms-manager'),
-    instructions: 'The API endpoint URL. Leave blank to use the default.'|t('sms-manager'),
+    instructions: 'Optional API endpoint override. Leave blank to use the provider default.'|t('sms-manager'),
     id: 'providerSettings-apiUrl',
     name: 'providerSettings[apiUrl]',
     value: providerSettings.apiUrl ?? '',
     placeholder: 'https://api.mpp-sms.com/api/send.aspx',
     class: 'code',
     suggestEnvVars: true,
-    tip: 'Must use HTTPS. Can begin with an environment variable. <a href="https://craftcms.com/docs/5.x/configure.html#control-panel-settings" target="_blank" rel="noopener">Learn more</a>'|t('sms-manager'),
     errors: provider ? provider.getErrors('providerSettings.apiUrl') : [],
 }) }}
 
@@ -24,7 +23,6 @@
     placeholder: '$MPP_SMS_API_KEY',
     class: 'code',
     suggestEnvVars: true,
-    tip: 'This can begin with an environment variable. <a href="https://craftcms.com/docs/5.x/configure.html#control-panel-settings" target="_blank" rel="noopener">Learn more</a>'|t('sms-manager'),
     errors: provider ? provider.getErrors('providerSettings.apiKey') : [],
 }) }}
 
@@ -37,7 +35,6 @@
     placeholder: '$MPP_SMS_DEV_API_KEY',
     class: 'code',
     suggestEnvVars: true,
-    tip: 'This can begin with an environment variable. <a href="https://craftcms.com/docs/5.x/configure.html#control-panel-settings" target="_blank" rel="noopener">Learn more</a>'|t('sms-manager'),
 }) }}
 
 <hr>

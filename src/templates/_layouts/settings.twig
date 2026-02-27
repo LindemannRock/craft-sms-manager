@@ -3,6 +3,14 @@
 {% set title = title ?? 'Settings'|t('sms-manager') %}
 {% set selectedSettingsItem = selectedSettingsItem ?? 'general' %}
 {% set selectedSubnavItem = 'settings' %}
+{% set errorSummary = '' %}
+{% if settings is defined and settings.hasErrors() %}
+    {% set errorSummary = include('lindemannrock-base/_partials/error-summary', {
+        errors: settings.getErrors(),
+        linkMode: 'field-id',
+        translationCategory: 'sms-manager'
+    })|trim %}
+{% endif %}
 
 {% block sidebar %}
     <nav id="settings-nav">

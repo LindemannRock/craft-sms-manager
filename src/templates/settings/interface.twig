@@ -60,6 +60,7 @@
                 60: '60 seconds (1 minute)'|t('sms-manager'),
                 120: '120 seconds (2 minutes)'|t('sms-manager'),
             },
+            errors: settings.getErrors('refreshIntervalSecs'),
             disabled: settings.isOverriddenByConfig('refreshIntervalSecs'),
             warning: settings.isOverriddenByConfig('refreshIntervalSecs') ?
                 "This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,

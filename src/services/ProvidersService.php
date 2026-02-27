@@ -10,6 +10,7 @@ namespace lindemannrock\smsmanager\services;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\App;
 use craft\helpers\StringHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\providers\MppSmsProvider;
@@ -267,6 +268,25 @@ class ProvidersService extends Component
         if ($runValidation && !$provider->validate()) {
             $this->logError('Provider validation failed', ['errors' => $provider->getErrors()]);
             return false;
+        }
+
+        // Validate common API URL setting (if present) before provider-specific checks.
+        if ($runValidation) {
+            $settings = $provider->getSettingsArray();
+            $apiUrl = trim((string)App::parseEnv($settings['apiUrl'] ?? ''));
+            if ($apiUrl !== '') {
+                if (!filter_var($apiUrl, FILTER_VALIDATE_URL)) {
+                    $provider->addError('providerSettings.apiUrl', Craft::t('sms-manager', 'API URL must be a valid URL.'));
+                    $this->logError('Provider settings validation failed', ['errors' => ['apiUrl' => 'invalid_url']]);
+                    return false;
+                }
+
+                if (!str_starts_with(strtolower($apiUrl), 'https://')) {
+                    $provider->addError('providerSettings.apiUrl', Craft::t('sms-manager', 'API URL must use HTTPS.'));
+                    $this->logError('Provider settings validation failed', ['errors' => ['apiUrl' => 'must_use_https']]);
+                    return false;
+                }
+            }
         }
 
         // Validate provider-specific settings
