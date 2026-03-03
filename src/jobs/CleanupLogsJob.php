@@ -12,9 +12,11 @@ use Craft;
 use craft\db\Query;
 use craft\helpers\Db;
 use craft\queue\BaseJob;
+use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\SmsManager;
+use yii\queue\RetryableJobInterface;
 
 /**
  * Cleanup Logs Job
@@ -25,8 +27,9 @@ use lindemannrock\smsmanager\SmsManager;
  * @package   SmsManager
  * @since     5.0.0
  */
-class CleanupLogsJob extends BaseJob
+class CleanupLogsJob extends BaseJob implements RetryableJobInterface
 {
+    use QueueTtrTrait;
     use LoggingTrait;
 
     /**
@@ -38,6 +41,14 @@ class CleanupLogsJob extends BaseJob
      * @var string|null Next run time display string for queued jobs
      */
     public ?string $nextRunTime = null;
+
+    /**
+     * @inheritdoc
+     */
+    public function canRetry($attempt, $error): bool
+    {
+        return false;
+    }
 
     /**
      * @inheritdoc
