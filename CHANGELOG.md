@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.9.6](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.5...v5.9.6) (2026-03-04)
+
+
+### Bug Fixes
+
+* **jobs:** implement RetryableJobInterface in CleanupAnalyticsJob and CleanupLogsJob ([29860a6](https://github.com/LindemannRock/craft-sms-manager/commit/29860a6457f0833efeff9b7653e20f9285ec7abc))
+* **SettingsController, Settings, ProvidersService, templates:** validate settings and improve error handling ([90123f6](https://github.com/LindemannRock/craft-sms-manager/commit/90123f60506c9710a508d0f0e4b9ae5aee3c7755))
+
 ## [5.9.5](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.4...v5.9.5) (2026-02-23)
 
 
