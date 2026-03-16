@@ -172,7 +172,6 @@ class SmsManager extends Plugin
             $settings = $this->getSettings();
 
             $item['label'] = $settings->getFullName();
-            $item['icon'] = '@appicons/paper-plane.svg';
 
             $sections = $this->getCpSections($settings);
             $item['subnav'] = CpNavHelper::buildSubnav($user, $settings, $sections);

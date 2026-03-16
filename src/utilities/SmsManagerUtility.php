@@ -43,7 +43,7 @@ class SmsManagerUtility extends Utility
      */
     public static function icon(): ?string
     {
-        return 'paper-plane';
+        return '@lindemannrock/smsmanager/icon-mask.svg';
     }
 
     /**
