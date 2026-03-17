@@ -110,6 +110,14 @@ class SmsManager extends Plugin
                         'mpp-sms' => ColorHelper::getPaletteColor('purple'),
                     ],
                 ],
+                'installExperience' => [
+                    'headline' => 'SMS Manager',
+                    'body' => 'Configure providers, manage sender IDs, and monitor messaging activity from one control panel workspace.',
+                    'ctaLabel' => 'Open SMS Manager',
+                    'ctaUrl' => 'sms-manager',
+                    'redirectUri' => 'sms-manager',
+                    'confettiPreset' => 'surprise',
+                ],
             ]
         );
         PluginHelper::applyPluginNameFromConfig($this);
