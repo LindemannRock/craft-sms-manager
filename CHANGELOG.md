@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.10.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.6...v5.10.0) (2026-03-17)
+
+
+### Features
+
+* **SmsManager:** add install experience configuration ([ff40c0f](https://github.com/LindemannRock/craft-sms-manager/commit/ff40c0fde9c13522e2a05249845c72289f5e48a9))
+
+
+### Bug Fixes
+
+* **SmsManagerUtility:** update icon path to new SVG file ([110ad05](https://github.com/LindemannRock/craft-sms-manager/commit/110ad0572d051468320b94fdd1eadf7233d56ade))
+* **templates:** remove redundant submit buttons from settings forms ([3ca7cfe](https://github.com/LindemannRock/craft-sms-manager/commit/3ca7cfedf0c2782d1b64e13a2dac8abe2f9df9ba))
+
+
+### Miscellaneous Chores
+
+* **assets:** update asset management and build configuration ([6976568](https://github.com/LindemannRock/craft-sms-manager/commit/69765687361140d216a8e1f11d6afa1a6648b3d8))
+
 ## [5.9.6](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.5...v5.9.6) (2026-03-04)
 
 
