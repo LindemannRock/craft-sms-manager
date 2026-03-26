@@ -111,9 +111,9 @@ class SmsManager extends Plugin
                     ],
                 ],
                 'installExperience' => [
-                    'headline' => 'SMS Manager',
-                    'body' => 'Configure providers, manage sender IDs, and monitor messaging activity from one control panel workspace.',
-                    'ctaLabel' => 'Open SMS Manager',
+                    'headline' => Craft::t('sms-manager', 'SMS Manager'),
+                    'body' => Craft::t('sms-manager', 'Configure providers, manage sender IDs, and monitor messaging activity from one control panel workspace.'),
+                    'ctaLabel' => Craft::t('sms-manager', 'Open SMS Manager'),
                     'ctaUrl' => 'sms-manager',
                     'redirectUri' => 'sms-manager',
                     'confettiPreset' => 'surprise',
