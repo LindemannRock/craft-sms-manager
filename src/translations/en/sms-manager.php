@@ -9,6 +9,8 @@
 return [
     // General
     'SMS Manager' => 'SMS Manager',
+    'Configure providers, manage sender IDs, and monitor messaging activity from one control panel workspace.' => 'Configure providers, manage sender IDs, and monitor messaging activity from one control panel workspace.',
+    'Open SMS Manager' => 'Open SMS Manager',
     'Dashboard' => 'Dashboard',
     'Providers' => 'Providers',
     'Sender IDs' => 'Sender IDs',
