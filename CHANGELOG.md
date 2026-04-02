@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.10.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.10.0...v5.10.1) (2026-04-02)
+
+
+### Bug Fixes
+
+* **svg:** update icon SVG files for improved styling and structure ([90cd7bf](https://github.com/LindemannRock/craft-sms-manager/commit/90cd7bf5596e22baf0212608136f2dbc99c6755c))
+* update install experience text to use Craft translations ([b4faece](https://github.com/LindemannRock/craft-sms-manager/commit/b4faece71745ce2f629bae87aa8961bc5268ade2))
+
 ## [5.10.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.9.6...v5.10.0) (2026-03-17)
 
 
