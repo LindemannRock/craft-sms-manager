@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.10.2](https://github.com/LindemannRock/craft-sms-manager/compare/v5.10.1...v5.10.2) (2026-04-05)
+
+
+### Bug Fixes
+
+* **SmsManager:** read-only settings response and clarify property usage ([08d8f4f](https://github.com/LindemannRock/craft-sms-manager/commit/08d8f4fe24d8864e6faf97e54eae3d5e6d7f2847))
+
 ## [5.10.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.10.0...v5.10.1) (2026-04-02)
 
 
