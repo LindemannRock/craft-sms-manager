@@ -129,7 +129,7 @@ return [
     // Settings: General
     'General Settings' => 'Impostazioni generali',
     'Plugin Settings' => 'Impostazioni plugin',
-    'Plugin Name' => 'Nome plugin',
+    'Plugin Name' => 'Nome del plugin',
     'The name of the plugin as it appears in the Control Panel menu' => 'Il nome del plugin come appare nel menu del pannello di controllo',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => 'Viene sovrascritta dall\'impostazione <code>pluginName</code> in <code>config/sms-manager.php</code>.',
     'Default Provider & Sender ID' => 'Provider e ID mittente predefiniti',

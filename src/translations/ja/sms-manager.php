@@ -129,7 +129,7 @@ return [
     // Settings: General
     'General Settings' => '一般設定',
     'Plugin Settings' => 'Plugin 設定',
-    'Plugin Name' => 'Plugin 名',
+    'Plugin Name' => 'プラグイン名',
     'The name of the plugin as it appears in the Control Panel menu' => 'コントロールパネルのメニューに表示される Plugin の名前',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => '<code>config/sms-manager.php</code> の <code>pluginName</code> 設定によって上書きされています。',
     'Default Provider & Sender ID' => 'デフォルトプロバイダーと送信者 ID',

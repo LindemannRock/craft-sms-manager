@@ -129,7 +129,7 @@ return [
     // Settings: General
     'General Settings' => 'الإعدادات العامة',
     'Plugin Settings' => 'إعدادات Plugin',
-    'Plugin Name' => 'اسم Plugin',
+    'Plugin Name' => 'اسم الإضافة',
     'The name of the plugin as it appears in the Control Panel menu' => 'اسم Plugin كما يظهر في قائمة لوحة التحكم',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>pluginName</code> في <code>config/sms-manager.php</code>.',
     'Default Provider & Sender ID' => 'مزود الخدمة الافتراضي ومعرّف المُرسِل',

@@ -45,7 +45,7 @@ return [
     // Common
     'Save Settings' => 'Gem indstillinger',
     'General' => 'Generelt',
-    'Interface' => 'Grænseflade',
+    'Interface' => 'Brugerflade',
     'Name' => 'Navn',
     'Handle' => 'Håndtag',
     'Description' => 'Beskrivelse',
