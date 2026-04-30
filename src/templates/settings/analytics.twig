@@ -22,13 +22,11 @@
 {% import "_includes/forms" as forms %}
 
 {% block content %}
-    <form method="post" accept-charset="UTF-8">
-        {{ actionInput('sms-manager/settings/save') }}
-        {{ csrfInput() }}
-        {{ redirectInput('sms-manager/settings/analytics') }}
-        {{ hiddenInput('section', 'analytics') }}
+    {{ actionInput('sms-manager/settings/save') }}
+    {{ redirectInput('sms-manager/settings/analytics') }}
+    {{ hiddenInput('section', 'analytics') }}
 
-        <h2 style="margin-top: 0px;">{{ "Analytics"|t('sms-manager') }}</h2>
+        <h2 class="first">{{ "Analytics"|t('sms-manager') }}</h2>
 
         {{ forms.lightswitchField({
             label: "Enable Analytics"|t('sms-manager'),
@@ -164,8 +162,6 @@
                     "This is being overridden by the <code>autoTrimSmsLogs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
             }) }}
         </div>
-
-    </form>
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}

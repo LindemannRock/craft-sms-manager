@@ -22,13 +22,11 @@
 {% import "_includes/forms" as forms %}
 
 {% block content %}
-    <form method="post" accept-charset="UTF-8">
-        {{ actionInput('sms-manager/settings/save') }}
-        {{ csrfInput() }}
-        {{ redirectInput('sms-manager/settings/interface') }}
-        {{ hiddenInput('section', 'interface') }}
+    {{ actionInput('sms-manager/settings/save') }}
+    {{ redirectInput('sms-manager/settings/interface') }}
+    {{ hiddenInput('section', 'interface') }}
 
-        <h2 style="margin-top: 0px;">{{ "Interface Settings"|t('sms-manager') }}</h2>
+        <h2 class="first">{{ "Interface Settings"|t('sms-manager') }}</h2>
 
         {{ forms.textField({
             label: 'Items Per Page'|t('sms-manager'),
@@ -65,8 +63,6 @@
             warning: settings.isOverriddenByConfig('refreshIntervalSecs') ?
                 "This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
         }) }}
-
-    </form>
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}

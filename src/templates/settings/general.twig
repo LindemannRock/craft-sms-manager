@@ -22,13 +22,11 @@
 {% import "_includes/forms" as forms %}
 
 {% block content %}
-    <form method="post" accept-charset="UTF-8">
-        {{ actionInput('sms-manager/settings/save') }}
-        {{ csrfInput() }}
-        {{ redirectInput('sms-manager/settings/general') }}
-        {{ hiddenInput('section', 'general') }}
+    {{ actionInput('sms-manager/settings/save') }}
+    {{ redirectInput('sms-manager/settings/general') }}
+    {{ hiddenInput('section', 'general') }}
 
-        <h2 style="margin-top: 0px;">{{ "General Settings"|t('sms-manager') }}</h2>
+        <h2 class="first">{{ "General Settings"|t('sms-manager') }}</h2>
 
         {{ forms.textField({
             label: "Plugin Name"|t('sms-manager'),
@@ -130,8 +128,6 @@
             warning: settings.isOverriddenByConfig('logLevel') ?
                 "This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
         }) }}
-
-    </form>
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}
