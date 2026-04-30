@@ -34,7 +34,7 @@ class Settings extends Model
     // =========================================================================
 
     /**
-     * @var string The public-facing name of the plugin
+     * @var string The name of the plugin as it appears in the Control Panel menu
      */
     public string $pluginName = 'SMS Manager';
 
