@@ -14,7 +14,7 @@ use Craft;
  *
  * @author    LindemannRock
  * @package   SmsManager
- * @since     5.0.0
+ * @since     5.3.0
  */
 class ConfigFileHelper
 {

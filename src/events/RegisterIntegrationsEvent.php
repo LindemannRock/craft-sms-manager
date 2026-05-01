@@ -17,7 +17,7 @@ use yii\base\Event;
  *
  * @author    LindemannRock
  * @package   SmsManager
- * @since     5.0.0
+ * @since     5.1.0
  */
 class RegisterIntegrationsEvent extends Event
 {

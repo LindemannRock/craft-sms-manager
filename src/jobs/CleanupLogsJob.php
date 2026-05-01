@@ -25,7 +25,7 @@ use yii\queue\RetryableJobInterface;
  *
  * @author    LindemannRock
  * @package   SmsManager
- * @since     5.0.0
+ * @since     5.2.0
  */
 class CleanupLogsJob extends BaseJob implements RetryableJobInterface
 {

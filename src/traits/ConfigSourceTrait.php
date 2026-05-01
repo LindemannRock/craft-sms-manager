@@ -10,7 +10,7 @@ namespace lindemannrock\smsmanager\traits;
  *
  * Used by: ProviderRecord, SenderIdRecord
  *
- * @since 5.0.0
+ * @since 5.3.0
  */
 trait ConfigSourceTrait
 {

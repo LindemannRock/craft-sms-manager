@@ -15,7 +15,7 @@ use craft\web\AssetBundle;
  *
  * Provides SMS Manager analytics wiring for cp-analytics pages.
  *
- * @since 5.1.0
+ * @since 5.9.0
  */
 class AnalyticsAsset extends AssetBundle
 {

@@ -21,7 +21,7 @@ use lindemannrock\smsmanager\SmsManager;
  *
  * @author    LindemannRock
  * @package   SmsManager
- * @since     5.0.0
+ * @since     5.1.0
  */
 class IntegrationsService extends Component
 {

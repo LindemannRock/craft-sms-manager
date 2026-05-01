@@ -15,7 +15,7 @@ namespace lindemannrock\smsmanager\integrations;
  *
  * @author    LindemannRock
  * @package   SmsManager
- * @since     5.0.0
+ * @since     5.1.0
  */
 interface IntegrationInterface
 {

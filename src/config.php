@@ -16,7 +16,7 @@
  *
  * Copy this file to config/sms-manager.php to use it
  *
- * @since 5.0.0
+ * @since 5.3.0
  */
 
 use craft\helpers\App;
