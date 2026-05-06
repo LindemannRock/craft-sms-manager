@@ -1,5 +1,25 @@
 # Changelog
 
+## [5.11.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.10.2...v5.11.0) (2026-05-06)
+
+
+### Features
+
+* add issue templates for bug reports, feature requests, and questions ([7242c5f](https://github.com/LindemannRock/craft-sms-manager/commit/7242c5f49b1c8ee682d8e6d4b76fa60bd578e1f8))
+
+
+### Bug Fixes
+
+* apply config overrides through shared settings helper ([072a530](https://github.com/LindemannRock/craft-sms-manager/commit/072a530bb5b31c046176765ab48bed388246a5af))
+* clarify plugin name comment in Settings model ([1e55b06](https://github.com/LindemannRock/craft-sms-manager/commit/1e55b068e4ff934fbe8c916544867b9649524327))
+* drop PAT requirement for release-please — use built-in GITHUB_TOKEN ([a85f313](https://github.com/LindemannRock/craft-sms-manager/commit/a85f3133124b7c06420921327383f99de2328c68))
+* **translations:** correct plugin name translations in multiple languages ([8087b60](https://github.com/LindemannRock/craft-sms-manager/commit/8087b60bfe8bc7c02bb5346d357e055ca0d265f7))
+
+
+### Miscellaneous Chores
+
+* update version annotations to reflect correct plugin versions ([0a1c738](https://github.com/LindemannRock/craft-sms-manager/commit/0a1c738795e87dc91666573c266a0b1246d4c68b))
+
 ## [5.10.2](https://github.com/LindemannRock/craft-sms-manager/compare/v5.10.1...v5.10.2) (2026-04-05)
 
 
