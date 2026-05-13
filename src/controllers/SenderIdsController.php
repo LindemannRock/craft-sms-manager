@@ -40,7 +40,12 @@ class SenderIdsController extends Controller
     }
 
     /**
-     * List all sender IDs
+     * List all sender IDs.
+     *
+     * Follows the canonical CP table index-page pattern (in-memory variant) —
+     * see plugins/base/docs/template-guides/cp-table-index-pattern.md.
+     * Controller owns query-param parsing, allowlist validation, filter, sort,
+     * and pagination; the Twig template stays presentational.
      *
      * @return Response
      */
@@ -52,11 +57,13 @@ class SenderIdsController extends Controller
         $settings = SmsManager::$plugin->getSettings();
         $isDefaultFromConfig = SmsManager::$plugin->senderIds->isDefaultSenderIdFromConfig();
 
-        // Get filter parameters
-        $providerFilter = $request->getQueryParam('provider', 'all');
-
         $senderIds = SmsManager::$plugin->senderIds->getAllSenderIds();
         $providers = SmsManager::$plugin->providers->getAllProviders();
+
+        // Whether the install has any sender IDs at all — referenced by the
+        // template's "no default sender ID configured" warning, which must
+        // survive a narrowed filter. Cached now before filter shrinks $senderIds.
+        $hasAnySenderIds = !empty($senderIds);
 
         // Detect handle collisions between config and database
         $configHandles = ConfigFileHelper::getHandles('senderIds');
@@ -66,7 +73,9 @@ class SenderIdsController extends Controller
             ->column();
         $collisionHandles = array_values(array_intersect($configHandles, $databaseHandles));
 
-        // Auto-assign default if needed (only if not set via config file)
+        // Auto-assign default if needed (only if not set via config file).
+        // Runs against the full sender ID list, not the filtered subset, so a
+        // narrowed filter never accidentally promotes a default.
         if (!$isDefaultFromConfig) {
             $defaultHandle = $settings->defaultSenderIdHandle;
             $needsReassign = false;
@@ -96,15 +105,163 @@ class SenderIdsController extends Controller
             }
         }
 
+        // ---- Param parsing + allowlist validation -------------------------
+
+        $statusFilter = (string) $request->getQueryParam('status', 'all');
+        $validStatuses = ['all', 'enabled', 'disabled'];
+        if (!in_array($statusFilter, $validStatuses, true)) {
+            $statusFilter = 'all';
+        }
+
+        $sourceFilter = (string) $request->getQueryParam('source', 'all');
+        $validSources = ['all', 'config', 'database'];
+        if (!in_array($sourceFilter, $validSources, true)) {
+            $sourceFilter = 'all';
+        }
+
+        $testFilter = (string) $request->getQueryParam('test', 'all');
+        $validTestModes = ['all', 'test', 'production'];
+        if (!in_array($testFilter, $validTestModes, true)) {
+            $testFilter = 'all';
+        }
+
+        // Provider filter — value is a provider handle from the unfiltered
+        // providers list; off-list values snap to 'all'.
+        $providerFilter = (string) $request->getQueryParam('provider', 'all');
+        $validProviderHandles = ['all'];
+        foreach ($providers as $provider) {
+            $validProviderHandles[] = (string) $provider->handle;
+        }
+        if (!in_array($providerFilter, $validProviderHandles, true)) {
+            $providerFilter = 'all';
+        }
+
+        $search = trim((string) $request->getQueryParam('search', ''));
+        if (mb_strlen($search) > 64) {
+            $search = mb_substr($search, 0, 64);
+        }
+
+        $validSortFields = ['name', 'handle', 'senderId', 'provider', 'source', 'isDev', 'enabled'];
+        $sort = (string) $request->getParam('sort', 'name');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'name';
+        }
+        $dir = strtolower((string) $request->getParam('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        // ---- Filter -------------------------------------------------------
+
+        if ($statusFilter === 'enabled') {
+            $senderIds = array_values(array_filter($senderIds, fn($s): bool => $s->enabled));
+        } elseif ($statusFilter === 'disabled') {
+            $senderIds = array_values(array_filter($senderIds, fn($s): bool => !$s->enabled));
+        }
+
+        if ($sourceFilter === 'config') {
+            $senderIds = array_values(array_filter($senderIds, fn($s): bool => $s->source === 'config'));
+        } elseif ($sourceFilter === 'database') {
+            $senderIds = array_values(array_filter($senderIds, fn($s): bool => $s->source !== 'config'));
+        }
+
+        if ($testFilter === 'test') {
+            $senderIds = array_values(array_filter($senderIds, fn($s): bool => (bool) $s->isDev));
+        } elseif ($testFilter === 'production') {
+            $senderIds = array_values(array_filter($senderIds, fn($s): bool => !$s->isDev));
+        }
+
+        if ($providerFilter !== 'all') {
+            $senderIds = array_values(array_filter(
+                $senderIds,
+                fn($s): bool => $s->providerHandle === $providerFilter
+            ));
+        }
+
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            $senderIds = array_values(array_filter($senderIds, function($s) use ($needle): bool {
+                return str_contains(mb_strtolower((string) $s->name), $needle)
+                    || str_contains(mb_strtolower((string) $s->handle), $needle)
+                    || str_contains(mb_strtolower((string) $s->senderId), $needle);
+            }));
+        }
+
+        // ---- Sort + paginate ----------------------------------------------
+
+        $senderIds = $this->sortSenderIds($senderIds, $sort, $dir);
+
+        // Total count reflects the filtered subset so the pager matches the
+        // visible list — not the unfiltered sender ID list size.
+        $totalCount = count($senderIds);
+        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = max(1, (int) $settings->itemsPerPage);
+        $offset = ($page - 1) * $limit;
+        $senderIds = array_slice($senderIds, $offset, $limit);
+
+        // Resolve the default sender ID once (against the full set, not the
+        // filtered/paginated $senderIds) so beforeTable warnings render
+        // consistently regardless of the current filter state.
+        $defaultSenderIdHandle = $settings->defaultSenderIdHandle;
+        $defaultSenderId = !empty($defaultSenderIdHandle)
+            ? SmsManager::$plugin->senderIds->getSenderIdByHandle($defaultSenderIdHandle)
+            : null;
+
         return $this->renderTemplate('sms-manager/senderids/index', [
             'senderIds' => $senderIds,
+            'hasAnySenderIds' => $hasAnySenderIds,
             'providers' => $providers,
             'settings' => $settings,
+            'statusFilter' => $statusFilter,
+            'sourceFilter' => $sourceFilter,
             'providerFilter' => $providerFilter,
-            'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
+            'testFilter' => $testFilter,
+            'search' => $search,
+            'sort' => $sort,
+            'dir' => $dir,
+            'page' => $page,
+            'limit' => $limit,
+            'totalCount' => $totalCount,
+            'defaultSenderIdHandle' => $defaultSenderIdHandle,
+            'defaultSenderId' => $defaultSenderId,
             'isDefaultFromConfig' => $isDefaultFromConfig,
             'collisionHandles' => $collisionHandles,
+            'canCreate' => Craft::$app->getUser()->checkPermission('smsManager:createSenderIds'),
+            'canEdit' => Craft::$app->getUser()->checkPermission('smsManager:editSenderIds'),
+            'canDelete' => Craft::$app->getUser()->checkPermission('smsManager:deleteSenderIds'),
         ]);
+    }
+
+    /**
+     * Sort the loaded sender IDs array in PHP. Small dataset → array-side sort
+     * is fine. The sort key allowlist is enforced in actionIndex() before we
+     * land here, so the default branch is reached only on a logic bug.
+     *
+     * @param array<int, mixed> $senderIds
+     * @return array<int, mixed>
+     */
+    private function sortSenderIds(array $senderIds, string $sort, string $dir): array
+    {
+        $multiplier = $dir === 'desc' ? -1 : 1;
+
+        usort($senderIds, function($a, $b) use ($sort, $multiplier): int {
+            $cmp = match ($sort) {
+                'handle' => strcasecmp((string) $a->handle, (string) $b->handle),
+                'senderId' => strcasecmp((string) $a->senderId, (string) $b->senderId),
+                'provider' => strcasecmp((string) ($a->providerHandle ?? ''), (string) ($b->providerHandle ?? '')),
+                'source' => strcmp((string) ($a->source ?? ''), (string) ($b->source ?? '')),
+                'isDev' => ((int) $a->isDev) <=> ((int) $b->isDev),
+                'enabled' => ((int) $a->enabled) <=> ((int) $b->enabled),
+                default => strcasecmp((string) $a->name, (string) $b->name),
+            };
+
+            // Stable tie-break by name so equal primary keys don't shuffle
+            // between requests — keeps pagination predictable.
+            if ($cmp === 0 && $sort !== 'name') {
+                $cmp = strcasecmp((string) $a->name, (string) $b->name);
+            }
+
+            return $cmp * $multiplier;
+        });
+
+        return $senderIds;
     }
 
     /**

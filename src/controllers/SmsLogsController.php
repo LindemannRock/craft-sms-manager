@@ -46,7 +46,12 @@ class SmsLogsController extends Controller
     }
 
     /**
-     * List all logs (main dashboard page)
+     * List all logs (main dashboard page).
+     *
+     * Follows the canonical CP table index-page pattern (SQL-paginated variant) —
+     * see plugins/base/docs/template-guides/cp-table-index-pattern.md.
+     * Controller owns query-param parsing, allowlist validation, filter, sort,
+     * and pagination; the Twig template stays presentational.
      *
      * @return Response
      */
@@ -69,40 +74,93 @@ class SmsLogsController extends Controller
 
         $request = Craft::$app->getRequest();
 
-        // Get filter parameters
-        $search = $request->getQueryParam('search', '');
-        $statusFilter = $request->getQueryParam('status', 'all');
-        $providerFilter = $request->getQueryParam('provider', 'all');
-        $languageFilter = $request->getQueryParam('language', 'all');
-        $sourceFilter = $request->getQueryParam('source', 'all');
+        // Get providers + sources up front so they can seed the filter
+        // allowlists below.
+        $providers = SmsManager::$plugin->providers->getAllProviders();
+        $sources = (new Query())
+            ->select(['sourcePlugin'])
+            ->from(SmsLogRecord::tableName())
+            ->distinct()
+            ->where(['not', ['sourcePlugin' => null]])
+            ->andWhere(['not', ['sourcePlugin' => '']])
+            ->column();
+
+        // ---- Param parsing + allowlist validation -------------------------
+
+        $statusFilter = (string) $request->getQueryParam('status', 'all');
+        $validStatuses = ['all', 'sent', 'failed', 'pending'];
+        if (!in_array($statusFilter, $validStatuses, true)) {
+            $statusFilter = 'all';
+        }
+
+        // Provider filter — value is a numeric provider ID or 'all'.
+        $providerFilter = (string) $request->getQueryParam('provider', 'all');
+        $validProviderIds = ['all'];
+        foreach ($providers as $provider) {
+            $validProviderIds[] = (string) $provider->id;
+        }
+        if (!in_array($providerFilter, $validProviderIds, true)) {
+            $providerFilter = 'all';
+        }
+
+        // Language filter — value is a 2-letter language code from Craft sites.
+        $languageFilter = (string) $request->getQueryParam('language', 'all');
+        $validLanguages = ['all'];
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            $langCode = explode('-', (string) $site->language)[0];
+            if (!in_array($langCode, $validLanguages, true)) {
+                $validLanguages[] = $langCode;
+            }
+        }
+        if (!in_array($languageFilter, $validLanguages, true)) {
+            $languageFilter = 'all';
+        }
+
+        // Source filter — 'all', 'direct', or one of the distinct sourcePlugin
+        // values surfaced above.
+        $sourceFilter = (string) $request->getQueryParam('source', 'all');
+        $validSources = array_merge(['all', 'direct'], array_map('strval', $sources));
+        if (!in_array($sourceFilter, $validSources, true)) {
+            $sourceFilter = 'all';
+        }
+
+        // Date range is validated downstream by DateRangeHelper::applyToQuery.
         $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
-        $sort = $request->getQueryParam('sort', 'dateCreated');
-        $dir = strtolower($request->getQueryParam('dir', 'desc'));
+
+        $search = trim((string) $request->getQueryParam('search', ''));
+        if (mb_strlen($search) > 64) {
+            $search = mb_substr($search, 0, 64);
+        }
+
+        $validSortFields = ['dateCreated', 'recipient', 'status', 'language', 'providerId'];
+        $sort = (string) $request->getQueryParam('sort', 'dateCreated');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'dateCreated';
+        }
+        $dir = strtolower((string) $request->getQueryParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
         $sortDir = $dir === 'asc' ? SORT_ASC : SORT_DESC;
-        $page = max(1, (int)$request->getQueryParam('page', 1));
-        $limit = $settings->itemsPerPage ?? 100;
+
+        $page = max(1, (int) $request->getQueryParam('page', 1));
+        $limit = max(1, (int) $settings->itemsPerPage);
         $offset = ($page - 1) * $limit;
 
-        // Build query
+        // ---- Build query --------------------------------------------------
+
         $query = (new Query())
             ->from(SmsLogRecord::tableName());
 
-        // Apply status filter
         if ($statusFilter !== 'all') {
             $query->andWhere(['status' => $statusFilter]);
         }
 
-        // Apply provider filter
         if ($providerFilter !== 'all') {
-            $query->andWhere(['providerId' => $providerFilter]);
+            $query->andWhere(['providerId' => (int) $providerFilter]);
         }
 
-        // Apply language filter
         if ($languageFilter !== 'all') {
             $query->andWhere(['language' => $languageFilter]);
         }
 
-        // Apply source filter
         if ($sourceFilter !== 'all') {
             if ($sourceFilter === 'direct') {
                 $query->andWhere(['or', ['sourcePlugin' => null], ['sourcePlugin' => '']]);
@@ -114,8 +172,7 @@ class SmsLogsController extends Controller
         // Apply date range filter (supports all options: thisMonth, lastYear, etc.)
         DateRangeHelper::applyToQuery($query, $dateRange);
 
-        // Apply search
-        if (!empty($search)) {
+        if ($search !== '') {
             $query->andWhere([
                 'or',
                 ['like', 'recipient', $search],
@@ -124,24 +181,16 @@ class SmsLogsController extends Controller
             ]);
         }
 
-        // Apply sorting
-        $sortColumn = match ($sort) {
-            'recipient' => 'recipient',
-            'status' => 'status',
-            'language' => 'language',
-            'providerId' => 'providerId',
-            default => 'dateCreated',
-        };
-        $query->orderBy([$sortColumn => $sortDir]);
+        // Apply sorting — sort column comes from the validated allowlist above.
+        $query->orderBy([$sort => $sortDir]);
 
-        // Get total count for pagination
+        // Total count is computed AFTER filters, BEFORE pagination — matches
+        // the visible-after-filter set.
         $totalCount = $query->count();
-        $totalPages = $totalCount > 0 ? (int)ceil($totalCount / $limit) : 1;
+        $totalPages = $totalCount > 0 ? (int) ceil($totalCount / $limit) : 1;
 
-        // Apply pagination
         $query->limit($limit)->offset($offset);
 
-        // Get logs
         $logs = $query->all();
 
         // Enrich with provider/sender names and actual sender ID
@@ -152,18 +201,6 @@ class SmsLogsController extends Controller
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
             $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
         }
-
-        // Get providers for filter
-        $providers = SmsManager::$plugin->providers->getAllProviders();
-
-        // Get unique source plugins for filter
-        $sources = (new Query())
-            ->select(['sourcePlugin'])
-            ->from(SmsLogRecord::tableName())
-            ->distinct()
-            ->where(['not', ['sourcePlugin' => null]])
-            ->andWhere(['not', ['sourcePlugin' => '']])
-            ->column();
 
         // Get log menu config from LoggingLibrary
         $logMenuItems = null;
@@ -200,6 +237,8 @@ class SmsLogsController extends Controller
             'dateRange' => $dateRange,
             'sort' => $sort,
             'dir' => $dir,
+            'canDelete' => $user->checkPermission('smsManager:deleteSmsLogs'),
+            'canExport' => $user->checkPermission('smsManager:exportSmsLogs'),
         ]);
     }
 

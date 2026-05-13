@@ -1,9 +1,13 @@
 {#
  # SMS Logs - Full listing page
  #
- # This template extends the base plugin's cp-table layout to provide
- # a consistent interface for viewing SMS logs with filters, sorting,
- # and expandable row details.
+ # Follows the canonical CP table index-page pattern (SQL-paginated variant) —
+ # see plugins/base/docs/template-guides/cp-table-index-pattern.md.
+ # SmsLogsController::actionIndex() owns query-param parsing, allowlist
+ # validation, filter, sort, and pagination. This template stays
+ # presentational and renders the already-paginated `logs` plus the
+ # filter/sort state handed in. Permission booleans (`canDelete`, `canExport`)
+ # likewise arrive from the controller.
  #}
 
 {% extends 'lindemannrock-base/_layouts/cp-table' %}
@@ -135,7 +139,7 @@
         totalCount: totalCount,
         itemLabel: {singular: 'log'|t('sms-manager'), plural: 'logs'|t('sms-manager')},
     },
-    checkboxes: currentUser.can('smsManager:deleteSmsLogs'),
+    checkboxes: canDelete,
     footerActions: [],
     ajax: {
         enabled: settings.refreshIntervalSecs > 0,
@@ -159,7 +163,7 @@
    ============================================================================ #}
 
 {% block bulkActions %}
-    {% if currentUser.can('smsManager:deleteSmsLogs') %}
+    {% if canDelete %}
         <button type="button" class="btn secondary" id="lr-delete-btn">
             {{ 'Delete'|t('sms-manager') }} (<span id="lr-selected-count">0</span>)
         </button>
@@ -172,7 +176,11 @@
    ============================================================================ #}
 
 {% block extraFooter %}
-    {% if currentUser.can('smsManager:exportSmsLogs') %}
+    {% if canExport %}
+        {# Kept as <form>/Export-menu component because export endpoint streams
+           a binary file (CSV / JSON / Excel) via Content-Disposition: attachment.
+           Craft.sendActionRequest is XHR-only — the browser won't trigger
+           Save-As on its response. #}
         {% include 'lindemannrock-base/_components/export-menu' with {
             action: 'sms-manager/logs/sms/export',
             permission: 'smsManager:exportSmsLogs',
@@ -342,105 +350,118 @@
 
 {% block scripts %}
     <script>
-    // Add error class to context rows for failed items
-    document.querySelectorAll('.lr-data-row').forEach(row => {
-        const statusCell = row.querySelector('td:nth-child(5) .status-label');
-        if (statusCell) {
-            const statusText = statusCell.textContent.trim().toLowerCase();
-            if (statusText === 'failed') {
-                const entryId = row.dataset.entryId;
-                const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + entryId + '"]');
-                if (contextRow) {
-                    contextRow.classList.add('error');
+    (function() {
+        if (typeof Craft === 'undefined') return;
+
+        // Pre-translated strings: keep |t() in Twig (so they're translatable)
+        // and emit as JSON-encoded JS literals via |json_encode|raw — avoids
+        // the |e('js') trap (produces \uXXXX garbage when re-quoted).
+        const T = {
+            logDeleted: {{ 'Log deleted successfully.'|t('sms-manager')|json_encode|raw }},
+            logsDeleted: {{ 'Logs deleted successfully.'|t('sms-manager')|json_encode|raw }},
+            deleteFailed: {{ 'Failed to delete log.'|t('sms-manager')|json_encode|raw }},
+            deletesFailed: {{ 'Failed to delete logs.'|t('sms-manager')|json_encode|raw }},
+            deleteConfirm: {{ 'Are you sure you want to delete this log?'|t('sms-manager')|json_encode|raw }},
+            bulkDeleteConfirmTemplate: {{ 'Are you sure you want to delete {count} log(s)?'|t('sms-manager')|json_encode|raw }},
+        };
+
+        // Add error class to context rows for failed items
+        document.querySelectorAll('.lr-data-row').forEach(function(row) {
+            const statusCell = row.querySelector('td:nth-child(5) .status-label');
+            if (statusCell) {
+                const statusText = statusCell.textContent.trim().toLowerCase();
+                if (statusText === 'failed') {
+                    const entryId = row.dataset.entryId;
+                    const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + entryId + '"]');
+                    if (contextRow) {
+                        contextRow.classList.add('error');
+                    }
                 }
             }
-        }
-    });
+        });
 
-    // Handle AJAX refresh rendering (when auto-refresh is enabled)
-    document.addEventListener('lr:refresh', function(e) {
-        const data = e.detail;
-        if (!data.logs) return;
+        // Handle AJAX refresh rendering (when auto-refresh is enabled)
+        document.addEventListener('lr:refresh', function(e) {
+            const data = e.detail;
+            if (!data.logs) return;
 
-        // For now, just reload the page on refresh
-        // Future: implement proper client-side row rendering
-        window.location.reload();
-    });
+            // For now, just reload the page on refresh
+            // Future: implement proper client-side row rendering
+            window.location.reload();
+        });
 
-    // Selection state
-    let selectedIds = new Set();
+        // Selection state
+        let selectedIds = new Set();
 
-    // Update selected count when selection changes
-    document.addEventListener('lr:selectionChanged', function(e) {
-        selectedIds = new Set(e.detail.selectedIds);
-        const countSpan = document.getElementById('lr-selected-count');
-        if (countSpan) {
-            countSpan.textContent = selectedIds.size;
-        }
-    });
+        document.addEventListener('lr:selectionChanged', function(e) {
+            selectedIds = new Set(e.detail.selectedIds);
+            const countSpan = document.getElementById('lr-selected-count');
+            if (countSpan) {
+                countSpan.textContent = selectedIds.size;
+            }
+        });
 
-    // Delete button - handles selected items only
-    const deleteBtn = document.getElementById('lr-delete-btn');
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', function(e) {
+        // ---------------------------------------------------------------------
+        // Row-action handlers. Delegated listener on `document`, narrowed by
+        // `a[data-action]` + an explicit action-name allowlist. preventDefault
+        // only after the match — leaves unrelated `data-action` elements
+        // (e.g. Craft toolbar forms) alone. See cp-table-index-pattern.md.
+        // Confirmation lives here (single source of truth); do not also set
+        // `confirm:` on the action item.
+        // ---------------------------------------------------------------------
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('a[data-action]');
+            if (!trigger) return;
+
+            const action = trigger.dataset.action;
+            if (action !== 'delete') return;
+
+            const id = trigger.dataset.id;
+            if (!id) return;
+            e.preventDefault();
+
+            if (!confirm(T.deleteConfirm)) return;
+
+            Craft.sendActionRequest('POST', 'sms-manager/sms-logs/bulk-delete', {
+                data: { logIds: [id] },
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(T.logDeleted);
+                    const row = trigger.closest('tr');
+                    if (row) {
+                        const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + row.dataset.entryId + '"]');
+                        row.remove();
+                        if (contextRow) contextRow.remove();
+                    }
+                } else {
+                    Craft.cp.displayError(response.data.message || T.deleteFailed);
+                }
+            }).catch(function() {
+                Craft.cp.displayError(T.deleteFailed);
+            });
+        });
+
+        // Bulk delete button — handles selected items only.
+        document.getElementById('lr-delete-btn')?.addEventListener('click', function(e) {
             e.preventDefault();
             const ids = Array.from(selectedIds);
-
             if (ids.length === 0) return;
 
-            if (!confirm('{{ "Are you sure you want to delete {count} log(s)?"|t("sms-manager")|e("js") }}'.replace('{count}', ids.length))) {
-                return;
-            }
+            if (!confirm(T.bulkDeleteConfirmTemplate.replace('{count}', ids.length))) return;
 
             Craft.sendActionRequest('POST', 'sms-manager/sms-logs/bulk-delete', {
-                data: { logIds: ids }
-            })
-            .then(response => {
+                data: { logIds: ids },
+            }).then(function(response) {
                 if (response.data.success) {
-                    Craft.cp.displayNotice('{{ "Logs deleted successfully."|t("sms-manager")|e("js") }}');
+                    Craft.cp.displayNotice(T.logsDeleted);
                     window.location.reload();
                 } else {
-                    Craft.cp.displayError(response.data.message || '{{ "Failed to delete logs."|t("sms-manager")|e("js") }}');
+                    Craft.cp.displayError(response.data.message || T.deletesFailed);
                 }
-            })
-            .catch(error => {
-                Craft.cp.displayError('{{ "Failed to delete logs."|t("sms-manager")|e("js") }}');
+            }).catch(function() {
+                Craft.cp.displayError(T.deletesFailed);
             });
         });
-    }
-
-    // Individual row delete handler
-    document.querySelectorAll('[data-action="delete"]').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const id = this.dataset.id;
-            if (!id) return;
-
-            if (!confirm('{{ "Are you sure you want to delete this log?"|t("sms-manager")|e("js") }}')) {
-                return;
-            }
-
-            Craft.sendActionRequest('POST', 'sms-manager/sms-logs/bulk-delete', {
-                data: { logIds: [id] }
-            })
-            .then(response => {
-                if (response.data.success) {
-                    Craft.cp.displayNotice('{{ "Log deleted successfully."|t("sms-manager")|e("js") }}');
-                    // Remove the row from the table
-                    const row = this.closest('tr');
-                    const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + row.dataset.entryId + '"]');
-                    if (row) row.remove();
-                    if (contextRow) contextRow.remove();
-                } else {
-                    Craft.cp.displayError(response.data.message || '{{ "Failed to delete log."|t("sms-manager")|e("js") }}');
-                }
-            })
-            .catch(error => {
-                Craft.cp.displayError('{{ "Failed to delete log."|t("sms-manager")|e("js") }}');
-            });
-        });
-    });
+    })();
     </script>
 {% endblock %}

@@ -1,92 +1,16 @@
 {#
  # Sender IDs Index - Using cp-table layout
  #
- # This template extends the base plugin's cp-table layout to provide
- # a consistent interface for viewing Sender IDs with grouped filters,
- # sorting, and bulk actions.
+ # Follows the canonical CP table index-page pattern (in-memory variant) —
+ # see plugins/base/docs/template-guides/cp-table-index-pattern.md.
+ # SenderIdsController::actionIndex() owns query-param parsing, allowlist
+ # validation, filter, sort, and pagination. This template stays
+ # presentational and renders the already-sliced `senderIds` plus the
+ # filter/sort state handed in. Permission booleans (`canCreate`, `canEdit`,
+ # `canDelete`) likewise arrive from the controller.
  #}
 
 {% extends 'lindemannrock-base/_layouts/cp-table' %}
-
-{# ============================================================================
-   PERMISSION CHECKSf
-   ============================================================================ #}
-
-{% set canCreate = currentUser.can('smsManager:createSenderIds') %}
-{% set canEdit = currentUser.can('smsManager:editSenderIds') %}
-{% set canDelete = currentUser.can('smsManager:deleteSenderIds') %}
-
-{# ============================================================================
-   GET QUERY PARAMETERS
-   ============================================================================ #}
-
-{% set search = craft.app.request.getParam('search', '') %}
-{% set statusFilter = craft.app.request.getParam('status', 'all') %}
-{% set sourceFilter = craft.app.request.getParam('source', 'all') %}
-{% set providerFilter = craft.app.request.getParam('provider', 'all') %}
-{% set testFilter = craft.app.request.getParam('test', 'all') %}
-{% set sort = craft.app.request.getParam('sort', 'name') %}
-{% set dir = craft.app.request.getParam('dir', 'asc') %}
-{% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
-{% set limit = settings.itemsPerPage ?? 50 %}
-{% set offset = (page - 1) * limit %}
-
-{# ============================================================================
-   FILTER SENDER IDS
-   ============================================================================ #}
-
-{% set filteredSenderIds = senderIds %}
-
-{# Status filter #}
-{% if statusFilter == 'enabled' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => s.enabled) %}
-{% elseif statusFilter == 'disabled' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => not s.enabled) %}
-{% endif %}
-
-{# Source filter #}
-{% if sourceFilter == 'config' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => s.source == 'config') %}
-{% elseif sourceFilter == 'database' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => s.source != 'config') %}
-{% endif %}
-
-{# Provider filter #}
-{% if providerFilter != 'all' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => s.providerHandle == providerFilter) %}
-{% endif %}
-
-{# Type filter (Test/Production) #}
-{% if testFilter == 'test' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => s.isDev) %}
-{% elseif testFilter == 'production' %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => not s.isDev) %}
-{% endif %}
-
-{# Search filter #}
-{% if search %}
-    {% set filteredSenderIds = filteredSenderIds|filter(s => search|lower in s.name|lower or search|lower in s.handle|lower or search|lower in s.senderId|lower) %}
-{% endif %}
-
-{# Sort sender IDs #}
-{% if sort == 'name' %}
-    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.name|lower <=> b.name|lower : b.name|lower <=> a.name|lower) %}
-{% elseif sort == 'handle' %}
-    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.handle|lower <=> b.handle|lower : b.handle|lower <=> a.handle|lower) %}
-{% elseif sort == 'senderId' %}
-    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.senderId|lower <=> b.senderId|lower : b.senderId|lower <=> a.senderId|lower) %}
-{% elseif sort == 'provider' %}
-    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? (a.providerHandle ?? '')|lower <=> (b.providerHandle ?? '')|lower : (b.providerHandle ?? '')|lower <=> (a.providerHandle ?? '')|lower) %}
-{% elseif sort == 'source' %}
-    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? (a.source ?? '') <=> (b.source ?? '') : (b.source ?? '') <=> (a.source ?? '')) %}
-{% elseif sort == 'isDev' %}
-    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.isDev <=> b.isDev : b.isDev <=> a.isDev) %}
-{% elseif sort == 'enabled' %}
-    {% set filteredSenderIds = filteredSenderIds|sort((a, b) => dir == 'asc' ? a.enabled <=> b.enabled : b.enabled <=> a.enabled) %}
-{% endif %}
-
-{% set totalCount = filteredSenderIds|length %}
-{% set paginatedSenderIds = filteredSenderIds|slice(offset, limit) %}
 
 
 {# ============================================================================
@@ -186,7 +110,7 @@
             {key: 'enabled', label: 'Status'|t('sms-manager'), sortable: true, hideable: true},
             {key: 'default', label: 'Default'|t('sms-manager'), hideable: true},
         ],
-        items: paginatedSenderIds,
+        items: senderIds,
         emptyMessage: 'No sender IDs found.'|t('sms-manager'),
         hasConfigItems: true,
     },
@@ -200,7 +124,6 @@
     newButton: canCreate ? {
         url: url('sms-manager/sender-ids/new'),
         label: 'New Sender ID'|t('sms-manager'),
-        permission: 'smsManager:createSenderIds',
     } : null,
 } %}
 
@@ -210,17 +133,15 @@
    ============================================================================ #}
 
 {% block beforeTable %}
-    <style>
-        /* Config tooltip header handled by base components */
-    </style>
-
-    {# Warning if default sender ID is missing or disabled #}
+    {# Warning if default sender ID is missing or disabled. The controller
+       resolves `defaultSenderId` against the full sender ID list (not the
+       filtered/paginated `senderIds`), so these warnings stay consistent
+       regardless of the current filter. #}
     {% if defaultSenderIdHandle %}
-        {% set defaultSenderId = senderIds|filter(s => s.handle == defaultSenderIdHandle)|first %}
         {% if not defaultSenderId %}
             {% set warningMessage %}
             <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
-            {{ 'The default sender ID handle "{handle}" does not exist.'|t('sms-manager', {handle: '<strong>' ~ defaultSenderIdHandle ~ '</strong>'})|raw }}
+            {{ 'The default sender ID handle "{handle}" does not exist.'|t('sms-manager', {handle: '<strong>' ~ defaultSenderIdHandle|e ~ '</strong>'})|raw }}
             {% if isDefaultFromConfig %}
                 {{ 'Update your config/sms-manager.php to point to a valid sender ID handle.'|t('sms-manager') }}
             {% else %}
@@ -238,7 +159,7 @@
         {% elseif not defaultSenderId.enabled %}
             {% set warningMessage %}
             <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
-            {{ 'The default sender ID "{name}" is disabled. SMS functionality may not work.'|t('sms-manager', {name: '<strong>' ~ defaultSenderId.name ~ '</strong>'})|raw }}
+            {{ 'The default sender ID "{name}" is disabled. SMS functionality may not work.'|t('sms-manager', {name: '<strong>' ~ defaultSenderId.name|e ~ '</strong>'})|raw }}
             {% if not isDefaultFromConfig %}
                 {{ 'Please enable it or set a different sender ID as default.'|t('sms-manager') }}
             {% else %}
@@ -254,7 +175,7 @@
                 } %}
             </div>
         {% endif %}
-    {% elseif senderIds|length > 0 %}
+    {% elseif hasAnySenderIds %}
         {% set warningMessage %}
         <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
         {{ 'No default sender ID is configured. Please set one of the sender IDs as default.'|t('sms-manager') }}
@@ -273,7 +194,7 @@
     {% if collisionHandles is defined and collisionHandles|length %}
         {% set boldHandles = [] %}
         {% for handle in collisionHandles %}
-            {% set boldHandles = boldHandles|merge(['<strong>' ~ handle ~ '</strong>']) %}
+            {% set boldHandles = boldHandles|merge(['<strong>' ~ handle|e ~ '</strong>']) %}
         {% endfor %}
         {% set warningMessage %}
         <strong>{{ 'Warning'|t('sms-manager') }}:</strong>
@@ -324,47 +245,57 @@
    ============================================================================ #}
 
 {% block rowActions %}
-    {% set isConfig = item.isFromConfig() %}
     {% set isDefault = defaultSenderIdHandle == item.handle %}
+    {% set itemId = item.id ?: item.handle %}
 
-    <td class="thin" style="text-align: right;">
-        <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('app') }}"></button>
-        <div class="menu">
-            <ul>
-                {% if item.canEdit() %}
-                    {% if canEdit %}
-                        <li>
-                            <a href="{{ url('sms-manager/sender-ids/' ~ item.id) }}">
-                                {{ 'Edit'|t('app') }}
-                            </a>
-                        </li>
-                    {% endif %}
-                {% else %}
-                    <li>
-                        <a href="{{ url('sms-manager/sender-ids/view/' ~ item.handle) }}">
-                            {{ 'View'|t('app') }}
-                        </a>
-                    </li>
-                {% endif %}
-                {% if canEdit and not isDefaultFromConfig and not isDefault %}
-                    <li><hr class="padded"></li>
-                    <li>
-                        <a class="lr-sender-id-action" data-action="set-default" data-id="{{ item.id ?: item.handle }}" data-name="{{ item.name }}">
-                            {{ 'Set as Default'|t('sms-manager') }}
-                        </a>
-                    </li>
-                {% endif %}
-                {% if canDelete and item.canEdit() and not isDefault %}
-                    <li><hr class="padded"></li>
-                    <li>
-                        <a class="lr-sender-id-action error" data-action="delete" data-id="{{ item.id ?: item.handle }}" data-name="{{ item.name }}">
-                            {{ 'Delete'|t('app') }}
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </td>
+    {% set actionItems = [] %}
+
+    {% if item.canEdit() %}
+        {% set actionItems = actionItems|merge([{
+            label: 'Edit'|t('app'),
+            url: url('sms-manager/sender-ids/' ~ item.id),
+            permission: 'smsManager:editSenderIds',
+        }]) %}
+    {% else %}
+        {% set actionItems = actionItems|merge([{
+            label: 'View'|t('app'),
+            url: url('sms-manager/sender-ids/view/' ~ item.handle),
+        }]) %}
+    {% endif %}
+
+    {% set actionItems = actionItems|merge([
+        {type: 'divider'},
+        {
+            label: 'Set as Default'|t('sms-manager'),
+            jsAction: 'set-default',
+            data: {name: item.name},
+            hideIf: isDefaultFromConfig or isDefault,
+            permission: 'smsManager:editSenderIds',
+        },
+    ]) %}
+
+    {% set actionItems = actionItems|merge([
+        {type: 'divider'},
+        {
+            label: 'Delete'|t('app'),
+            class: 'error',
+            jsAction: 'delete',
+            data: {name: item.name},
+            hideIf: isDefault,
+            showIf: item.canEdit(),
+            permission: 'smsManager:deleteSenderIds',
+        },
+    ]) %}
+
+    {% include 'lindemannrock-base/_components/row-actions' with {
+        item: {id: itemId},
+        actions: {
+            type: 'menu',
+            icon: 'settings',
+            title: 'Actions'|t('app'),
+            items: actionItems,
+        },
+    } only %}
 {% endblock %}
 
 
@@ -373,8 +304,6 @@
    ============================================================================ #}
 
 {% block tableRow %}
-    {% set isConfig = item.isFromConfig() %}
-
     {# Find provider for this sender ID #}
     {% set provider = null %}
     {% for p in providers %}
@@ -468,10 +397,38 @@
 {% block scripts %}
     <script>
     (function() {
-        // Highlight rows with handle collisions
-        const collisionHandles = {{ collisionHandles|json_encode|raw }};
+        if (typeof Craft === 'undefined') return;
+
+        // Initialise the "Set status" menubtn — without `new Craft.MenuBtn(...)`,
+        // clicking the button doesn't open its menu so the Enable/Disable items
+        // inside are unreachable.
+        const bulkStatusBtn = document.getElementById('lr-bulk-status-btn');
+        if (bulkStatusBtn && Craft.MenuBtn) {
+            new Craft.MenuBtn(bulkStatusBtn);
+        }
+
+        // Pre-translated strings: keep |t() in Twig (so they're translatable)
+        // and emit as JSON-encoded JS literals via |json_encode|raw — avoids
+        // the |e('js') trap (produces \uXXXX garbage when re-quoted).
+        const T = {
+            defaultUpdated: {{ 'Default sender ID updated'|t('sms-manager')|json_encode|raw }},
+            defaultUpdateFailed: {{ 'Failed to update default sender ID'|t('sms-manager')|json_encode|raw }},
+            senderIdDeleted: {{ 'Sender ID deleted'|t('sms-manager')|json_encode|raw }},
+            deleteFailed: {{ 'Failed to delete sender ID'|t('sms-manager')|json_encode|raw }},
+            deleteConfirmTemplate: {{ 'Delete sender ID "{name}"? This cannot be undone.'|t('sms-manager')|json_encode|raw }},
+            bulkEnabledTemplate: {{ 'Enabled {count} sender IDs'|t('sms-manager')|json_encode|raw }},
+            bulkEnableFailed: {{ 'Failed to enable sender IDs'|t('sms-manager')|json_encode|raw }},
+            bulkDisabledTemplate: {{ 'Disabled {count} sender IDs'|t('sms-manager')|json_encode|raw }},
+            bulkDisableFailed: {{ 'Failed to disable sender IDs'|t('sms-manager')|json_encode|raw }},
+            bulkDeletedTemplate: {{ 'Deleted {count} sender IDs'|t('sms-manager')|json_encode|raw }},
+            bulkDeleteFailed: {{ 'Failed to delete sender IDs'|t('sms-manager')|json_encode|raw }},
+            bulkDeleteConfirmTemplate: {{ 'Delete {count} sender ID(s)? This cannot be undone.'|t('sms-manager')|json_encode|raw }},
+        };
+
+        // Highlight rows with handle collisions between config and database.
+        const collisionHandles = {{ collisionHandles|default([])|json_encode|raw }};
         if (collisionHandles.length > 0) {
-            document.querySelectorAll('#lr-data-table tbody tr.lr-data-row').forEach(row => {
+            document.querySelectorAll('#lr-data-table tbody tr.lr-data-row').forEach(function(row) {
                 const handleCell = row.querySelector('td:nth-child(3) code');
                 if (handleCell && collisionHandles.includes(handleCell.textContent.trim())) {
                     row.classList.add('lr-row--warning');
@@ -479,138 +436,110 @@
             });
         }
 
-        // Update selected count when selection changes
         document.addEventListener('lr:selectionChanged', function(e) {
             const countSpan = document.getElementById('lr-selected-count');
             if (countSpan) {
-                countSpan.textContent = e.detail.count;
+                countSpan.textContent = e.detail && typeof e.detail.count === 'number' ? e.detail.count : 0;
             }
         });
 
-        // Bulk enable
+        function selectedIds() {
+            return window.lrTableSelection ? window.lrTableSelection.getSelectedIds() : [];
+        }
+
+        // ---------------------------------------------------------------------
+        // Row-action handlers. Delegated listener on `document`, narrowed by
+        // `a[data-action]` + an explicit action-name allowlist. preventDefault
+        // only after the match — leaves unrelated `data-action` elements
+        // (e.g. Craft toolbar forms) alone. See cp-table-index-pattern.md.
+        // Confirmation lives here (single source of truth); do not also set
+        // `confirm:` on the action item.
+        // ---------------------------------------------------------------------
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('a[data-action]');
+            if (!trigger) return;
+
+            const action = trigger.dataset.action;
+            if (action !== 'set-default' && action !== 'delete') return;
+
+            const senderIdId = trigger.dataset.id;
+            const senderIdName = trigger.dataset.name || '';
+            if (!senderIdId) return;
+            e.preventDefault();
+
+            if (action === 'set-default') {
+                Craft.sendActionRequest('POST', 'sms-manager/sender-ids/set-default', {
+                    data: { senderIdId: senderIdId },
+                }).then(function(response) {
+                    if (response.data.success) {
+                        Craft.cp.displayNotice(T.defaultUpdated);
+                        setTimeout(function() { window.location.reload(); }, 500);
+                    } else {
+                        Craft.cp.displayError(response.data.error || T.defaultUpdateFailed);
+                    }
+                }).catch(function() {
+                    Craft.cp.displayError(T.defaultUpdateFailed);
+                });
+            } else if (action === 'delete') {
+                const confirmMessage = T.deleteConfirmTemplate.replace('{name}', senderIdName);
+                if (!confirm(confirmMessage)) return;
+                Craft.sendActionRequest('POST', 'sms-manager/sender-ids/delete', {
+                    data: { senderIdId: senderIdId },
+                }).then(function(response) {
+                    if (response.data.success) {
+                        Craft.cp.displayNotice(T.senderIdDeleted);
+                        setTimeout(function() { window.location.reload(); }, 1000);
+                    } else if (response.data.error) {
+                        Craft.cp.displayError(response.data.error);
+                    }
+                }).catch(function() {
+                    Craft.cp.displayError(T.deleteFailed);
+                });
+            }
+        });
+
+        // ---------------------------------------------------------------------
+        // Bulk actions. Each posts the selected IDs to its endpoint; the
+        // controller surfaces per-row errors via `response.data.errors`.
+        // ---------------------------------------------------------------------
+        function runBulkStatus(endpoint, successTemplate, errorFallback) {
+            const ids = selectedIds();
+            if (!ids.length) return;
+            Craft.sendActionRequest('POST', endpoint, {
+                data: { senderIdIds: ids },
+            }).then(function(response) {
+                const count = response.data.count || 0;
+                if (count > 0) {
+                    Craft.cp.displayNotice(successTemplate.replace('{count}', count));
+                }
+                if (Array.isArray(response.data.errors)) {
+                    response.data.errors.forEach(function(err) { Craft.cp.displayError(err); });
+                } else if (response.data.error) {
+                    Craft.cp.displayError(response.data.error);
+                }
+                if (count > 0) {
+                    setTimeout(function() { window.location.reload(); }, 1000);
+                }
+            }).catch(function() {
+                Craft.cp.displayError(errorFallback);
+            });
+        }
+
         document.getElementById('lr-bulk-enable-action')?.addEventListener('click', function(e) {
             e.preventDefault();
-            if (!window.lrTableSelection) return;
-
-            const ids = window.lrTableSelection.getSelectedIds();
-            if (ids.length === 0) return;
-
-            Craft.sendActionRequest('POST', 'sms-manager/sender-ids/bulk-enable', {
-                data: { senderIdIds: ids }
-            }).then(function(response) {
-                if (response.data.count > 0) {
-                    Craft.cp.displayNotice('{{ "Enabled {count} sender IDs"|t("sms-manager")|e("js") }}'.replace('{count}', response.data.count));
-                }
-                if (response.data.errors && response.data.errors.length > 0) {
-                    response.data.errors.forEach(err => Craft.cp.displayError(err));
-                }
-                if (response.data.count > 0) {
-                    setTimeout(() => window.location.reload(), 1000);
-                }
-            }).catch(function(error) {
-                Craft.cp.displayError('{{ "Failed to enable sender IDs"|t("sms-manager")|e("js") }}');
-            });
+            runBulkStatus('sms-manager/sender-ids/bulk-enable', T.bulkEnabledTemplate, T.bulkEnableFailed);
         });
 
-        // Bulk disable
         document.getElementById('lr-bulk-disable-action')?.addEventListener('click', function(e) {
             e.preventDefault();
-            if (!window.lrTableSelection) return;
-
-            const ids = window.lrTableSelection.getSelectedIds();
-            if (ids.length === 0) return;
-
-            Craft.sendActionRequest('POST', 'sms-manager/sender-ids/bulk-disable', {
-                data: { senderIdIds: ids }
-            }).then(function(response) {
-                if (response.data.count > 0) {
-                    Craft.cp.displayNotice('{{ "Disabled {count} sender IDs"|t("sms-manager")|e("js") }}'.replace('{count}', response.data.count));
-                }
-                if (response.data.errors && response.data.errors.length > 0) {
-                    response.data.errors.forEach(err => Craft.cp.displayError(err));
-                } else if (response.data.error) {
-                    Craft.cp.displayError(response.data.error);
-                }
-                if (response.data.count > 0) {
-                    setTimeout(() => window.location.reload(), 1000);
-                }
-            }).catch(function(error) {
-                Craft.cp.displayError('{{ "Failed to disable sender IDs"|t("sms-manager")|e("js") }}');
-            });
+            runBulkStatus('sms-manager/sender-ids/bulk-disable', T.bulkDisabledTemplate, T.bulkDisableFailed);
         });
 
-        // Bulk delete
-        document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (!window.lrTableSelection) return;
-
-            const ids = window.lrTableSelection.getSelectedIds();
-            const count = window.lrTableSelection.getCount();
-
-            if (count === 0) return;
-
-            if (!confirm('{{ "Delete {count} sender ID(s)? This cannot be undone."|t("sms-manager")|e("js") }}'.replace('{count}', count))) {
-                return;
-            }
-
-            Craft.sendActionRequest('POST', 'sms-manager/sender-ids/bulk-delete', {
-                data: { senderIdIds: ids }
-            }).then(function(response) {
-                if (response.data.count > 0) {
-                    Craft.cp.displayNotice('{{ "Deleted {count} sender IDs"|t("sms-manager")|e("js") }}'.replace('{count}', response.data.count));
-                }
-                if (response.data.errors && response.data.errors.length > 0) {
-                    response.data.errors.forEach(err => Craft.cp.displayError(err));
-                } else if (response.data.error) {
-                    Craft.cp.displayError(response.data.error);
-                }
-                if (response.data.count > 0) {
-                    setTimeout(() => window.location.reload(), 1000);
-                }
-            }).catch(function(error) {
-                Craft.cp.displayError('{{ "Failed to delete sender IDs"|t("sms-manager")|e("js") }}');
-            });
-        });
-
-        // Individual sender ID action menu clicks
-        document.querySelectorAll('.lr-sender-id-action').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                const action = this.dataset.action;
-                const senderIdId = this.dataset.id;
-                const senderIdName = this.dataset.name;
-
-                if (action === 'set-default') {
-                    Craft.sendActionRequest('POST', 'sms-manager/sender-ids/set-default', {
-                        data: { senderIdId: senderIdId }
-                    }).then(function(response) {
-                        if (response.data.success) {
-                            Craft.cp.displayNotice('{{ "Default sender ID updated"|t("sms-manager")|e("js") }}');
-                            setTimeout(() => window.location.reload(), 500);
-                        } else {
-                            Craft.cp.displayError(response.data.error || '{{ "Failed to update default sender ID"|t("sms-manager")|e("js") }}');
-                        }
-                    }).catch(function(error) {
-                        Craft.cp.displayError('{{ "Failed to update default sender ID"|t("sms-manager")|e("js") }}');
-                    });
-                } else if (action === 'delete') {
-                    if (confirm('{{ "Delete sender ID \"{name}\"? This cannot be undone."|t("sms-manager")|e("js") }}'.replace('{name}', senderIdName))) {
-                        Craft.sendActionRequest('POST', 'sms-manager/sender-ids/delete', {
-                            data: { senderIdId: senderIdId }
-                        }).then(function(response) {
-                            if (response.data.success) {
-                                Craft.cp.displayNotice('{{ "Sender ID deleted"|t("sms-manager")|e("js") }}');
-                                setTimeout(() => window.location.reload(), 1000);
-                            } else if (response.data.error) {
-                                Craft.cp.displayError(response.data.error);
-                            }
-                        }).catch(function(error) {
-                            Craft.cp.displayError('{{ "Failed to delete sender ID"|t("sms-manager")|e("js") }}');
-                        });
-                    }
-                }
-            });
+        document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function() {
+            const ids = selectedIds();
+            if (!ids.length) return;
+            if (!confirm(T.bulkDeleteConfirmTemplate.replace('{count}', ids.length))) return;
+            runBulkStatus('sms-manager/sender-ids/bulk-delete', T.bulkDeletedTemplate, T.bulkDeleteFailed);
         });
     })();
     </script>

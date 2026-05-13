@@ -41,7 +41,12 @@ class ProvidersController extends Controller
     }
 
     /**
-     * List all providers
+     * List all providers.
+     *
+     * Follows the canonical CP table index-page pattern (in-memory variant) —
+     * see plugins/base/docs/template-guides/cp-table-index-pattern.md.
+     * Controller owns query-param parsing, allowlist validation, filter, sort,
+     * and pagination; the Twig template stays presentational.
      *
      * @return Response
      */
@@ -49,9 +54,15 @@ class ProvidersController extends Controller
     {
         $this->requirePermission('smsManager:manageProviders');
 
+        $request = Craft::$app->getRequest();
         $settings = SmsManager::$plugin->getSettings();
         $providers = SmsManager::$plugin->providers->getAllProviders();
         $isDefaultFromConfig = SmsManager::$plugin->providers->isDefaultProviderFromConfig();
+
+        // Whether the install has any providers at all — referenced by the
+        // template's "no default provider configured" warning, which must
+        // survive a narrowed filter. Cached now before filter shrinks $providers.
+        $hasAnyProviders = !empty($providers);
 
         // Detect handle collisions between config and database
         $configHandles = ConfigFileHelper::getHandles('providers');
@@ -61,7 +72,9 @@ class ProvidersController extends Controller
             ->column();
         $collisionHandles = array_values(array_intersect($configHandles, $databaseHandles));
 
-        // Auto-assign default if needed (only if not set via config file)
+        // Auto-assign default if needed (only if not set via config file).
+        // Runs against the full provider list, not the filtered subset, so a
+        // narrowed status/source filter never accidentally promotes a default.
         if (!$isDefaultFromConfig) {
             $defaultHandle = $settings->defaultProviderHandle;
             $needsReassign = false;
@@ -91,13 +104,128 @@ class ProvidersController extends Controller
             }
         }
 
+        // ---- Param parsing + allowlist validation -------------------------
+
+        $statusFilter = (string) $request->getQueryParam('status', 'all');
+        $validStatuses = ['all', 'enabled', 'disabled'];
+        if (!in_array($statusFilter, $validStatuses, true)) {
+            $statusFilter = 'all';
+        }
+
+        $sourceFilter = (string) $request->getQueryParam('source', 'all');
+        $validSources = ['all', 'config', 'database'];
+        if (!in_array($sourceFilter, $validSources, true)) {
+            $sourceFilter = 'all';
+        }
+
+        $search = trim((string) $request->getQueryParam('search', ''));
+        if (mb_strlen($search) > 64) {
+            $search = mb_substr($search, 0, 64);
+        }
+
+        $validSortFields = ['name', 'handle', 'type', 'source', 'enabled'];
+        $sort = (string) $request->getParam('sort', 'name');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'name';
+        }
+        $dir = strtolower((string) $request->getParam('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        // ---- Filter -------------------------------------------------------
+
+        if ($statusFilter === 'enabled') {
+            $providers = array_values(array_filter($providers, fn($p): bool => $p->enabled));
+        } elseif ($statusFilter === 'disabled') {
+            $providers = array_values(array_filter($providers, fn($p): bool => !$p->enabled));
+        }
+
+        if ($sourceFilter === 'config') {
+            $providers = array_values(array_filter($providers, fn($p): bool => $p->source === 'config'));
+        } elseif ($sourceFilter === 'database') {
+            $providers = array_values(array_filter($providers, fn($p): bool => $p->source !== 'config'));
+        }
+
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            $providers = array_values(array_filter($providers, function($p) use ($needle): bool {
+                return str_contains(mb_strtolower((string) $p->name), $needle)
+                    || str_contains(mb_strtolower((string) $p->handle), $needle)
+                    || str_contains(mb_strtolower((string) $p->type), $needle);
+            }));
+        }
+
+        // ---- Sort + paginate ----------------------------------------------
+
+        $providers = $this->sortProviders($providers, $sort, $dir);
+
+        // Total count reflects the filtered subset so the pager matches the
+        // visible list — not the unfiltered provider list size.
+        $totalCount = count($providers);
+        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = max(1, (int) $settings->itemsPerPage);
+        $offset = ($page - 1) * $limit;
+        $providers = array_slice($providers, $offset, $limit);
+
+        // Resolve the default provider once (against the full set, not the
+        // filtered/paginated $providers) so beforeTable warnings render
+        // consistently regardless of the current filter state.
+        $defaultProviderHandle = $settings->defaultProviderHandle;
+        $defaultProvider = !empty($defaultProviderHandle)
+            ? SmsManager::$plugin->providers->getProviderByHandle($defaultProviderHandle)
+            : null;
+
         return $this->renderTemplate('sms-manager/providers/index', [
             'providers' => $providers,
+            'hasAnyProviders' => $hasAnyProviders,
             'settings' => $settings,
-            'defaultProviderHandle' => $settings->defaultProviderHandle,
+            'defaultProviderHandle' => $defaultProviderHandle,
+            'defaultProvider' => $defaultProvider,
             'isDefaultFromConfig' => $isDefaultFromConfig,
             'collisionHandles' => $collisionHandles,
+            'statusFilter' => $statusFilter,
+            'sourceFilter' => $sourceFilter,
+            'search' => $search,
+            'sort' => $sort,
+            'dir' => $dir,
+            'page' => $page,
+            'limit' => $limit,
+            'totalCount' => $totalCount,
+            'canCreate' => Craft::$app->getUser()->checkPermission('smsManager:createProviders'),
+            'canEdit' => Craft::$app->getUser()->checkPermission('smsManager:editProviders'),
+            'canDelete' => Craft::$app->getUser()->checkPermission('smsManager:deleteProviders'),
         ]);
+    }
+
+    /**
+     * Sort the loaded providers array in PHP. Small dataset → array-side sort
+     * is fine. The sort key allowlist is enforced in actionIndex() before we
+     * land here, so the default branch is reached only on a logic bug.
+     *
+     * @param array<int, mixed> $providers
+     * @return array<int, mixed>
+     */
+    private function sortProviders(array $providers, string $sort, string $dir): array
+    {
+        $multiplier = $dir === 'desc' ? -1 : 1;
+
+        usort($providers, function($a, $b) use ($sort, $multiplier): int {
+            $cmp = match ($sort) {
+                'handle' => strcasecmp((string) $a->handle, (string) $b->handle),
+                'type' => strcasecmp((string) $a->type, (string) $b->type),
+                'source' => strcmp((string) ($a->source ?? ''), (string) ($b->source ?? '')),
+                'enabled' => ((int) $a->enabled) <=> ((int) $b->enabled),
+                default => strcasecmp((string) $a->name, (string) $b->name),
+            };
+
+            // Stable tie-break by name so equal primary keys don't shuffle
+            // between requests — keeps pagination predictable.
+            if ($cmp === 0 && $sort !== 'name') {
+                $cmp = strcasecmp((string) $a->name, (string) $b->name);
+            }
+
+            return $cmp * $multiplier;
+        });
+
+        return $providers;
     }
 
     /**
