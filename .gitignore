@@ -43,3 +43,10 @@ test-results/
 *.zip
 /releases/
 /backups/
+
+# PHPUnit
+/.phpunit.cache/
+/.phpunit.result.cache
+/phpunit.xml
+/coverage/
+/coverage.xml
