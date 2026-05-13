@@ -72,7 +72,86 @@ class SmsLogsController extends Controller
             $this->requirePermission('smsManager:viewSmsLogs');
         }
 
+        // Param parsing + allowlist validation lives in parseListParams() so
+        // the AJAX-refresh endpoint (actionGetLogsData) inherits the same
+        // hardening — a future contributor adding a filter to actionIndex
+        // can't silently miss the AJAX path.
+        $params = $this->parseListParams();
+
+        $query = $this->buildLogsQuery($params);
+
+        // Total count is computed AFTER filters, BEFORE pagination — matches
+        // the visible-after-filter set.
+        $totalCount = $query->count();
+        $totalPages = $totalCount > 0 ? (int) ceil($totalCount / $params['limit']) : 1;
+
+        $query->limit($params['limit'])->offset($params['offset']);
+
+        $logs = $query->all();
+
+        // Enrich with provider/sender names and actual sender ID
+        foreach ($logs as &$log) {
+            $provider = ProviderRecord::findOne($log['providerId']);
+            $senderId = SenderIdRecord::findOne($log['senderIdId']);
+            $log['providerName'] = $provider ? $provider->name : 'Unknown';
+            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
+        }
+
+        // Get log menu config from LoggingLibrary
+        $logMenuItems = null;
+        $logMenuLabel = null;
+
+        if (class_exists(LoggingLibrary::class)) {
+            $config = LoggingLibrary::getConfig('sms-manager');
+            $logMenuItems = $config['logMenuItems'] ?? null;
+            $logMenuLabel = $config['logMenuLabel'] ?? null;
+
+            // Filter out 'system' item if system log viewer is disabled
+            if ($logMenuItems && !($config['enableLogViewer'] ?? false)) {
+                unset($logMenuItems['system']);
+            }
+        }
+
+        return $this->renderTemplate('sms-manager/logs/sms', [
+            'logMenuItems' => $logMenuItems,
+            'logMenuLabel' => $logMenuLabel,
+            'logs' => $logs,
+            'settings' => $settings,
+            'providers' => $params['providers'],
+            'sources' => $params['sources'],
+            'totalCount' => $totalCount,
+            'totalPages' => $totalPages,
+            'page' => $params['page'],
+            'limit' => $params['limit'],
+            'offset' => $params['offset'],
+            'search' => $params['search'],
+            'statusFilter' => $params['statusFilter'],
+            'providerFilter' => $params['providerFilter'],
+            'languageFilter' => $params['languageFilter'],
+            'sourceFilter' => $params['sourceFilter'],
+            'dateRange' => $params['dateRange'],
+            'sort' => $params['sort'],
+            'dir' => $params['dir'],
+            'canDelete' => $user->checkPermission('smsManager:deleteSmsLogs'),
+            'canExport' => $user->checkPermission('smsManager:exportSmsLogs'),
+        ]);
+    }
+
+    /**
+     * Parse + allowlist-validate every list-page query param.
+     *
+     * Shared by actionIndex (renders the CP table) and actionGetLogsData
+     * (AJAX-refresh endpoint). Keeping the validation in one place is the
+     * point — drift between the two endpoints is the bug this method
+     * prevents.
+     *
+     * @return array<string, mixed>
+     */
+    private function parseListParams(): array
+    {
         $request = Craft::$app->getRequest();
+        $settings = SmsManager::$plugin->getSettings();
 
         // Get providers + sources up front so they can seed the filter
         // allowlists below.
@@ -84,8 +163,6 @@ class SmsLogsController extends Controller
             ->where(['not', ['sourcePlugin' => null]])
             ->andWhere(['not', ['sourcePlugin' => '']])
             ->column();
-
-        // ---- Param parsing + allowlist validation -------------------------
 
         $statusFilter = (string) $request->getQueryParam('status', 'all');
         $validStatuses = ['all', 'sent', 'failed', 'pending'];
@@ -144,102 +221,72 @@ class SmsLogsController extends Controller
         $limit = max(1, (int) $settings->itemsPerPage);
         $offset = ($page - 1) * $limit;
 
-        // ---- Build query --------------------------------------------------
-
-        $query = (new Query())
-            ->from(SmsLogRecord::tableName());
-
-        if ($statusFilter !== 'all') {
-            $query->andWhere(['status' => $statusFilter]);
-        }
-
-        if ($providerFilter !== 'all') {
-            $query->andWhere(['providerId' => (int) $providerFilter]);
-        }
-
-        if ($languageFilter !== 'all') {
-            $query->andWhere(['language' => $languageFilter]);
-        }
-
-        if ($sourceFilter !== 'all') {
-            if ($sourceFilter === 'direct') {
-                $query->andWhere(['or', ['sourcePlugin' => null], ['sourcePlugin' => '']]);
-            } else {
-                $query->andWhere(['sourcePlugin' => $sourceFilter]);
-            }
-        }
-
-        // Apply date range filter (supports all options: thisMonth, lastYear, etc.)
-        DateRangeHelper::applyToQuery($query, $dateRange);
-
-        if ($search !== '') {
-            $query->andWhere([
-                'or',
-                ['like', 'recipient', $search],
-                ['like', 'message', $search],
-                ['like', 'providerMessageId', $search],
-            ]);
-        }
-
-        // Apply sorting — sort column comes from the validated allowlist above.
-        $query->orderBy([$sort => $sortDir]);
-
-        // Total count is computed AFTER filters, BEFORE pagination — matches
-        // the visible-after-filter set.
-        $totalCount = $query->count();
-        $totalPages = $totalCount > 0 ? (int) ceil($totalCount / $limit) : 1;
-
-        $query->limit($limit)->offset($offset);
-
-        $logs = $query->all();
-
-        // Enrich with provider/sender names and actual sender ID
-        foreach ($logs as &$log) {
-            $provider = ProviderRecord::findOne($log['providerId']);
-            $senderId = SenderIdRecord::findOne($log['senderIdId']);
-            $log['providerName'] = $provider ? $provider->name : 'Unknown';
-            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
-            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
-        }
-
-        // Get log menu config from LoggingLibrary
-        $logMenuItems = null;
-        $logMenuLabel = null;
-
-        if (class_exists(LoggingLibrary::class)) {
-            $config = LoggingLibrary::getConfig('sms-manager');
-            $logMenuItems = $config['logMenuItems'] ?? null;
-            $logMenuLabel = $config['logMenuLabel'] ?? null;
-
-            // Filter out 'system' item if system log viewer is disabled
-            if ($logMenuItems && !($config['enableLogViewer'] ?? false)) {
-                unset($logMenuItems['system']);
-            }
-        }
-
-        return $this->renderTemplate('sms-manager/logs/sms', [
-            'logMenuItems' => $logMenuItems,
-            'logMenuLabel' => $logMenuLabel,
-            'logs' => $logs,
-            'settings' => $settings,
+        return [
             'providers' => $providers,
             'sources' => $sources,
-            'totalCount' => $totalCount,
-            'totalPages' => $totalPages,
-            'page' => $page,
-            'limit' => $limit,
-            'offset' => $offset,
-            'search' => $search,
             'statusFilter' => $statusFilter,
             'providerFilter' => $providerFilter,
             'languageFilter' => $languageFilter,
             'sourceFilter' => $sourceFilter,
             'dateRange' => $dateRange,
+            'search' => $search,
             'sort' => $sort,
             'dir' => $dir,
-            'canDelete' => $user->checkPermission('smsManager:deleteSmsLogs'),
-            'canExport' => $user->checkPermission('smsManager:exportSmsLogs'),
-        ]);
+            'sortDir' => $sortDir,
+            'page' => $page,
+            'limit' => $limit,
+            'offset' => $offset,
+        ];
+    }
+
+    /**
+     * Build the filtered + sorted logs query from a parseListParams() result.
+     * Pagination is applied by the caller — keeping limit/offset out of here
+     * means COUNT(*) and SELECT share a single query builder.
+     *
+     * @param array<string, mixed> $params
+     */
+    private function buildLogsQuery(array $params): Query
+    {
+        $query = (new Query())
+            ->from(SmsLogRecord::tableName());
+
+        if ($params['statusFilter'] !== 'all') {
+            $query->andWhere(['status' => $params['statusFilter']]);
+        }
+
+        if ($params['providerFilter'] !== 'all') {
+            $query->andWhere(['providerId' => (int) $params['providerFilter']]);
+        }
+
+        if ($params['languageFilter'] !== 'all') {
+            $query->andWhere(['language' => $params['languageFilter']]);
+        }
+
+        if ($params['sourceFilter'] !== 'all') {
+            if ($params['sourceFilter'] === 'direct') {
+                $query->andWhere(['or', ['sourcePlugin' => null], ['sourcePlugin' => '']]);
+            } else {
+                $query->andWhere(['sourcePlugin' => $params['sourceFilter']]);
+            }
+        }
+
+        // Apply date range filter (supports all options: thisMonth, lastYear, etc.)
+        DateRangeHelper::applyToQuery($query, $params['dateRange']);
+
+        if ($params['search'] !== '') {
+            $query->andWhere([
+                'or',
+                ['like', 'recipient', $params['search']],
+                ['like', 'message', $params['search']],
+                ['like', 'providerMessageId', $params['search']],
+            ]);
+        }
+
+        // Apply sorting — sort column comes from the validated allowlist.
+        $query->orderBy([$params['sort'] => $params['sortDir']]);
+
+        return $query;
     }
 
     /**
@@ -416,7 +463,10 @@ class SmsLogsController extends Controller
     }
 
     /**
-     * Get logs data for AJAX refresh
+     * Get logs data for AJAX refresh.
+     *
+     * Shares parseListParams() + buildLogsQuery() with actionIndex so the
+     * AJAX-refresh path inherits the same allowlist hardening.
      *
      * @return Response
      * @since 5.4.0
@@ -424,83 +474,16 @@ class SmsLogsController extends Controller
     public function actionGetLogsData(): Response
     {
         $this->requirePermission('smsManager:viewSmsLogs');
+        $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
-        $settings = SmsManager::$plugin->getSettings();
+        $params = $this->parseListParams();
+        $query = $this->buildLogsQuery($params);
 
-        // Get filter parameters
-        $search = $request->getQueryParam('search', '');
-        $statusFilter = $request->getQueryParam('status', 'all');
-        $providerFilter = $request->getQueryParam('provider', 'all');
-        $languageFilter = $request->getQueryParam('language', 'all');
-        $sourceFilter = $request->getQueryParam('source', 'all');
-        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
-        $sort = $request->getQueryParam('sort', 'dateCreated');
-        $dir = strtolower($request->getQueryParam('dir', 'desc'));
-        $sortDir = $dir === 'asc' ? SORT_ASC : SORT_DESC;
-        $page = max(1, (int)$request->getQueryParam('page', 1));
-        $limit = $settings->itemsPerPage ?? 100;
-        $offset = ($page - 1) * $limit;
-
-        // Build query
-        $query = (new Query())
-            ->from(SmsLogRecord::tableName());
-
-        // Apply status filter
-        if ($statusFilter !== 'all') {
-            $query->andWhere(['status' => $statusFilter]);
-        }
-
-        // Apply provider filter
-        if ($providerFilter !== 'all') {
-            $query->andWhere(['providerId' => $providerFilter]);
-        }
-
-        // Apply language filter
-        if ($languageFilter !== 'all') {
-            $query->andWhere(['language' => $languageFilter]);
-        }
-
-        // Apply source filter
-        if ($sourceFilter !== 'all') {
-            if ($sourceFilter === 'direct') {
-                $query->andWhere(['or', ['sourcePlugin' => null], ['sourcePlugin' => '']]);
-            } else {
-                $query->andWhere(['sourcePlugin' => $sourceFilter]);
-            }
-        }
-
-        // Apply date range filter (supports all options: thisMonth, lastYear, etc.)
-        DateRangeHelper::applyToQuery($query, $dateRange);
-
-        // Apply search
-        if (!empty($search)) {
-            $query->andWhere([
-                'or',
-                ['like', 'recipient', $search],
-                ['like', 'message', $search],
-                ['like', 'providerMessageId', $search],
-            ]);
-        }
-
-        // Apply sorting
-        $sortColumn = match ($sort) {
-            'recipient' => 'recipient',
-            'status' => 'status',
-            'language' => 'language',
-            'providerId' => 'providerId',
-            default => 'dateCreated',
-        };
-        $query->orderBy([$sortColumn => $sortDir]);
-
-        // Get total count for pagination
         $totalCount = $query->count();
-        $totalPages = $totalCount > 0 ? (int)ceil($totalCount / $limit) : 1;
+        $totalPages = $totalCount > 0 ? (int) ceil($totalCount / $params['limit']) : 1;
 
-        // Apply pagination
-        $query->limit($limit)->offset($offset);
+        $query->limit($params['limit'])->offset($params['offset']);
 
-        // Get logs
         $logs = $query->all();
 
         // Enrich with provider/sender names and format dates
@@ -522,14 +505,14 @@ class SmsLogsController extends Controller
         return $this->asJson([
             'success' => true,
             'logs' => $logs,
-            'totalCount' => (int)$totalCount,
+            'totalCount' => (int) $totalCount,
             'totalPages' => $totalPages,
-            'page' => $page,
-            'limit' => $limit,
-            'offset' => $offset,
-            'sentCount' => (int)$sentCount,
-            'failedCount' => (int)$failedCount,
-            'pendingCount' => (int)$pendingCount,
+            'page' => $params['page'],
+            'limit' => $params['limit'],
+            'offset' => $params['offset'],
+            'sentCount' => (int) $sentCount,
+            'failedCount' => (int) $failedCount,
+            'pendingCount' => (int) $pendingCount,
         ]);
     }
 

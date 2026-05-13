@@ -304,13 +304,9 @@
    ============================================================================ #}
 
 {% block tableRow %}
-    {# Find provider for this sender ID #}
-    {% set provider = null %}
-    {% for p in providers %}
-        {% if p.handle == item.providerHandle %}
-            {% set provider = p %}
-        {% endif %}
-    {% endfor %}
+    {# Provider for this sender ID — O(1) lookup against the controller-built
+       providersByHandle map (replaces a per-row `{% for p in providers %}`). #}
+    {% set provider = providersByHandle[item.providerHandle] ?? null %}
 
     {# Name #}
     <td>

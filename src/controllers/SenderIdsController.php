@@ -60,6 +60,13 @@ class SenderIdsController extends Controller
         $senderIds = SmsManager::$plugin->senderIds->getAllSenderIds();
         $providers = SmsManager::$plugin->providers->getAllProviders();
 
+        // Index providers by handle so the template can do an O(1) lookup
+        // per row instead of an inner `{% for p in providers %}` loop.
+        $providersByHandle = [];
+        foreach ($providers as $provider) {
+            $providersByHandle[$provider->handle] = $provider;
+        }
+
         // Whether the install has any sender IDs at all — referenced by the
         // template's "no default sender ID configured" warning, which must
         // survive a narrowed filter. Cached now before filter shrinks $senderIds.
@@ -208,6 +215,7 @@ class SenderIdsController extends Controller
             'senderIds' => $senderIds,
             'hasAnySenderIds' => $hasAnySenderIds,
             'providers' => $providers,
+            'providersByHandle' => $providersByHandle,
             'settings' => $settings,
             'statusFilter' => $statusFilter,
             'sourceFilter' => $sourceFilter,
@@ -454,6 +462,7 @@ class SenderIdsController extends Controller
     public function actionToggleEnabled(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:editSenderIds');
 
         $request = Craft::$app->getRequest();

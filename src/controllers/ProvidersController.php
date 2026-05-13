@@ -408,6 +408,7 @@ class ProvidersController extends Controller
     public function actionToggleEnabled(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:editProviders');
 
         $request = Craft::$app->getRequest();
