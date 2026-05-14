@@ -180,7 +180,12 @@ class ProvidersService extends Component
     /**
      * Get the default provider
      *
-     * Uses defaultProviderHandle from settings, falls back to first enabled provider.
+     * When `defaultProviderHandle` is set in settings, that handle is the
+     * authoritative answer — if it doesn't resolve or is disabled, this
+     * method returns null rather than silently substituting another
+     * provider. Caller asked for this provider by name; ignoring it would
+     * misroute SMS without anyone noticing. When the handle is unset, falls
+     * back to the first enabled provider.
      *
      * @return ProviderRecord|null
      */
@@ -188,15 +193,15 @@ class ProvidersService extends Component
     {
         $settings = SmsManager::$plugin->getSettings();
 
-        // First, check handle-based default from settings
         if (!empty($settings->defaultProviderHandle)) {
             $provider = $this->getProviderByHandle($settings->defaultProviderHandle);
             if ($provider && $provider->enabled) {
                 return $provider;
             }
+            return null;
         }
 
-        // Fall back to first enabled provider
+        // No default configured — fall back to first enabled provider.
         $providers = $this->getAllProviders(true);
         return $providers[0] ?? null;
     }

@@ -97,7 +97,20 @@ class SenderIdsService extends Component
     /**
      * Get the default sender ID
      *
-     * Uses defaultSenderIdHandle from settings, falls back to first enabled sender ID.
+     * When `defaultSenderIdHandle` is set in settings:
+     *  - If it doesn't resolve or the resolved record is disabled, returns
+     *    null. Caller named this sender explicitly; silently substituting
+     *    another sender would misattribute outbound SMS. Admin should fix
+     *    the config.
+     *  - If it resolves and is enabled, returns it (when no provider filter
+     *    is given, or the configured default matches the requested provider).
+     *  - If it resolves and is enabled but is for a different provider than
+     *    requested, falls through to find an enabled sender for the
+     *    requested provider. The configured default is a hint that doesn't
+     *    apply when the caller has constrained the search.
+     *
+     * When `defaultSenderIdHandle` is unset, falls back to the first enabled
+     * sender ID (filtered by provider when given).
      *
      * @param int|string|null $providerIdOrHandle Optional provider ID or handle to filter by
      * @return SenderIdRecord|null
@@ -106,23 +119,21 @@ class SenderIdsService extends Component
     {
         $settings = SmsManager::$plugin->getSettings();
 
-        // First, check handle-based default from settings
         if (!empty($settings->defaultSenderIdHandle)) {
             $senderId = $this->getSenderIdByHandle($settings->defaultSenderIdHandle);
-            if ($senderId && $senderId->enabled) {
-                // If filtering by provider, make sure it matches
-                if ($providerIdOrHandle !== null) {
-                    $matchesProvider = $this->senderIdMatchesProvider($senderId, $providerIdOrHandle);
-                    if ($matchesProvider) {
-                        return $senderId;
-                    }
-                } else {
-                    return $senderId;
-                }
+            if (!$senderId || !$senderId->enabled) {
+                return null;
             }
+            if ($providerIdOrHandle === null) {
+                return $senderId;
+            }
+            if ($this->senderIdMatchesProvider($senderId, $providerIdOrHandle)) {
+                return $senderId;
+            }
+            // Configured default exists and is usable but is for a different
+            // provider — fall through to find one for the requested provider.
         }
 
-        // Fall back to first enabled sender ID
         if ($providerIdOrHandle !== null) {
             $senderIds = $this->getSenderIdsByProvider($providerIdOrHandle, true);
         } else {
