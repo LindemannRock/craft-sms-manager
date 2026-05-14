@@ -47,10 +47,10 @@
         {% if enabledProviders|length == 0 %}
             {% include 'lindemannrock-base/_components/info-box' with {
                 type: 'notice',
-                message: 'No enabled providers. <a href="' ~ url('sms-manager/providers/new') ~ '">Create a provider</a> to use as the default.'
+                message: 'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.'|t('sms-manager', { url: url('sms-manager/providers/new') })|raw
             } %}
         {% else %}
-            {% set providerOptions = [{ label: 'Select a default provider...', value: '' }] %}
+            {% set providerOptions = [{ label: 'Select a default provider...'|t('sms-manager'), value: '' }] %}
             {% for provider in enabledProviders %}
                 {% set providerOptions = providerOptions|merge([{
                     label: provider.name ~ ' (' ~ provider.type|upper ~ ')',
@@ -75,10 +75,10 @@
         {% if enabledSenderIds|length == 0 %}
             {% include 'lindemannrock-base/_components/info-box' with {
                 type: 'notice',
-                message: 'No enabled sender IDs. <a href="' ~ url('sms-manager/sender-ids/new') ~ '">Create a sender ID</a> to use as the default.'
+                message: 'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.'|t('sms-manager', { url: url('sms-manager/sender-ids/new') })|raw
             } %}
         {% else %}
-            {% set senderIdOptions = [{ label: 'Select a default sender ID...', value: '' }] %}
+            {% set senderIdOptions = [{ label: 'Select a default sender ID...'|t('sms-manager'), value: '' }] %}
             {% for senderId in enabledSenderIds %}
                 {% set senderIdOptions = senderIdOptions|merge([{
                     label: senderId.name ~ ' (' ~ senderId.senderId ~ ')',
