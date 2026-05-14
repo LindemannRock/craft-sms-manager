@@ -231,6 +231,14 @@ return [
     'Execution Time' => '実行時間',
     'Provider Response' => 'プロバイダーの応答',
     'The test SMS failed to send.' => 'テスト SMS の送信に失敗しました。',
+    'Sending...' => '送信中...',
+    'SMS Sent Successfully' => 'SMS の送信に成功しました',
+    'SMS Sending Failed' => 'SMS の送信に失敗しました',
+    'Validation Error' => '検証エラー',
+    'Please enter a recipient phone number' => '送信先の電話番号を入力してください',
+    'Phone number must contain at least 6 digits.' => '電話番号は 6 桁以上である必要があります。',
+    'Please enter a message' => 'メッセージを入力してください',
+    'The pasted number is from {country}, which is not allowed by this provider.' => '貼り付けられた番号は {country} のものであり、このプロバイダーでは許可されていません。',
 
     // Providers: Index
     'New Provider' => '新規プロバイダー',

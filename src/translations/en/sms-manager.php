@@ -231,6 +231,14 @@ return [
     'Execution Time' => 'Execution Time',
     'Provider Response' => 'Provider Response',
     'The test SMS failed to send.' => 'The test SMS failed to send.',
+    'Sending...' => 'Sending...',
+    'SMS Sent Successfully' => 'SMS Sent Successfully',
+    'SMS Sending Failed' => 'SMS Sending Failed',
+    'Validation Error' => 'Validation Error',
+    'Please enter a recipient phone number' => 'Please enter a recipient phone number',
+    'Phone number must contain at least 6 digits.' => 'Phone number must contain at least 6 digits.',
+    'Please enter a message' => 'Please enter a message',
+    'The pasted number is from {country}, which is not allowed by this provider.' => 'The pasted number is from {country}, which is not allowed by this provider.',
 
     // Providers: Index
     'New Provider' => 'New Provider',

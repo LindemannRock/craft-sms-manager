@@ -231,6 +231,14 @@ return [
     'Execution Time' => 'Uitvoeringstijd',
     'Provider Response' => 'Providerrespons',
     'The test SMS failed to send.' => 'De test-SMS kon niet worden verzonden.',
+    'Sending...' => 'Bezig met verzenden...',
+    'SMS Sent Successfully' => 'SMS succesvol verzonden',
+    'SMS Sending Failed' => 'SMS-verzending mislukt',
+    'Validation Error' => 'Validatiefout',
+    'Please enter a recipient phone number' => 'Voer een telefoonnummer van de ontvanger in',
+    'Phone number must contain at least 6 digits.' => 'Het telefoonnummer moet minimaal 6 cijfers bevatten.',
+    'Please enter a message' => 'Voer een bericht in',
+    'The pasted number is from {country}, which is not allowed by this provider.' => 'Het geplakte nummer komt uit {country}, wat niet is toegestaan door deze provider.',
 
     // Providers: Index
     'New Provider' => 'Nieuwe provider',

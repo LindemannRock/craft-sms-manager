@@ -231,6 +231,14 @@ return [
     'Execution Time' => 'Udførelsestid',
     'Provider Response' => 'Udbyderrespons',
     'The test SMS failed to send.' => 'Test-SMS\'en kunne ikke sendes.',
+    'Sending...' => 'Sender...',
+    'SMS Sent Successfully' => 'SMS sendt',
+    'SMS Sending Failed' => 'Det lykkedes ikke at sende SMS',
+    'Validation Error' => 'Valideringsfejl',
+    'Please enter a recipient phone number' => 'Indtast et telefonnummer på modtageren',
+    'Phone number must contain at least 6 digits.' => 'Telefonnummeret skal indeholde mindst 6 cifre.',
+    'Please enter a message' => 'Indtast en besked',
+    'The pasted number is from {country}, which is not allowed by this provider.' => 'Det indsatte nummer er fra {country}, hvilket ikke er tilladt af denne udbyder.',
 
     // Providers: Index
     'New Provider' => 'Ny udbyder',

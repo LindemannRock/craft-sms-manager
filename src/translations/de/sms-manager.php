@@ -231,6 +231,14 @@ return [
     'Execution Time' => 'Ausführungszeit',
     'Provider Response' => 'Anbieterantwort',
     'The test SMS failed to send.' => 'Die Test-SMS konnte nicht gesendet werden.',
+    'Sending...' => 'Wird gesendet...',
+    'SMS Sent Successfully' => 'SMS erfolgreich gesendet',
+    'SMS Sending Failed' => 'SMS-Versand fehlgeschlagen',
+    'Validation Error' => 'Validierungsfehler',
+    'Please enter a recipient phone number' => 'Bitte geben Sie eine Empfänger-Telefonnummer ein',
+    'Phone number must contain at least 6 digits.' => 'Die Telefonnummer muss mindestens 6 Ziffern enthalten.',
+    'Please enter a message' => 'Bitte geben Sie eine Nachricht ein',
+    'The pasted number is from {country}, which is not allowed by this provider.' => 'Die eingefügte Nummer stammt aus {country}, was bei diesem Anbieter nicht zulässig ist.',
 
     // Providers: Index
     'New Provider' => 'Neuer Anbieter',

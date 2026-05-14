@@ -231,6 +231,14 @@ return [
     'Execution Time' => 'Körningstid',
     'Provider Response' => 'Leverantörssvar',
     'The test SMS failed to send.' => 'Det gick inte att skicka test-SMS:et.',
+    'Sending...' => 'Skickar...',
+    'SMS Sent Successfully' => 'SMS skickat',
+    'SMS Sending Failed' => 'Det gick inte att skicka SMS',
+    'Validation Error' => 'Valideringsfel',
+    'Please enter a recipient phone number' => 'Ange ett telefonnummer för mottagaren',
+    'Phone number must contain at least 6 digits.' => 'Telefonnumret måste innehålla minst 6 siffror.',
+    'Please enter a message' => 'Ange ett meddelande',
+    'The pasted number is from {country}, which is not allowed by this provider.' => 'Det inklistrade numret är från {country}, vilket inte är tillåtet av denna leverantör.',
 
     // Providers: Index
     'New Provider' => 'Ny leverantör',

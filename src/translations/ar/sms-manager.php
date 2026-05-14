@@ -231,6 +231,14 @@ return [
     'Execution Time' => 'وقت التنفيذ',
     'Provider Response' => 'استجابة مزود الخدمة',
     'The test SMS failed to send.' => 'فشل إرسال SMS الاختباري.',
+    'Sending...' => 'جارٍ الإرسال...',
+    'SMS Sent Successfully' => 'تم إرسال SMS بنجاح',
+    'SMS Sending Failed' => 'فشل إرسال SMS',
+    'Validation Error' => 'خطأ في التحقق',
+    'Please enter a recipient phone number' => 'يرجى إدخال رقم هاتف المستلم',
+    'Phone number must contain at least 6 digits.' => 'يجب أن يحتوي رقم الهاتف على 6 أرقام على الأقل.',
+    'Please enter a message' => 'يرجى إدخال رسالة',
+    'The pasted number is from {country}, which is not allowed by this provider.' => 'الرقم الملصق من {country}، وهو غير مسموح به من قِبل هذا المزوّد.',
 
     // Providers: Index
     'New Provider' => 'مزود خدمة جديد',
