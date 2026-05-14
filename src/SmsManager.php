@@ -323,11 +323,7 @@ class SmsManager extends Plugin
             // Logs section (sidebar: System via logging-library, SMS via sms-logs controller)
             'sms-manager/logs' => 'logging-library/logs/index',
             'sms-manager/logs/sms' => 'sms-manager/sms-logs/index',
-            'sms-manager/logs/sms/<logId:\d+>' => 'sms-manager/sms-logs/view',
             'sms-manager/logs/sms/export' => 'sms-manager/sms-logs/export',
-
-            // Badges test page
-            'sms-manager/badges' => 'sms-manager/dashboard/badges',
 
             // Providers
             'sms-manager/providers' => 'sms-manager/providers/index',
