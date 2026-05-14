@@ -178,6 +178,11 @@ class SettingsController extends Controller
             }
         }
 
+        // Strings used by Craft.t() in the inline JS country-not-allowed handler.
+        Craft::$app->getView()->registerTranslations('sms-manager', [
+            'The pasted number is from {country}, which is not allowed by this provider.',
+        ]);
+
         return $this->renderTemplate('sms-manager/settings/test', [
             'settings' => $settings,
             'providers' => $providers,
