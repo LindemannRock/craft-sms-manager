@@ -154,16 +154,36 @@ return [
 
         /**
          * Default provider handle
-         * Must match a handle from providers (or database)
-         * Auto-assigned: If not set, deleted, or disabled, automatically assigns first enabled provider
+         *
+         * Must match a handle from `providers` below (or a provider in the
+         * database). Resolution:
+         *   - If unset or empty → falls back to the first enabled provider.
+         *   - If set to a handle that resolves to an enabled provider → uses it.
+         *   - If set to a handle that does NOT resolve (typo, deleted) or
+         *     resolves to a disabled provider → resolution returns null and
+         *     any send that relies on the default will fail with an explicit
+         *     "No provider configured" error. Fix the handle to recover.
+         *
+         * The fail-loud-on-bad-handle behaviour replaces an older silent
+         * "auto-assign first enabled" fallback that masked configuration
+         * errors at runtime.
+         *
          * Default: null
          */
         // 'defaultProviderHandle' => 'production-provider',
 
         /**
          * Default sender ID handle
-         * Must match a handle from senderIds (or database)
-         * Auto-assigned: If not set, deleted, or disabled, automatically assigns first enabled sender ID
+         *
+         * Must match a handle from `senderIds` below (or a sender in the
+         * database). Resolution:
+         *   - If unset or empty → falls back to the first enabled sender ID.
+         *   - If set to a handle that resolves to an enabled sender → uses it.
+         *   - If set to a handle that does NOT resolve or resolves to a
+         *     disabled sender → resolution returns null and any send that
+         *     relies on the default will fail with an explicit "No sender ID
+         *     configured" error. Fix the handle to recover.
+         *
          * Default: null
          */
         // 'defaultSenderIdHandle' => 'main-sender',
