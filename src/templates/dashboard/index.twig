@@ -112,6 +112,7 @@
             <thead>
                 <tr>
                     <th style="padding: 0 0 12px 0;">{{ "Recipient"|t('sms-manager') }}</th>
+                    <th style="padding: 0 0 12px 0;">{{ "Sender ID"|t('sms-manager') }}</th>
                     <th style="padding: 0 0 12px 0;">{{ "Message"|t('sms-manager') }}</th>
                     <th style="padding: 0 0 12px 0;">{{ "Status"|t('sms-manager') }}</th>
                     <th style="text-align: right; padding: 0 0 12px 0;">{{ "Sent"|t('sms-manager') }}</th>
@@ -122,6 +123,9 @@
                     <tr>
                         <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
                             <code style="font-family: monospace; font-size: 13px;">{{ log.recipient }}</code>
+                        </td>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-size: 13px;">
+                            {{ log.senderIdName }}
                         </td>
                         <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ log.message }}">
                             {{ log.message|slice(0, 50) }}{% if log.message|length > 50 %}...{% endif %}
