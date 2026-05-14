@@ -99,7 +99,10 @@ class SettingsController extends Controller
         $providers = $plugin->providers->getAllProviders(true);
         $senderIds = $plugin->senderIds->getAllSenderIds(true);
 
-        // Build provider options and track which have dev API keys
+        // Build provider options and track which have dev API keys. All
+        // option values and lookup keys are handles (not ids) so config-only
+        // providers — which have id=null — survive the round-trip through
+        // the form back to the controller.
         $providerOptions = [];
         $providersWithDevKey = [];
         $providerApiKeys = [];
@@ -109,48 +112,43 @@ class SettingsController extends Controller
             $isDefault = $provider->handle === $defaultProviderHandle;
             $providerOptions[] = [
                 'label' => $provider->name . ($isDefault ? ' (Default)' : ''),
-                'value' => $provider->id,
+                'value' => $provider->handle,
             ];
-            // Check if provider has a dev API key configured and get masked keys
             $providerSettings = $provider->getSettingsArray();
             $mainKey = App::parseEnv($providerSettings['apiKey'] ?? '');
             $devKey = App::parseEnv($providerSettings['devApiKey'] ?? '');
-            $providersWithDevKey[$provider->id] = !empty($devKey);
-            $providerApiKeys[$provider->id] = [
+            $providersWithDevKey[$provider->handle] = !empty($devKey);
+            $providerApiKeys[$provider->handle] = [
                 'main' => $this->maskApiKey($mainKey),
                 'dev' => $this->maskApiKey($devKey),
             ];
-            // Get allowed countries for this provider (raw codes for JS dropdown)
             $allowedCountries = $providerSettings['allowedCountries'] ?? [];
             if (in_array('*', $allowedCountries, true) || empty($allowedCountries)) {
-                $providerAllowedCountries[$provider->id] = ['*'];
+                $providerAllowedCountries[$provider->handle] = ['*'];
             } else {
-                $providerAllowedCountries[$provider->id] = $allowedCountries;
+                $providerAllowedCountries[$provider->handle] = $allowedCountries;
             }
         }
 
-        // Build sender ID options (initially for first/default provider)
+        // Build sender ID options (initially for the default provider).
         $senderIdOptions = [];
         $senderIdsByProvider = [];
-        $defaultProviderId = null;
-        $defaultSenderIdId = null;
+        $defaultSenderIdHandle = $settings->defaultSenderIdHandle;
 
-        // Get default provider
+        // Pick the initial provider handle for the UI dropdown's pre-selection.
+        $initialProviderHandle = null;
         $defaultProvider = $plugin->providers->getDefaultProvider();
         if ($defaultProvider) {
-            $defaultProviderId = $defaultProvider->id;
+            $initialProviderHandle = $defaultProvider->handle;
         } elseif (!empty($providers)) {
-            $defaultProviderId = $providers[0]->id;
+            $initialProviderHandle = $providers[0]->handle;
         }
 
-        // Group sender IDs by provider for JS
-        $defaultSenderIdHandle = $settings->defaultSenderIdHandle;
         foreach ($providers as $provider) {
-            $senderIdsByProvider[$provider->id] = [];
+            $senderIdsByProvider[$provider->handle] = [];
             foreach ($senderIds as $senderId) {
                 if ($senderId->providerHandle === $provider->handle) {
-                    $senderIdsByProvider[$provider->id][] = [
-                        'id' => $senderId->id,
+                    $senderIdsByProvider[$provider->handle][] = [
                         'handle' => $senderId->handle,
                         'name' => $senderId->name,
                         'senderId' => $senderId->senderId,
@@ -161,20 +159,21 @@ class SettingsController extends Controller
             }
         }
 
-        // Build initial sender ID options for the default provider
-        if ($defaultProviderId && isset($senderIdsByProvider[$defaultProviderId])) {
-            foreach ($senderIdsByProvider[$defaultProviderId] as $senderId) {
+        // Build initial sender ID options for the pre-selected provider.
+        $initialSenderIdHandle = null;
+        if ($initialProviderHandle !== null && isset($senderIdsByProvider[$initialProviderHandle])) {
+            foreach ($senderIdsByProvider[$initialProviderHandle] as $senderId) {
                 $label = $senderId['name'];
                 if ($senderId['isDefault']) {
                     $label .= ' (Default)';
-                    $defaultSenderIdId = $senderId['id'];
+                    $initialSenderIdHandle = $senderId['handle'];
                 }
                 if ($senderId['isDev']) {
                     $label .= ' [Dev]';
                 }
                 $senderIdOptions[] = [
                     'label' => $label,
-                    'value' => $senderId['id'],
+                    'value' => $senderId['handle'],
                 ];
             }
         }
@@ -189,8 +188,8 @@ class SettingsController extends Controller
             'providersWithDevKey' => $providersWithDevKey,
             'providerApiKeys' => $providerApiKeys,
             'providerAllowedCountries' => $providerAllowedCountries,
-            'defaultProviderId' => $defaultProviderId,
-            'defaultSenderIdId' => $defaultSenderIdId,
+            'initialProviderHandle' => $initialProviderHandle,
+            'initialSenderIdHandle' => $initialSenderIdHandle,
         ]);
     }
 
@@ -207,20 +206,21 @@ class SettingsController extends Controller
 
         $request = Craft::$app->getRequest();
 
-        $providerId = (int)$request->getRequiredBodyParam('providerId');
-        $senderIdId = (int)$request->getRequiredBodyParam('senderIdId');
-        $recipient = $request->getRequiredBodyParam('recipient');
-        $message = $request->getRequiredBodyParam('message');
-        $language = $request->getBodyParam('language', 'en');
+        $senderIdHandle = (string) $request->getRequiredBodyParam('senderIdHandle');
+        $recipient = (string) $request->getRequiredBodyParam('recipient');
+        $message = (string) $request->getRequiredBodyParam('message');
+        $language = (string) $request->getBodyParam('language', 'en');
 
-        // Send via SMS service with source tracking (logs to analytics and logs)
-        $result = SmsManager::$plugin->sms->sendWithDetails(
+        // Route via handle so config-only senders dispatch to themselves
+        // instead of silently falling through to the default sender — the
+        // form's option values are handles, so this is the only marshaling
+        // that round-trips correctly for both DB and config-backed records.
+        $result = SmsManager::$plugin->sms->sendWithHandleDetails(
             $recipient,
             $message,
+            $senderIdHandle,
             $language,
-            $providerId,
-            $senderIdId,
-            'sms-manager-test' // Source plugin for filtering in analytics
+            'sms-manager-test',
         );
 
         return $this->asJson($result);
