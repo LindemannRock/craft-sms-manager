@@ -59,7 +59,7 @@
                 id: 'testProvider',
                 name: 'testProvider',
                 options: providerOptions,
-                value: defaultProviderId,
+                value: initialProviderHandle,
             }) }}
 
             {{ forms.selectField({
@@ -68,7 +68,7 @@
                 id: 'testSenderId',
                 name: 'testSenderId',
                 options: senderIdOptions,
-                value: defaultSenderIdId,
+                value: initialSenderIdHandle,
             }) }}
 
             <div id="apiKeyInfo" style="display: none;">
@@ -179,8 +179,8 @@ const apiKeyInfoMessage = document.getElementById('apiKeyInfoMessage');
 // Update country dropdown based on provider's allowed countries
 // Uses lrPhoneInput component's updateAllowedCountries method
 function updateCountryDropdown() {
-    const providerId = testProviderSelect.value;
-    const allowedCountries = providerAllowedCountries[providerId] || [];
+    const providerHandle = testProviderSelect.value;
+    const allowedCountries = providerAllowedCountries[providerHandle] || [];
     const isAllCountries = allowedCountries.includes('*') || allowedCountries.length === 0;
 
     // Build dial codes array for this provider
@@ -199,13 +199,13 @@ function updateCountryDropdown() {
 
 // Update API key info based on selected sender ID
 function updateApiKeyInfo() {
-    const providerId = testProviderSelect.value;
-    const senderIdId = testSenderIdSelect.value;
-    const senderIds = senderIdsByProvider[providerId] || [];
-    const selectedSenderId = senderIds.find(s => s.id == senderIdId);
-    const hasDevKey = providersWithDevKey[providerId] || false;
-    const apiKeys = providerApiKeys[providerId] || { main: '', dev: '' };
-    const allowedCountries = providerAllowedCountries[providerId] || [];
+    const providerHandle = testProviderSelect.value;
+    const senderIdHandle = testSenderIdSelect.value;
+    const senderIds = senderIdsByProvider[providerHandle] || [];
+    const selectedSenderId = senderIds.find(s => s.handle === senderIdHandle);
+    const hasDevKey = providersWithDevKey[providerHandle] || false;
+    const apiKeys = providerApiKeys[providerHandle] || { main: '', dev: '' };
+    const allowedCountries = providerAllowedCountries[providerHandle] || [];
 
     if (selectedSenderId) {
         apiKeyInfo.style.display = 'block';
@@ -247,14 +247,14 @@ function updateApiKeyInfo() {
 // Update sender ID dropdown when provider changes
 if (testProviderSelect) {
     testProviderSelect.addEventListener('change', function() {
-        const providerId = this.value;
-        const senderIds = senderIdsByProvider[providerId] || [];
+        const providerHandle = this.value;
+        const senderIds = senderIdsByProvider[providerHandle] || [];
 
         // Clear and rebuild sender ID options
         testSenderIdSelect.innerHTML = '';
         senderIds.forEach(function(senderId) {
             const option = document.createElement('option');
-            option.value = senderId.id;
+            option.value = senderId.handle;
             option.textContent = senderId.name + (senderId.isDefault ? ' (Default)' : '') + (senderId.isDev ? ' [Dev]' : '');
             testSenderIdSelect.appendChild(option);
         });
@@ -262,7 +262,7 @@ if (testProviderSelect) {
         // Select default if available
         const defaultSenderId = senderIds.find(s => s.isDefault);
         if (defaultSenderId) {
-            testSenderIdSelect.value = defaultSenderId.id;
+            testSenderIdSelect.value = defaultSenderId.handle;
         }
 
         // Update country dropdown
@@ -334,8 +334,7 @@ if (testMessageInput) {
 // Send test SMS
 if (testButton) {
     testButton.addEventListener('click', function() {
-        const providerId = testProviderSelect.value;
-        const senderIdId = testSenderIdSelect.value;
+        const senderIdHandle = testSenderIdSelect.value;
         const localNumber = window.lrPhoneInput.getLocalNumber('testRecipient');
         const recipient = window.lrPhoneInput.getFullNumber('testRecipient');
         const message = testMessageInput.value.trim();
@@ -379,8 +378,7 @@ if (testButton) {
                 'X-CSRF-Token': '{{ craft.app.request.csrfToken }}',
             },
             body: JSON.stringify({
-                providerId: providerId,
-                senderIdId: senderIdId,
+                senderIdHandle: senderIdHandle,
                 recipient: recipient,
                 message: message,
                 language: language
