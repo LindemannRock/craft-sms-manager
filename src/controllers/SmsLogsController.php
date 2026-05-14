@@ -283,15 +283,29 @@ class SmsLogsController extends Controller
 
     /**
      * Batch-load providers + sender IDs referenced by a log result set.
-     * Returns [$providersById, $senderIdsById] for O(1) lookup in enrichment loops.
+     *
+     * Resolves by both int FK (`providerId` / `senderIdId`) and handle
+     * snapshot (`providerHandle` / `senderIdHandle`). The handle pathway
+     * covers two cases the int FK can't:
+     *
+     *   - Config-only resources, where the record has no DB row at all
+     *     (`id` is null on the record → `providerId`/`senderIdId` is null
+     *     on the log row from the moment it was written).
+     *   - Records that got deleted after the SMS was sent, where the
+     *     `SET NULL` FK clause nulled `providerId`/`senderIdId` on the log
+     *     row but the handle snapshot survives.
+     *
+     * Audit 8.6. Returns four arrays for O(1) lookup in enrichment loops.
      *
      * @param array<int, array<string, mixed>> $logs
-     * @return array{0: array<int, ProviderRecord>, 1: array<int, SenderIdRecord>}
+     * @return array{0: array<int, ProviderRecord>, 1: array<int, SenderIdRecord>, 2: array<string, ProviderRecord>, 3: array<string, SenderIdRecord>}
      */
     private function fetchLogRelations(array $logs): array
     {
         $providerIds = array_values(array_unique(array_filter(array_column($logs, 'providerId'))));
         $senderIdIds = array_values(array_unique(array_filter(array_column($logs, 'senderIdId'))));
+        $providerHandles = array_values(array_unique(array_filter(array_column($logs, 'providerHandle'))));
+        $senderHandles = array_values(array_unique(array_filter(array_column($logs, 'senderIdHandle'))));
 
         /** @var array<int, ProviderRecord> $providersById */
         $providersById = $providerIds
@@ -302,7 +316,28 @@ class SmsLogsController extends Controller
             ? SenderIdRecord::find()->where(['id' => $senderIdIds])->indexBy('id')->all()
             : [];
 
-        return [$providersById, $senderIdsById];
+        // Handle lookups go through `findByHandleWithConfig()` (not a flat
+        // DB query) because the resource might be config-only. The helper
+        // checks the sms-manager config file first, falls back to the DB.
+        // Iterating the unique handle set keeps this O(distinct_handles)
+        // — fine for log views.
+        $providersByHandle = [];
+        foreach ($providerHandles as $handle) {
+            $record = ProviderRecord::findByHandleWithConfig($handle);
+            if ($record) {
+                $providersByHandle[$handle] = $record;
+            }
+        }
+
+        $senderIdsByHandle = [];
+        foreach ($senderHandles as $handle) {
+            $record = SenderIdRecord::findByHandleWithConfig($handle);
+            if ($record) {
+                $senderIdsByHandle[$handle] = $record;
+            }
+        }
+
+        return [$providersById, $senderIdsById, $providersByHandle, $senderIdsByHandle];
     }
 
     /**
@@ -313,11 +348,21 @@ class SmsLogsController extends Controller
      */
     private function enrichLogsWithRelations(array &$logs): void
     {
-        [$providersById, $senderIdsById] = $this->fetchLogRelations($logs);
+        [$providersById, $senderIdsById, $providersByHandle, $senderIdsByHandle] = $this->fetchLogRelations($logs);
 
         foreach ($logs as &$log) {
+            // Try the int FK first; fall back to the handle snapshot for
+            // config-only / deleted-record cases (see fetchLogRelations()).
             $provider = $providersById[$log['providerId']] ?? null;
+            if (!$provider && !empty($log['providerHandle'])) {
+                $provider = $providersByHandle[$log['providerHandle']] ?? null;
+            }
+
             $senderId = $senderIdsById[$log['senderIdId']] ?? null;
+            if (!$senderId && !empty($log['senderIdHandle'])) {
+                $senderId = $senderIdsByHandle[$log['senderIdHandle']] ?? null;
+            }
+
             $log['providerName'] = $provider ? $provider->name : 'Unknown';
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
             $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
@@ -362,12 +407,22 @@ class SmsLogsController extends Controller
 
         $logs = $query->all();
 
-        [$providersById, $senderIdsById] = $this->fetchLogRelations($logs);
+        [$providersById, $senderIdsById, $providersByHandle, $senderIdsByHandle] = $this->fetchLogRelations($logs);
 
         $rows = [];
         foreach ($logs as $log) {
+            // Same id-first-then-handle resolution as enrichLogsWithRelations()
+            // — config-only or deleted records keep showing their real
+            // names in exported reports.
             $provider = $providersById[$log['providerId']] ?? null;
+            if (!$provider && !empty($log['providerHandle'])) {
+                $provider = $providersByHandle[$log['providerHandle']] ?? null;
+            }
+
             $senderId = $senderIdsById[$log['senderIdId']] ?? null;
+            if (!$senderId && !empty($log['senderIdHandle'])) {
+                $senderId = $senderIdsByHandle[$log['senderIdHandle']] ?? null;
+            }
 
             $rows[] = [
                 'dateCreated' => $log['dateCreated'],

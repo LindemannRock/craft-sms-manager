@@ -326,6 +326,13 @@ class SmsService extends Component
         $log = new SmsLogRecord([
             'providerId' => $provider->id,
             'senderIdId' => $senderId->id,
+            // Handle snapshots — captured alongside the int FKs so the
+            // logs UI can still identify config-only resources (where
+            // `id` is null because the record has no DB row) and resources
+            // that get deleted later (where the int FK becomes null via
+            // the SET NULL constraint but the handle survives). Audit 8.6.
+            'providerHandle' => $provider->handle,
+            'senderIdHandle' => $senderId->handle,
             'recipient' => $to,
             'message' => $message,
             'language' => $language,

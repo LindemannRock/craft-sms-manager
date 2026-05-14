@@ -22,6 +22,8 @@ use craft\db\ActiveRecord;
  * @property int $id
  * @property int|null $providerId
  * @property int|null $senderIdId
+ * @property string|null $providerHandle
+ * @property string|null $senderIdHandle
  * @property string $recipient
  * @property string|null $message
  * @property string|null $language
