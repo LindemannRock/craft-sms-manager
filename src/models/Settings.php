@@ -256,6 +256,31 @@ class Settings extends Model
     }
 
     /**
+     * @inheritdoc
+     */
+    public function attributeLabels(): array
+    {
+        return [
+            'pluginName' => Craft::t('sms-manager', 'Plugin Name'),
+            'defaultProviderId' => Craft::t('sms-manager', 'Default Provider'),
+            'defaultSenderIdId' => Craft::t('sms-manager', 'Default Sender ID'),
+            'defaultProviderHandle' => Craft::t('sms-manager', 'Default Provider'),
+            'defaultSenderIdHandle' => Craft::t('sms-manager', 'Default Sender ID'),
+            'enableAnalytics' => Craft::t('sms-manager', 'Enable Analytics'),
+            'analyticsLimit' => Craft::t('sms-manager', 'Analytics Limit'),
+            'analyticsRetention' => Craft::t('sms-manager', 'Analytics Retention (Days)'),
+            'autoTrimAnalytics' => Craft::t('sms-manager', 'Auto Trim Analytics'),
+            'enableSmsLogs' => Craft::t('sms-manager', 'Enable Delivery Logs'),
+            'smsLogsLimit' => Craft::t('sms-manager', 'Logs Limit'),
+            'smsLogsRetention' => Craft::t('sms-manager', 'Logs Retention (Days)'),
+            'autoTrimSmsLogs' => Craft::t('sms-manager', 'Auto Trim Logs'),
+            'itemsPerPage' => Craft::t('sms-manager', 'Items Per Page'),
+            'refreshIntervalSecs' => Craft::t('sms-manager', 'Dashboard Refresh Interval'),
+            'logLevel' => Craft::t('sms-manager', 'Log Level'),
+        ];
+    }
+
+    /**
      * Validate log level - debug requires devMode
      */
     public function validateLogLevel(string $attribute): void

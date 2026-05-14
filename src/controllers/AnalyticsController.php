@@ -56,12 +56,31 @@ class AnalyticsController extends Controller
         $request = Craft::$app->getRequest();
         $settings = SmsManager::$plugin->getSettings();
 
-        // Get filter parameters
-        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
-        $providerId = $request->getQueryParam('provider', 'all');
-        $senderIdId = $request->getQueryParam('senderId', 'all');
+        // Load filter dropdowns up front so they can also seed the
+        // provider / sender ID allowlists below.
+        $providers = SmsManager::$plugin->providers->getAllProviders();
+        $senderIds = SmsManager::$plugin->senderIds->getAllSenderIds();
 
-        // Calculate date range (supports all options: thisMonth, lastYear, etc.)
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
+
+        $providerId = (string) $request->getQueryParam('provider', 'all');
+        $validProviderIds = ['all'];
+        foreach ($providers as $p) {
+            $validProviderIds[] = (string) $p->id;
+        }
+        if (!in_array($providerId, $validProviderIds, true)) {
+            $providerId = 'all';
+        }
+
+        $senderIdId = (string) $request->getQueryParam('senderId', 'all');
+        $validSenderIdIds = ['all'];
+        foreach ($senderIds as $s) {
+            $validSenderIdIds[] = (string) $s->id;
+        }
+        if (!in_array($senderIdId, $validSenderIdIds, true)) {
+            $senderIdId = 'all';
+        }
+
         $bounds = DateRangeHelper::getBounds($dateRange);
         $startDate = $bounds['start'] ?? null;
         $endDate = $bounds['end'] ?? null;
@@ -79,11 +98,11 @@ class AnalyticsController extends Controller
         }
 
         if ($providerId !== 'all') {
-            $query->andWhere(['providerId' => $providerId]);
+            $query->andWhere(['providerId' => (int) $providerId]);
         }
 
         if ($senderIdId !== 'all') {
-            $query->andWhere(['senderIdId' => $senderIdId]);
+            $query->andWhere(['senderIdId' => (int) $senderIdId]);
         }
 
         // Get summary stats
@@ -109,15 +128,12 @@ class AnalyticsController extends Controller
             ->groupBy(['providerId'])
             ->all();
 
-        // Enrich provider data with names
+        $providersById = $this->providersByIdFromRows($providerData);
         foreach ($providerData as &$row) {
-            $provider = ProviderRecord::findOne($row['providerId']);
+            $provider = $providersById[$row['providerId']] ?? null;
             $row['providerName'] = $provider ? $provider->name : 'Unknown';
         }
-
-        // Get providers and sender IDs for filters
-        $providers = SmsManager::$plugin->providers->getAllProviders();
-        $senderIds = SmsManager::$plugin->senderIds->getAllSenderIds();
+        unset($row);
 
         // Calculate totals
         $totalSent = (int)($summaryStats['sent'] ?? 0);
@@ -156,6 +172,7 @@ class AnalyticsController extends Controller
      */
     public function actionGetData(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
         $this->requirePermission('smsManager:viewAnalytics');
 
@@ -168,7 +185,14 @@ class AnalyticsController extends Controller
         }
 
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
-        $providerId = $request->getBodyParam('providerId', 'all');
+
+        // providerId is either the literal 'all' or a numeric provider ID.
+        // Anything else collapses to 'all' so non-existent IDs don't silently
+        // return zero-result queries.
+        $providerIdRaw = $request->getBodyParam('providerId', 'all');
+        $providerId = $providerIdRaw === 'all' || !is_numeric($providerIdRaw)
+            ? 'all'
+            : (string) (int) $providerIdRaw;
 
         // Calculate date range (supports all options: thisMonth, lastYear, etc.)
         $bounds = DateRangeHelper::getBounds($dateRange);
@@ -303,11 +327,12 @@ class AnalyticsController extends Controller
 
         $data = $query->all();
 
+        $providersById = $this->providersByIdFromRows($data);
         $labels = [];
         $values = [];
 
         foreach ($data as $row) {
-            $provider = ProviderRecord::findOne($row['providerId']);
+            $provider = $providersById[$row['providerId']] ?? null;
             $labels[] = $provider ? $provider->name : 'Unknown';
             $values[] = (int)$row['sent'] + (int)$row['failed'];
         }
@@ -345,12 +370,13 @@ class AnalyticsController extends Controller
 
         $data = $query->all();
 
+        $senderIdsById = $this->senderIdsByIdFromRows($data);
         $labels = [];
         $sent = [];
         $failed = [];
 
         foreach ($data as $row) {
-            $senderId = SenderIdRecord::findOne($row['senderIdId']);
+            $senderId = $senderIdsById[$row['senderIdId']] ?? null;
             $labels[] = $senderId ? $senderId->name : 'Unknown';
             $sent[] = (int)$row['sent'];
             $failed[] = (int)$row['failed'];
@@ -390,8 +416,9 @@ class AnalyticsController extends Controller
 
         $data = $query->all();
 
+        $senderIdsById = $this->senderIdsByIdFromRows($data);
         foreach ($data as &$row) {
-            $senderId = SenderIdRecord::findOne($row['senderIdId']);
+            $senderId = $senderIdsById[$row['senderIdId']] ?? null;
             $row['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
             $row['sent'] = (int)$row['sent'];
             $row['failed'] = (int)$row['failed'];
@@ -618,6 +645,44 @@ class AnalyticsController extends Controller
     }
 
     /**
+     * Batch-load ProviderRecord instances referenced by a set of rows.
+     *
+     * @param array<int, array<string, mixed>> $rows
+     * @return array<int, ProviderRecord>
+     */
+    private function providersByIdFromRows(array $rows, string $key = 'providerId'): array
+    {
+        $ids = array_values(array_unique(array_filter(array_column($rows, $key))));
+        if (!$ids) {
+            return [];
+        }
+
+        /** @var array<int, ProviderRecord> $records */
+        $records = ProviderRecord::find()->where(['id' => $ids])->indexBy('id')->all();
+
+        return $records;
+    }
+
+    /**
+     * Batch-load SenderIdRecord instances referenced by a set of rows.
+     *
+     * @param array<int, array<string, mixed>> $rows
+     * @return array<int, SenderIdRecord>
+     */
+    private function senderIdsByIdFromRows(array $rows, string $key = 'senderIdId'): array
+    {
+        $ids = array_values(array_unique(array_filter(array_column($rows, $key))));
+        if (!$ids) {
+            return [];
+        }
+
+        /** @var array<int, SenderIdRecord> $records */
+        $records = SenderIdRecord::find()->where(['id' => $ids])->indexBy('id')->all();
+
+        return $records;
+    }
+
+    /**
      * Export analytics data
      *
      * @return Response
@@ -657,11 +722,13 @@ class AnalyticsController extends Controller
 
         $data = $query->all();
 
-        // Build export rows with provider/sender names
+        $providersById = $this->providersByIdFromRows($data);
+        $senderIdsById = $this->senderIdsByIdFromRows($data);
+
         $rows = [];
         foreach ($data as $row) {
-            $provider = ProviderRecord::findOne($row['providerId']);
-            $senderId = SenderIdRecord::findOne($row['senderIdId']);
+            $provider = $providersById[$row['providerId']] ?? null;
+            $senderId = $senderIdsById[$row['senderIdId']] ?? null;
 
             $rows[] = [
                 'date' => $row['date'],
@@ -710,37 +777,5 @@ class AnalyticsController extends Controller
             ]),
             default => throw new BadRequestHttpException("Unknown export format: {$format}"),
         };
-    }
-
-    /**
-     * Clear analytics data
-     *
-     * @return Response
-     * @since 5.2.0
-     */
-    public function actionClear(): Response
-    {
-        $this->requirePostRequest();
-        $this->requirePermission('smsManager:clearAnalytics');
-
-        $request = Craft::$app->getRequest();
-        $olderThan = $request->getBodyParam('olderThan');
-
-        $query = AnalyticsRecord::find();
-        $cutoffDate = null;
-
-        if ($olderThan) {
-            $cutoffDate = (new \DateTime())->modify("-{$olderThan} days");
-            $query->where(['<', 'date', Db::prepareDateForDb($cutoffDate)]);
-        }
-
-        $count = $query->count();
-        AnalyticsRecord::deleteAll($cutoffDate ? ['<', 'date', Db::prepareDateForDb($cutoffDate)] : []);
-
-        $this->logInfo('Analytics cleared', ['count' => $count, 'olderThan' => $olderThan]);
-
-        Craft::$app->getSession()->setNotice(Craft::t('sms-manager', '{count} analytics records deleted.', ['count' => $count]));
-
-        return $this->redirect('sms-manager/analytics');
     }
 }

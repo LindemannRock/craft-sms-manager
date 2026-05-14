@@ -120,14 +120,26 @@ class DashboardController extends Controller
             ->limit(10)
             ->all();
 
-        // Enrich recent logs with provider/sender names
+        $providerIds = array_values(array_unique(array_filter(array_column($recentLogs, 'providerId'))));
+        $senderIdIds = array_values(array_unique(array_filter(array_column($recentLogs, 'senderIdId'))));
+
+        /** @var array<int, ProviderRecord> $providersById */
+        $providersById = $providerIds
+            ? ProviderRecord::find()->where(['id' => $providerIds])->indexBy('id')->all()
+            : [];
+        /** @var array<int, SenderIdRecord> $senderIdsById */
+        $senderIdsById = $senderIdIds
+            ? SenderIdRecord::find()->where(['id' => $senderIdIds])->indexBy('id')->all()
+            : [];
+
         foreach ($recentLogs as &$log) {
-            $provider = ProviderRecord::findOne($log['providerId']);
-            $senderId = SenderIdRecord::findOne($log['senderIdId']);
+            $provider = $providersById[$log['providerId']] ?? null;
+            $senderId = $senderIdsById[$log['senderIdId']] ?? null;
             $log['providerName'] = $provider ? $provider->name : 'Unknown';
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
             $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
         }
+        unset($log);
 
         return $this->renderTemplate('sms-manager/dashboard/index', [
             'settings' => $settings,

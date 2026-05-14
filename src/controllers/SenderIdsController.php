@@ -581,6 +581,7 @@ class SenderIdsController extends Controller
     public function actionBulkEnable(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:editSenderIds');
 
         $senderIdIds = Craft::$app->getRequest()->getRequiredBodyParam('senderIdIds');
@@ -621,6 +622,7 @@ class SenderIdsController extends Controller
     public function actionBulkDisable(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:editSenderIds');
 
         $senderIdIds = Craft::$app->getRequest()->getRequiredBodyParam('senderIdIds');
@@ -667,6 +669,7 @@ class SenderIdsController extends Controller
     public function actionBulkDelete(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:deleteSenderIds');
 
         $senderIdIds = Craft::$app->getRequest()->getRequiredBodyParam('senderIdIds');

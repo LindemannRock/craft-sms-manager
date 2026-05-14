@@ -441,6 +441,7 @@ class ProvidersController extends Controller
     public function actionTestConnection(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:manageProviders');
 
         $request = Craft::$app->getRequest();
@@ -528,6 +529,7 @@ class ProvidersController extends Controller
     public function actionBulkEnable(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:editProviders');
 
         $providerIds = Craft::$app->getRequest()->getRequiredBodyParam('providerIds');
@@ -568,6 +570,7 @@ class ProvidersController extends Controller
     public function actionBulkDisable(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:editProviders');
 
         $providerIds = Craft::$app->getRequest()->getRequiredBodyParam('providerIds');
@@ -614,6 +617,7 @@ class ProvidersController extends Controller
     public function actionBulkDelete(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:deleteProviders');
 
         $providerIds = Craft::$app->getRequest()->getRequiredBodyParam('providerIds');

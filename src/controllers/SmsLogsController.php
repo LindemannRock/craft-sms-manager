@@ -89,14 +89,7 @@ class SmsLogsController extends Controller
 
         $logs = $query->all();
 
-        // Enrich with provider/sender names and actual sender ID
-        foreach ($logs as &$log) {
-            $provider = ProviderRecord::findOne($log['providerId']);
-            $senderId = SenderIdRecord::findOne($log['senderIdId']);
-            $log['providerName'] = $provider ? $provider->name : 'Unknown';
-            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
-            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
-        }
+        $this->enrichLogsWithRelations($logs);
 
         // Get log menu config from LoggingLibrary
         $logMenuItems = null;
@@ -290,6 +283,49 @@ class SmsLogsController extends Controller
     }
 
     /**
+     * Batch-load providers + sender IDs referenced by a log result set.
+     * Returns [$providersById, $senderIdsById] for O(1) lookup in enrichment loops.
+     *
+     * @param array<int, array<string, mixed>> $logs
+     * @return array{0: array<int, ProviderRecord>, 1: array<int, SenderIdRecord>}
+     */
+    private function fetchLogRelations(array $logs): array
+    {
+        $providerIds = array_values(array_unique(array_filter(array_column($logs, 'providerId'))));
+        $senderIdIds = array_values(array_unique(array_filter(array_column($logs, 'senderIdId'))));
+
+        /** @var array<int, ProviderRecord> $providersById */
+        $providersById = $providerIds
+            ? ProviderRecord::find()->where(['id' => $providerIds])->indexBy('id')->all()
+            : [];
+        /** @var array<int, SenderIdRecord> $senderIdsById */
+        $senderIdsById = $senderIdIds
+            ? SenderIdRecord::find()->where(['id' => $senderIdIds])->indexBy('id')->all()
+            : [];
+
+        return [$providersById, $senderIdsById];
+    }
+
+    /**
+     * Enrich a log result set with provider name, sender name, and sender value
+     * fields. Mutates the input array in place.
+     *
+     * @param array<int, array<string, mixed>> $logs
+     */
+    private function enrichLogsWithRelations(array &$logs): void
+    {
+        [$providersById, $senderIdsById] = $this->fetchLogRelations($logs);
+
+        foreach ($logs as &$log) {
+            $provider = $providersById[$log['providerId']] ?? null;
+            $senderId = $senderIdsById[$log['senderIdId']] ?? null;
+            $log['providerName'] = $provider ? $provider->name : 'Unknown';
+            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
+        }
+    }
+
+    /**
      * View a single log
      *
      * @param int $logId
@@ -353,11 +389,12 @@ class SmsLogsController extends Controller
 
         $logs = $query->all();
 
-        // Build export rows with provider/sender names
+        [$providersById, $senderIdsById] = $this->fetchLogRelations($logs);
+
         $rows = [];
         foreach ($logs as $log) {
-            $provider = ProviderRecord::findOne($log['providerId']);
-            $senderId = SenderIdRecord::findOne($log['senderIdId']);
+            $provider = $providersById[$log['providerId']] ?? null;
+            $senderId = $senderIdsById[$log['senderIdId']] ?? null;
 
             $rows[] = [
                 'dateCreated' => $log['dateCreated'],
@@ -413,36 +450,6 @@ class SmsLogsController extends Controller
     }
 
     /**
-     * Clear logs
-     *
-     * @return Response
-     */
-    public function actionClear(): Response
-    {
-        $this->requirePostRequest();
-        $this->requirePermission('smsManager:deleteSmsLogs');
-
-        $request = Craft::$app->getRequest();
-        $olderThan = $request->getBodyParam('olderThan');
-
-        $condition = [];
-
-        if ($olderThan) {
-            $date = (new \DateTime())->modify("-{$olderThan} days")->format('Y-m-d H:i:s');
-            $condition = ['<', 'dateCreated', $date];
-        }
-
-        $count = SmsLogRecord::find()->where($condition ?: null)->count();
-        SmsLogRecord::deleteAll($condition ?: []);
-
-        $this->logInfo('Logs cleared', ['count' => $count, 'olderThan' => $olderThan]);
-
-        Craft::$app->getSession()->setNotice(Craft::t('sms-manager', '{count} log records deleted.', ['count' => $count]));
-
-        return $this->redirect('sms-manager/dashboard');
-    }
-
-    /**
      * Delete a single log
      *
      * @return Response
@@ -450,6 +457,7 @@ class SmsLogsController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:deleteSmsLogs');
 
         $logId = Craft::$app->getRequest()->getRequiredBodyParam('logId');
@@ -482,25 +490,28 @@ class SmsLogsController extends Controller
         $totalCount = $query->count();
         $totalPages = $totalCount > 0 ? (int) ceil($totalCount / $params['limit']) : 1;
 
+        // Status badges must reflect the same filter set as the table —
+        // run them on a clone of the filtered query, before pagination is
+        // applied. Single GROUP BY query replaces 3 unfiltered COUNTs.
+        $statusCountRows = (clone $query)
+            ->select(['status', 'cnt' => 'COUNT(*)'])
+            ->groupBy('status')
+            ->orderBy([])
+            ->all();
+        $statusCounts = array_column($statusCountRows, 'cnt', 'status');
+        $sentCount = (int) ($statusCounts['sent'] ?? 0);
+        $failedCount = (int) ($statusCounts['failed'] ?? 0);
+        $pendingCount = (int) ($statusCounts['pending'] ?? 0);
+
         $query->limit($params['limit'])->offset($params['offset']);
 
         $logs = $query->all();
 
-        // Enrich with provider/sender names and format dates
+        $this->enrichLogsWithRelations($logs);
         foreach ($logs as &$log) {
-            $provider = ProviderRecord::findOne($log['providerId']);
-            $senderId = SenderIdRecord::findOne($log['senderIdId']);
-            $log['providerName'] = $provider ? $provider->name : 'Unknown';
-            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
-            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
-            // Format date for display using centralized DateTimeHelper
             $log['datetimeFormatted'] = DateFormatHelper::formatDatetime($log['dateCreated'], 'medium');
         }
-
-        // Get status counts
-        $sentCount = (new Query())->from(SmsLogRecord::tableName())->where(['status' => 'sent'])->count();
-        $failedCount = (new Query())->from(SmsLogRecord::tableName())->where(['status' => 'failed'])->count();
-        $pendingCount = (new Query())->from(SmsLogRecord::tableName())->where(['status' => 'pending'])->count();
+        unset($log);
 
         return $this->asJson([
             'success' => true,
@@ -525,6 +536,7 @@ class SmsLogsController extends Controller
     public function actionBulkDelete(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:deleteSmsLogs');
 
         $logIds = Craft::$app->getRequest()->getBodyParam('logIds', []);
@@ -571,6 +583,7 @@ class SmsLogsController extends Controller
     public function actionDeleteAll(): Response
     {
         $this->requirePostRequest();
+        $this->requireAcceptsJson();
         $this->requirePermission('smsManager:deleteSmsLogs');
 
         try {
