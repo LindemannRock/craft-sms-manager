@@ -22,7 +22,6 @@ use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\BadRequestHttpException;
-use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
@@ -323,32 +322,6 @@ class SmsLogsController extends Controller
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
             $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
         }
-    }
-
-    /**
-     * View a single log
-     *
-     * @param int $logId
-     * @return Response
-     */
-    public function actionView(int $logId): Response
-    {
-        $this->requirePermission('smsManager:viewSmsLogs');
-
-        $log = SmsLogRecord::findOne($logId);
-
-        if (!$log) {
-            throw new NotFoundHttpException('Log not found');
-        }
-
-        $provider = ProviderRecord::findOne($log->providerId);
-        $senderId = SenderIdRecord::findOne($log->senderIdId);
-
-        return $this->renderTemplate('sms-manager/logs/view', [
-            'log' => $log,
-            'provider' => $provider,
-            'senderId' => $senderId,
-        ]);
     }
 
     /**
