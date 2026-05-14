@@ -161,6 +161,7 @@ class SmsService extends Component
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID (e.g., Formie submission id) for log attribution
      * @return bool
+     * @since 5.7.0
      */
     public function sendWithHandle(
         string $to,
@@ -214,6 +215,7 @@ class SmsService extends Component
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID for log attribution
      * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
+     * @since 5.12.0
      */
     public function sendWithHandleDetails(
         string $to,
