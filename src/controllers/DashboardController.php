@@ -125,24 +125,30 @@ class DashboardController extends Controller
             ->limit(10)
             ->all();
 
-        $providerIds = array_values(array_unique(array_filter(array_column($recentLogs, 'providerId'))));
         $senderIdIds = array_values(array_unique(array_filter(array_column($recentLogs, 'senderIdId'))));
+        $senderIdHandles = array_values(array_unique(array_filter(array_column($recentLogs, 'senderIdHandle'))));
 
-        /** @var array<int, ProviderRecord> $providersById */
-        $providersById = $providerIds
-            ? ProviderRecord::find()->where(['id' => $providerIds])->indexBy('id')->all()
-            : [];
         /** @var array<int, SenderIdRecord> $senderIdsById */
         $senderIdsById = $senderIdIds
             ? SenderIdRecord::find()->where(['id' => $senderIdIds])->indexBy('id')->all()
             : [];
 
+        // Fall back to handle snapshot (8.6) for config-only senders and rows
+        // whose record was later deleted (SET NULL on the int FK).
+        $senderIdsByHandle = [];
+        foreach ($senderIdHandles as $handle) {
+            $record = SenderIdRecord::findByHandleWithConfig($handle);
+            if ($record) {
+                $senderIdsByHandle[$handle] = $record;
+            }
+        }
+
         foreach ($recentLogs as &$log) {
-            $provider = $providersById[$log['providerId']] ?? null;
             $senderId = $senderIdsById[$log['senderIdId']] ?? null;
-            $log['providerName'] = $provider ? $provider->name : 'Unknown';
+            if (!$senderId && !empty($log['senderIdHandle'])) {
+                $senderId = $senderIdsByHandle[$log['senderIdHandle']] ?? null;
+            }
             $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
-            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
         }
         unset($log);
 
