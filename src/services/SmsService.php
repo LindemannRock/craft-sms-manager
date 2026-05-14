@@ -159,6 +159,7 @@ class SmsService extends Component
      * @param string $senderIdHandle Sender ID handle
      * @param string $language Message language
      * @param string|null $sourcePlugin Source plugin handle
+     * @param int|null $sourceElementId Source element ID (e.g., Formie submission id) for log attribution
      * @return bool
      */
     public function sendWithHandle(
@@ -167,6 +168,7 @@ class SmsService extends Component
         string $senderIdHandle,
         string $language = 'en',
         ?string $sourcePlugin = null,
+        ?int $sourceElementId = null,
     ): bool {
         $plugin = SmsManager::$plugin;
 
@@ -193,7 +195,7 @@ class SmsService extends Component
             return false;
         }
 
-        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, null)['success'];
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId)['success'];
     }
 
     /**
@@ -210,6 +212,7 @@ class SmsService extends Component
      * @param string $senderIdHandle Sender ID handle
      * @param string $language Message language
      * @param string|null $sourcePlugin Source plugin handle
+     * @param int|null $sourceElementId Source element ID for log attribution
      * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
      */
     public function sendWithHandleDetails(
@@ -218,6 +221,7 @@ class SmsService extends Component
         string $senderIdHandle,
         string $language = 'en',
         ?string $sourcePlugin = null,
+        ?int $sourceElementId = null,
     ): array {
         $startTime = microtime(true);
         $plugin = SmsManager::$plugin;
@@ -261,7 +265,7 @@ class SmsService extends Component
             ];
         }
 
-        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, null);
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId);
     }
 
     /**
