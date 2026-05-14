@@ -10,9 +10,10 @@ namespace lindemannrock\smsmanager\controllers;
 
 use Craft;
 use craft\db\Query;
-use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\web\Controller;
 use lindemannrock\base\helpers\CpNavHelper;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\records\SmsLogRecord;
@@ -56,32 +57,37 @@ class DashboardController extends Controller
             throw new ForbiddenHttpException('You do not have permission to access this area.');
         }
 
-        // Get today's date boundaries
-        $today = DateTimeHelper::toDateTime('today');
-        $todayStart = $today->format('Y-m-d 00:00:00');
-        $todayEnd = $today->format('Y-m-d 23:59:59');
+        // Date bounds come from the base DateRangeHelper so they live in the
+        // Craft app timezone (e.g. Kuwait UTC+3). Db::prepareDateForDb() then
+        // converts those local boundaries to the UTC string Craft uses for
+        // `dateCreated` — without it, a non-UTC install undercounts/overcounts
+        // by the timezone offset. 'today' / 'last7days' return only a start
+        // bound (no upper limit needed since no future records exist);
+        // 'yesterday' returns both bounds (start of yesterday → start of today).
+        $todayBounds = DateRangeHelper::getBounds('today');
+        $todayStart = Db::prepareDateForDb($todayBounds['start']);
 
-        // Get yesterday's date boundaries
-        $yesterday = DateTimeHelper::toDateTime('yesterday');
-        $yesterdayStart = $yesterday->format('Y-m-d 00:00:00');
-        $yesterdayEnd = $yesterday->format('Y-m-d 23:59:59');
+        $yesterdayBounds = DateRangeHelper::getBounds('yesterday');
+        $yesterdayStart = Db::prepareDateForDb($yesterdayBounds['start']);
+        $yesterdayEnd = Db::prepareDateForDb($yesterdayBounds['end']);
+
+        $last7Bounds = DateRangeHelper::getBounds('last7days');
+        $last7Days = Db::prepareDateForDb($last7Bounds['start']);
 
         // SMS Today count
         $smsToday = (new Query())
             ->from(SmsLogRecord::tableName())
             ->where(['>=', 'dateCreated', $todayStart])
-            ->andWhere(['<=', 'dateCreated', $todayEnd])
             ->count();
 
         // SMS Yesterday count (for comparison)
         $smsYesterday = (new Query())
             ->from(SmsLogRecord::tableName())
             ->where(['>=', 'dateCreated', $yesterdayStart])
-            ->andWhere(['<=', 'dateCreated', $yesterdayEnd])
+            ->andWhere(['<', 'dateCreated', $yesterdayEnd])
             ->count();
 
         // Success rate (last 7 days)
-        $last7Days = DateTimeHelper::toDateTime('-7 days')->format('Y-m-d 00:00:00');
         $totalLast7Days = (new Query())
             ->from(SmsLogRecord::tableName())
             ->where(['>=', 'dateCreated', $last7Days])
@@ -99,7 +105,6 @@ class DashboardController extends Controller
         $failedToday = (new Query())
             ->from(SmsLogRecord::tableName())
             ->where(['>=', 'dateCreated', $todayStart])
-            ->andWhere(['<=', 'dateCreated', $todayEnd])
             ->andWhere(['status' => 'failed'])
             ->count();
 
@@ -151,16 +156,5 @@ class DashboardController extends Controller
             'enabledProviders' => $enabledProviders,
             'recentLogs' => $recentLogs,
         ]);
-    }
-
-    /**
-     * Badges test page - displays all ColorHelper color sets
-     *
-     * @return Response
-     * @since 5.6.0
-     */
-    public function actionBadges(): Response
-    {
-        return $this->renderTemplate('sms-manager/badges');
     }
 }
