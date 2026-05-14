@@ -12,6 +12,8 @@ use craft\base\Component;
 use craft\helpers\StringHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
+use lindemannrock\smsmanager\records\ProviderRecord;
+use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\SmsManager;
 
@@ -59,9 +61,7 @@ class SmsService extends Component
         ?int $sourceElementId = null,
     ): bool {
         $plugin = SmsManager::$plugin;
-        $settings = $plugin->getSettings();
 
-        // Get provider
         $provider = $providerId
             ? $plugin->providers->getProviderById($providerId)
             : $plugin->providers->getDefaultProvider();
@@ -71,12 +71,6 @@ class SmsService extends Component
             return false;
         }
 
-        if (!$provider->enabled) {
-            $this->logError('Provider is disabled', ['providerId' => $provider->id, 'name' => $provider->name]);
-            return false;
-        }
-
-        // Get sender ID
         $senderId = $senderIdId
             ? $plugin->senderIds->getSenderIdById($senderIdId)
             : $plugin->senderIds->getDefaultSenderId($provider->id);
@@ -86,99 +80,7 @@ class SmsService extends Component
             return false;
         }
 
-        if (!$senderId->enabled) {
-            $this->logError('Sender ID is disabled', ['senderIdId' => $senderId->id, 'name' => $senderId->name]);
-            return false;
-        }
-
-        // Create log record
-        $log = new SmsLogRecord([
-            'providerId' => $provider->id,
-            'senderIdId' => $senderId->id,
-            'recipient' => $to,
-            'message' => $message,
-            'language' => $language,
-            'messageLength' => mb_strlen($message),
-            'status' => SmsLogRecord::STATUS_PENDING,
-            'sourcePlugin' => $sourcePlugin,
-            'sourceElementId' => $sourceElementId,
-            'uid' => StringHelper::UUID(),
-            'dateCreated' => new \DateTime(),
-            'dateUpdated' => new \DateTime(),
-        ]);
-
-        // Save log if logging is enabled. Auto-trim runs on a 24h schedule via
-        // CleanupLogsJob — keeping it off the send path so SMS dispatch isn't
-        // paying for COUNT + DELETE on every message.
-        if ($settings->enableSmsLogs) {
-            $log->save(false);
-        }
-
-        // Get provider instance
-        $providerInstance = $plugin->providers->createProviderByType($provider->type);
-
-        if (!$providerInstance) {
-            $this->logError('Unknown provider type', ['type' => $provider->type]);
-            $this->updateLogStatus($log, SmsLogRecord::STATUS_FAILED, 'Unknown provider type');
-            return false;
-        }
-
-        // Send via provider - include isDev flag in settings
-        $providerSettings = $provider->getSettingsArray();
-        $providerSettings['isDev'] = (bool)$senderId->isDev;
-
-        $result = $providerInstance->send(
-            $to,
-            $message,
-            $senderId->senderId,
-            $language,
-            $providerSettings
-        );
-
-        // Update log with result
-        if ($result['success']) {
-            $this->updateLogStatus(
-                $log,
-                SmsLogRecord::STATUS_SENT,
-                null,
-                $result['messageId'],
-                $result['response']
-            );
-
-            // Update analytics
-            if ($settings->enableAnalytics) {
-                $this->updateAnalytics($provider->id, $senderId->id, $language, true, $sourcePlugin);
-            }
-
-            $this->logInfo('SMS sent successfully', [
-                'to' => $to,
-                'provider' => $provider->name,
-                'senderId' => $senderId->name,
-            ]);
-
-            return true;
-        } else {
-            $this->updateLogStatus(
-                $log,
-                SmsLogRecord::STATUS_FAILED,
-                $result['error'],
-                $result['messageId'],
-                $result['response']
-            );
-
-            // Update analytics
-            if ($settings->enableAnalytics) {
-                $this->updateAnalytics($provider->id, $senderId->id, $language, false, $sourcePlugin);
-            }
-
-            $this->logError('SMS sending failed', [
-                'to' => $to,
-                'provider' => $provider->name,
-                'error' => $result['error'],
-            ]);
-
-            return false;
-        }
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId)['success'];
     }
 
     /**
@@ -207,9 +109,7 @@ class SmsService extends Component
     ): array {
         $startTime = microtime(true);
         $plugin = SmsManager::$plugin;
-        $settings = $plugin->getSettings();
 
-        // Get provider
         $provider = $providerId
             ? $plugin->providers->getProviderById($providerId)
             : $plugin->providers->getDefaultProvider();
@@ -229,22 +129,6 @@ class SmsService extends Component
             ];
         }
 
-        if (!$provider->enabled) {
-            $this->logError('Provider is disabled', ['providerId' => $provider->id, 'name' => $provider->name]);
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => 'Provider is disabled',
-                'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
-                'providerName' => $provider->name,
-                'senderIdName' => null,
-                'senderIdValue' => null,
-                'recipient' => $to,
-            ];
-        }
-
-        // Get sender ID
         $senderId = $senderIdId
             ? $plugin->senderIds->getSenderIdById($senderIdId)
             : $plugin->senderIds->getDefaultSenderId($provider->id);
@@ -264,6 +148,162 @@ class SmsService extends Component
             ];
         }
 
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId);
+    }
+
+    /**
+     * Send an SMS using sender ID handle (convenience method)
+     *
+     * @param string $to Recipient phone number
+     * @param string $message Message content
+     * @param string $senderIdHandle Sender ID handle
+     * @param string $language Message language
+     * @param string|null $sourcePlugin Source plugin handle
+     * @return bool
+     */
+    public function sendWithHandle(
+        string $to,
+        string $message,
+        string $senderIdHandle,
+        string $language = 'en',
+        ?string $sourcePlugin = null,
+    ): bool {
+        $plugin = SmsManager::$plugin;
+
+        $senderId = $plugin->senderIds->getSenderIdByHandle($senderIdHandle);
+
+        if (!$senderId) {
+            $this->logError('Sender ID not found', ['handle' => $senderIdHandle]);
+            return false;
+        }
+
+        // Resolve the provider via providerHandle (always populated for both
+        // DB and config-based sender IDs). providerId is null for config-only
+        // providers, so going through send()'s ID interface would silently
+        // fall back to the default provider — masking the caller's intent.
+        $provider = $senderId->providerHandle
+            ? $plugin->providers->getProviderByHandle($senderId->providerHandle)
+            : null;
+
+        if (!$provider) {
+            $this->logError('Provider not found for sender ID', [
+                'senderIdHandle' => $senderIdHandle,
+                'providerHandle' => $senderId->providerHandle,
+            ]);
+            return false;
+        }
+
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, null)['success'];
+    }
+
+    /**
+     * Send an SMS using sender ID handle and return detailed result.
+     *
+     * Handle-based counterpart of {@see sendWithDetails()}. Unlike the ID-based
+     * variant, a handle survives the DB/config split: every selectable resource
+     * has one, so callers driven by a UI dropdown (Test SMS page) can route to
+     * config-only resources without the null-ID trap that drops the call onto
+     * the default provider/sender.
+     *
+     * @param string $to Recipient phone number
+     * @param string $message Message content
+     * @param string $senderIdHandle Sender ID handle
+     * @param string $language Message language
+     * @param string|null $sourcePlugin Source plugin handle
+     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
+     */
+    public function sendWithHandleDetails(
+        string $to,
+        string $message,
+        string $senderIdHandle,
+        string $language = 'en',
+        ?string $sourcePlugin = null,
+    ): array {
+        $startTime = microtime(true);
+        $plugin = SmsManager::$plugin;
+
+        $senderId = $plugin->senderIds->getSenderIdByHandle($senderIdHandle);
+
+        if (!$senderId) {
+            $this->logError('Sender ID not found', ['handle' => $senderIdHandle]);
+            return [
+                'success' => false,
+                'messageId' => null,
+                'response' => null,
+                'error' => 'Sender ID not found: ' . $senderIdHandle,
+                'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
+                'providerName' => null,
+                'senderIdName' => null,
+                'senderIdValue' => null,
+                'recipient' => $to,
+            ];
+        }
+
+        $provider = $senderId->providerHandle
+            ? $plugin->providers->getProviderByHandle($senderId->providerHandle)
+            : null;
+
+        if (!$provider) {
+            $this->logError('Provider not found for sender ID', [
+                'senderIdHandle' => $senderIdHandle,
+                'providerHandle' => $senderId->providerHandle,
+            ]);
+            return [
+                'success' => false,
+                'messageId' => null,
+                'response' => null,
+                'error' => 'Provider not found for sender ID handle: ' . $senderIdHandle,
+                'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
+                'providerName' => null,
+                'senderIdName' => $senderId->name,
+                'senderIdValue' => $senderId->senderId,
+                'recipient' => $to,
+            ];
+        }
+
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, null);
+    }
+
+    /**
+     * Dispatch an SMS through the resolved provider and sender records.
+     *
+     * Single source of truth for the send pipeline. All public send methods
+     * resolve their inputs to records and delegate here, so the guard checks,
+     * log creation, provider invocation, and analytics update only exist once.
+     *
+     * Accepts records rather than IDs so callers with config-based resources
+     * (where id is null) route through the same path as DB-based callers.
+     *
+     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string, senderIdName: string, senderIdValue: string, recipient: string}
+     */
+    private function dispatchSms(
+        ProviderRecord $provider,
+        SenderIdRecord $senderId,
+        string $to,
+        string $message,
+        string $language,
+        ?string $sourcePlugin,
+        ?int $sourceElementId,
+    ): array {
+        $startTime = microtime(true);
+        $plugin = SmsManager::$plugin;
+        $settings = $plugin->getSettings();
+
+        if (!$provider->enabled) {
+            $this->logError('Provider is disabled', ['providerId' => $provider->id, 'name' => $provider->name]);
+            return [
+                'success' => false,
+                'messageId' => null,
+                'response' => null,
+                'error' => 'Provider is disabled',
+                'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
+                'providerName' => $provider->name,
+                'senderIdName' => $senderId->name,
+                'senderIdValue' => $senderId->senderId,
+                'recipient' => $to,
+            ];
+        }
+
         if (!$senderId->enabled) {
             $this->logError('Sender ID is disabled', ['senderIdId' => $senderId->id, 'name' => $senderId->name]);
             return [
@@ -279,7 +319,6 @@ class SmsService extends Component
             ];
         }
 
-        // Create log record
         $log = new SmsLogRecord([
             'providerId' => $provider->id,
             'senderIdId' => $senderId->id,
@@ -295,12 +334,13 @@ class SmsService extends Component
             'dateUpdated' => new \DateTime(),
         ]);
 
-        // Save log if logging is enabled. Auto-trim runs on the cleanup job.
+        // Auto-trim runs on a 24h schedule via CleanupLogsJob — keeping it
+        // off the send path so SMS dispatch isn't paying for COUNT + DELETE
+        // on every message.
         if ($settings->enableSmsLogs) {
             $log->save(false);
         }
 
-        // Get provider instance
         $providerInstance = $plugin->providers->createProviderByType($provider->type);
 
         if (!$providerInstance) {
@@ -319,7 +359,6 @@ class SmsService extends Component
             ];
         }
 
-        // Send via provider - include isDev flag in settings
         $providerSettings = $provider->getSettingsArray();
         $providerSettings['isDev'] = (bool)$senderId->isDev;
 
@@ -328,22 +367,20 @@ class SmsService extends Component
             $message,
             $senderId->senderId,
             $language,
-            $providerSettings
+            $providerSettings,
         );
 
         $executionTime = (int)round((microtime(true) - $startTime) * 1000);
 
-        // Update log with result
         if ($result['success']) {
             $this->updateLogStatus(
                 $log,
                 SmsLogRecord::STATUS_SENT,
                 null,
                 $result['messageId'],
-                $result['response']
+                $result['response'],
             );
 
-            // Update analytics
             if ($settings->enableAnalytics) {
                 $this->updateAnalytics($provider->id, $senderId->id, $language, true, $sourcePlugin);
             }
@@ -359,10 +396,9 @@ class SmsService extends Component
                 SmsLogRecord::STATUS_FAILED,
                 $result['error'],
                 $result['messageId'],
-                $result['response']
+                $result['response'],
             );
 
-            // Update analytics
             if ($settings->enableAnalytics) {
                 $this->updateAnalytics($provider->id, $senderId->id, $language, false, $sourcePlugin);
             }
@@ -385,40 +421,6 @@ class SmsService extends Component
             'senderIdValue' => $senderId->senderId,
             'recipient' => $to,
         ];
-    }
-
-    /**
-     * Send an SMS using sender ID handle (convenience method)
-     *
-     * @param string $to Recipient phone number
-     * @param string $message Message content
-     * @param string $senderIdHandle Sender ID handle
-     * @param string $language Message language
-     * @param string|null $sourcePlugin Source plugin handle
-     * @return bool
-     */
-    public function sendWithHandle(
-        string $to,
-        string $message,
-        string $senderIdHandle,
-        string $language = 'en',
-        ?string $sourcePlugin = null,
-    ): bool {
-        $senderId = SmsManager::$plugin->senderIds->getSenderIdByHandle($senderIdHandle);
-
-        if (!$senderId) {
-            $this->logError('Sender ID not found', ['handle' => $senderIdHandle]);
-            return false;
-        }
-
-        return $this->send(
-            $to,
-            $message,
-            $language,
-            $senderId->providerId,
-            $senderId->id,
-            $sourcePlugin
-        );
     }
 
     /**
@@ -453,15 +455,15 @@ class SmsService extends Component
     /**
      * Update analytics for a sent message
      *
-     * @param int $providerId Provider ID
-     * @param int $senderIdId Sender ID
+     * @param int|null $providerId Provider ID (null for config-only providers)
+     * @param int|null $senderIdId Sender ID (null for config-only senders)
      * @param string $language Message language
      * @param bool $success Whether send was successful
      * @param string|null $sourcePlugin Source plugin
      */
     private function updateAnalytics(
-        int $providerId,
-        int $senderIdId,
+        ?int $providerId,
+        ?int $senderIdId,
         string $language,
         bool $success,
         ?string $sourcePlugin,
