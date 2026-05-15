@@ -111,7 +111,7 @@ class SettingsController extends Controller
         foreach ($providers as $provider) {
             $isDefault = $provider->handle === $defaultProviderHandle;
             $providerOptions[] = [
-                'label' => $provider->name . ($isDefault ? ' (Default)' : ''),
+                'label' => $provider->name . ($isDefault ? ' (' . Craft::t('sms-manager', 'Default') . ')' : ''),
                 'value' => $provider->handle,
             ];
             $providerSettings = $provider->getSettingsArray();
@@ -165,11 +165,11 @@ class SettingsController extends Controller
             foreach ($senderIdsByProvider[$initialProviderHandle] as $senderId) {
                 $label = $senderId['name'];
                 if ($senderId['isDefault']) {
-                    $label .= ' (Default)';
+                    $label .= ' (' . Craft::t('sms-manager', 'Default') . ')';
                     $initialSenderIdHandle = $senderId['handle'];
                 }
                 if ($senderId['isDev']) {
-                    $label .= ' [Dev]';
+                    $label .= ' [' . Craft::t('sms-manager', 'Dev') . ']';
                 }
                 $senderIdOptions[] = [
                     'label' => $label,
@@ -178,9 +178,13 @@ class SettingsController extends Controller
             }
         }
 
-        // Strings used by Craft.t() in the inline JS country-not-allowed handler.
+        // Strings used by Craft.t() in the inline JS — country-not-allowed
+        // handler + the per-provider sender-ID dropdown rebuild (which appends
+        // " (Default)" / " [Dev]" suffixes to each option label).
         Craft::$app->getView()->registerTranslations('sms-manager', [
             'The pasted number is from {country}, which is not allowed by this provider.',
+            'Default',
+            'Dev',
         ]);
 
         return $this->renderTemplate('sms-manager/settings/test', [
