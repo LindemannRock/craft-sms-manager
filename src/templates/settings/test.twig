@@ -255,7 +255,7 @@ if (testProviderSelect) {
         senderIds.forEach(function(senderId) {
             const option = document.createElement('option');
             option.value = senderId.handle;
-            option.textContent = senderId.name + (senderId.isDefault ? ' (Default)' : '') + (senderId.isDev ? ' [Dev]' : '');
+            option.textContent = senderId.name + (senderId.isDefault ? ' (' + Craft.t('sms-manager', 'Default') + ')' : '') + (senderId.isDev ? ' [' + Craft.t('sms-manager', 'Dev') + ']' : '');
             testSenderIdSelect.appendChild(option);
         });
 
