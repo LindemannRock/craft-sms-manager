@@ -262,6 +262,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'Deze provider handles bestaan zowel in config/sms-manager.php als in de database:',
     'Config takes precedence; database entries with the same handle are ignored.' => 'De configuratie heeft voorrang; database-items met dezelfde handle worden genegeerd.',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'Werk uw config/sms-manager.php bij of verwijder de database-items om dit op te lossen.',
+    'Delete provider "{name}"? This cannot be undone.' => 'Provider "{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Enabled {count} providers' => '{count} providers ingeschakeld',
+    'Failed to enable providers' => 'Kon providers niet inschakelen',
+    'Disabled {count} providers' => '{count} providers uitgeschakeld',
+    'Failed to disable providers' => 'Kon providers niet uitschakelen',
+    'Deleted {count} providers' => '{count} providers verwijderd',
+    'Failed to delete providers' => 'Kon providers niet verwijderen',
+    'Delete {count} provider(s)? This cannot be undone.' => '{count} provider(s) verwijderen? Dit kan niet ongedaan worden gemaakt.',
 
     // Providers: Edit
     'The name of this provider' => 'De naam van deze provider',
@@ -308,6 +316,7 @@ return [
     // Sender IDs: Index
     'New Sender ID' => 'Nieuwe afzender-ID',
     'All Providers' => 'Alle providers',
+    'All Types' => 'Alle typen',
     'Search sender IDs...' => 'Afzender-ID\'s zoeken...',
     'sender ID' => 'afzender-ID',
     'sender IDs' => 'afzender-ID\'s',
@@ -319,6 +328,14 @@ return [
     'Please enable it or set a different sender ID as default.' => 'Schakel hem in of stel een andere afzender-ID in als standaard.',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'Geen standaard afzender-ID geconfigureerd. Stel een van de afzender-ID\'s in als standaard.',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'Deze afzender-ID handles bestaan zowel in config/sms-manager.php als in de database:',
+    'Delete sender ID "{name}"? This cannot be undone.' => 'Afzender-ID "{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Enabled {count} sender IDs' => '{count} afzender-IDs ingeschakeld',
+    'Failed to enable sender IDs' => 'Kon afzender-IDs niet inschakelen',
+    'Disabled {count} sender IDs' => '{count} afzender-IDs uitgeschakeld',
+    'Failed to disable sender IDs' => 'Kon afzender-IDs niet uitschakelen',
+    'Deleted {count} sender IDs' => '{count} afzender-IDs verwijderd',
+    'Failed to delete sender IDs' => 'Kon afzender-IDs niet verwijderen',
+    'Delete {count} sender ID(s)? This cannot be undone.' => '{count} afzender-ID(s) verwijderen? Dit kan niet ongedaan worden gemaakt.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'De provider waartoe deze afzender-ID behoort',
@@ -407,10 +424,16 @@ return [
     'Search logs...' => 'Logboeken zoeken...',
     'Date Range' => 'Datumbereik',
     'log' => 'logboek',
+    'logs' => 'logboeken',
     'No logs found.' => 'Geen logboeken gevonden.',
     'Full Message' => 'Volledig bericht',
     'Error' => 'Fout',
     'Direct' => 'Direct',
+    'Log deleted successfully.' => 'Logboek succesvol verwijderd.',
+    'Logs deleted successfully.' => 'Logboeken succesvol verwijderd.',
+    'Failed to delete log.' => 'Kon logboek niet verwijderen.',
+    'Are you sure you want to delete this log?' => 'Weet u zeker dat u dit logboek wilt verwijderen?',
+    'Are you sure you want to delete {count} log(s)?' => 'Weet u zeker dat u {count} logboek(en) wilt verwijderen?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'SMS-providers en afzender-ID\'s beheren en analysegegevens wissen.',

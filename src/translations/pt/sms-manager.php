@@ -262,6 +262,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'Esses handles de fornecedor existem tanto em config/sms-manager.php quanto no banco de dados:',
     'Config takes precedence; database entries with the same handle are ignored.' => 'A configuração tem precedência; as entradas do banco de dados com o mesmo handle são ignoradas.',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'Atualize seu config/sms-manager.php ou remova as entradas do banco de dados para resolver isso.',
+    'Delete provider "{name}"? This cannot be undone.' => 'Eliminar o fornecedor "{name}"? Esta ação não pode ser desfeita.',
+    'Enabled {count} providers' => '{count} fornecedores ativados',
+    'Failed to enable providers' => 'Não foi possível ativar os fornecedores',
+    'Disabled {count} providers' => '{count} fornecedores desativados',
+    'Failed to disable providers' => 'Não foi possível desativar os fornecedores',
+    'Deleted {count} providers' => '{count} fornecedores eliminados',
+    'Failed to delete providers' => 'Não foi possível eliminar os fornecedores',
+    'Delete {count} provider(s)? This cannot be undone.' => 'Eliminar {count} fornecedor(es)? Esta ação não pode ser desfeita.',
 
     // Providers: Edit
     'The name of this provider' => 'O nome deste fornecedor',
@@ -308,6 +316,7 @@ return [
     // Sender IDs: Index
     'New Sender ID' => 'Novo ID de remetente',
     'All Providers' => 'Todos os fornecedores',
+    'All Types' => 'Todos os tipos',
     'Search sender IDs...' => 'Pesquisar IDs de remetente...',
     'sender ID' => 'ID de remetente',
     'sender IDs' => 'IDs de remetente',
@@ -319,6 +328,14 @@ return [
     'Please enable it or set a different sender ID as default.' => 'Habilite-o ou defina outro ID de remetente como padrão.',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'Nenhum ID de remetente padrão configurado. Defina um dos IDs de remetente como padrão.',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'Esses handles de ID de remetente existem tanto em config/sms-manager.php quanto no banco de dados:',
+    'Delete sender ID "{name}"? This cannot be undone.' => 'Eliminar o ID de remetente "{name}"? Esta ação não pode ser desfeita.',
+    'Enabled {count} sender IDs' => '{count} IDs de remetente ativados',
+    'Failed to enable sender IDs' => 'Não foi possível ativar os IDs de remetente',
+    'Disabled {count} sender IDs' => '{count} IDs de remetente desativados',
+    'Failed to disable sender IDs' => 'Não foi possível desativar os IDs de remetente',
+    'Deleted {count} sender IDs' => '{count} IDs de remetente eliminados',
+    'Failed to delete sender IDs' => 'Não foi possível eliminar os IDs de remetente',
+    'Delete {count} sender ID(s)? This cannot be undone.' => 'Eliminar {count} ID(s) de remetente? Esta ação não pode ser desfeita.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'O fornecedor ao qual este ID de remetente pertence',
@@ -407,10 +424,16 @@ return [
     'Search logs...' => 'Pesquisar registros...',
     'Date Range' => 'Intervalo de datas',
     'log' => 'registro',
+    'logs' => 'registros',
     'No logs found.' => 'Nenhum registro encontrado.',
     'Full Message' => 'Mensagem completa',
     'Error' => 'Erro',
     'Direct' => 'Direto',
+    'Log deleted successfully.' => 'Registro eliminado com sucesso.',
+    'Logs deleted successfully.' => 'Registros eliminados com sucesso.',
+    'Failed to delete log.' => 'Não foi possível eliminar o registro.',
+    'Are you sure you want to delete this log?' => 'Tem a certeza de que pretende eliminar este registro?',
+    'Are you sure you want to delete {count} log(s)?' => 'Tem a certeza de que pretende eliminar {count} registro(s)?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Gerencie fornecedores SMS, IDs de remetente e limpe dados de análises.',

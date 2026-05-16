@@ -262,6 +262,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'Estos handles de proveedor existen tanto en config/sms-manager.php como en la base de datos:',
     'Config takes precedence; database entries with the same handle are ignored.' => 'La configuración tiene precedencia; las entradas de la base de datos con el mismo handle se ignoran.',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'Actualice su config/sms-manager.php o elimine las entradas de la base de datos para resolver esto.',
+    'Delete provider "{name}"? This cannot be undone.' => '¿Eliminar el proveedor "{name}"? Esta acción no se puede deshacer.',
+    'Enabled {count} providers' => '{count} proveedores habilitados',
+    'Failed to enable providers' => 'No se pudieron habilitar los proveedores',
+    'Disabled {count} providers' => '{count} proveedores deshabilitados',
+    'Failed to disable providers' => 'No se pudieron deshabilitar los proveedores',
+    'Deleted {count} providers' => '{count} proveedores eliminados',
+    'Failed to delete providers' => 'No se pudieron eliminar los proveedores',
+    'Delete {count} provider(s)? This cannot be undone.' => '¿Eliminar {count} proveedor(es)? Esta acción no se puede deshacer.',
 
     // Providers: Edit
     'The name of this provider' => 'El nombre de este proveedor',
@@ -308,6 +316,7 @@ return [
     // Sender IDs: Index
     'New Sender ID' => 'Nuevo ID de remitente',
     'All Providers' => 'Todos los proveedores',
+    'All Types' => 'Todos los tipos',
     'Search sender IDs...' => 'Buscar IDs de remitente...',
     'sender ID' => 'ID de remitente',
     'sender IDs' => 'IDs de remitente',
@@ -319,6 +328,14 @@ return [
     'Please enable it or set a different sender ID as default.' => 'Habilítelo o establezca otro ID de remitente como predeterminado.',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'No hay ID de remitente predeterminado configurado. Establezca uno de los IDs de remitente como predeterminado.',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'Estos handles de ID de remitente existen tanto en config/sms-manager.php como en la base de datos:',
+    'Delete sender ID "{name}"? This cannot be undone.' => '¿Eliminar el ID de remitente "{name}"? Esta acción no se puede deshacer.',
+    'Enabled {count} sender IDs' => '{count} IDs de remitente habilitados',
+    'Failed to enable sender IDs' => 'No se pudieron habilitar los IDs de remitente',
+    'Disabled {count} sender IDs' => '{count} IDs de remitente deshabilitados',
+    'Failed to disable sender IDs' => 'No se pudieron deshabilitar los IDs de remitente',
+    'Deleted {count} sender IDs' => '{count} IDs de remitente eliminados',
+    'Failed to delete sender IDs' => 'No se pudieron eliminar los IDs de remitente',
+    'Delete {count} sender ID(s)? This cannot be undone.' => '¿Eliminar {count} ID(s) de remitente? Esta acción no se puede deshacer.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'El proveedor al que pertenece este ID de remitente',
@@ -407,10 +424,16 @@ return [
     'Search logs...' => 'Buscar registros...',
     'Date Range' => 'Rango de fechas',
     'log' => 'registro',
+    'logs' => 'registros',
     'No logs found.' => 'No se encontraron registros.',
     'Full Message' => 'Mensaje completo',
     'Error' => 'Error',
     'Direct' => 'Directo',
+    'Log deleted successfully.' => 'Registro eliminado correctamente.',
+    'Logs deleted successfully.' => 'Registros eliminados correctamente.',
+    'Failed to delete log.' => 'No se pudo eliminar el registro.',
+    'Are you sure you want to delete this log?' => '¿Está seguro de que desea eliminar este registro?',
+    'Are you sure you want to delete {count} log(s)?' => '¿Está seguro de que desea eliminar {count} registro(s)?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Gestione proveedores SMS, IDs de remitente y borre datos de analíticas.',

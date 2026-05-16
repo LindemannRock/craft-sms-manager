@@ -262,6 +262,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'هذه الـ handles لمزودي الخدمة موجودة في كلٍّ من config/sms-manager.php وقاعدة البيانات:',
     'Config takes precedence; database entries with the same handle are ignored.' => 'يأخذ التكوين الأولوية؛ يتم تجاهل إدخالات قاعدة البيانات ذات الـ handle نفسه.',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'قم بتحديث config/sms-manager.php أو أزل إدخالات قاعدة البيانات لحل هذه المشكلة.',
+    'Delete provider "{name}"? This cannot be undone.' => 'هل تريد حذف مزود الخدمة "{name}"؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Enabled {count} providers' => 'تم تفعيل {count} مزودين',
+    'Failed to enable providers' => 'تعذر تفعيل مزودي الخدمة',
+    'Disabled {count} providers' => 'تم تعطيل {count} مزودين',
+    'Failed to disable providers' => 'تعذر تعطيل مزودي الخدمة',
+    'Deleted {count} providers' => 'تم حذف {count} مزودين',
+    'Failed to delete providers' => 'تعذر حذف مزودي الخدمة',
+    'Delete {count} provider(s)? This cannot be undone.' => 'هل تريد حذف {count} مزود(ين)؟ لا يمكن التراجع عن هذا الإجراء.',
 
     // Providers: Edit
     'The name of this provider' => 'اسم مزود الخدمة هذا',
@@ -308,6 +316,7 @@ return [
     // Sender IDs: Index
     'New Sender ID' => 'معرّف مُرسِل جديد',
     'All Providers' => 'جميع مزودي الخدمة',
+    'All Types' => 'جميع الأنواع',
     'Search sender IDs...' => 'البحث عن معرّفات المُرسِل...',
     'sender ID' => 'معرّف مُرسِل',
     'sender IDs' => 'معرّفات المُرسِل',
@@ -319,6 +328,14 @@ return [
     'Please enable it or set a different sender ID as default.' => 'يرجى تفعيله أو تعيين معرّف مُرسِل آخر كافتراضي.',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'لم يتم تكوين معرّف مُرسِل افتراضي. يرجى تعيين أحد معرّفات المُرسِل كافتراضي.',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'هذه الـ handles لمعرّفات المُرسِل موجودة في كلٍّ من config/sms-manager.php وقاعدة البيانات:',
+    'Delete sender ID "{name}"? This cannot be undone.' => 'هل تريد حذف معرّف المُرسِل "{name}"؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Enabled {count} sender IDs' => 'تم تفعيل {count} معرّفات مُرسِل',
+    'Failed to enable sender IDs' => 'تعذر تفعيل معرّفات المُرسِل',
+    'Disabled {count} sender IDs' => 'تم تعطيل {count} معرّفات مُرسِل',
+    'Failed to disable sender IDs' => 'تعذر تعطيل معرّفات المُرسِل',
+    'Deleted {count} sender IDs' => 'تم حذف {count} معرّفات مُرسِل',
+    'Failed to delete sender IDs' => 'تعذر حذف معرّفات المُرسِل',
+    'Delete {count} sender ID(s)? This cannot be undone.' => 'هل تريد حذف {count} معرّف(ات) مُرسِل؟ لا يمكن التراجع عن هذا الإجراء.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'مزود الخدمة الذي ينتمي إليه معرّف المُرسِل هذا',
@@ -407,10 +424,16 @@ return [
     'Search logs...' => 'البحث في السجلات...',
     'Date Range' => 'النطاق الزمني',
     'log' => 'سجل',
+    'logs' => 'سجلات',
     'No logs found.' => 'لم يتم العثور على سجلات.',
     'Full Message' => 'الرسالة الكاملة',
     'Error' => 'خطأ',
     'Direct' => 'مباشر',
+    'Log deleted successfully.' => 'تم حذف السجل بنجاح.',
+    'Logs deleted successfully.' => 'تم حذف السجلات بنجاح.',
+    'Failed to delete log.' => 'تعذر حذف السجل.',
+    'Are you sure you want to delete this log?' => 'هل أنت متأكد من حذف هذا السجل؟',
+    'Are you sure you want to delete {count} log(s)?' => 'هل أنت متأكد من حذف {count} سجل(ات)؟',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'إدارة مزودي SMS ومعرّفات المُرسِل ومسح بيانات التحليلات.',

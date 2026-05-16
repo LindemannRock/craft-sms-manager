@@ -262,6 +262,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'These provider handles exist in both config/sms-manager.php and the database:',
     'Config takes precedence; database entries with the same handle are ignored.' => 'Config takes precedence; database entries with the same handle are ignored.',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'Update your config/sms-manager.php or remove the database entries to resolve this.',
+    'Delete provider "{name}"? This cannot be undone.' => 'Delete provider "{name}"? This cannot be undone.',
+    'Enabled {count} providers' => 'Enabled {count} providers',
+    'Failed to enable providers' => 'Failed to enable providers',
+    'Disabled {count} providers' => 'Disabled {count} providers',
+    'Failed to disable providers' => 'Failed to disable providers',
+    'Deleted {count} providers' => 'Deleted {count} providers',
+    'Failed to delete providers' => 'Failed to delete providers',
+    'Delete {count} provider(s)? This cannot be undone.' => 'Delete {count} provider(s)? This cannot be undone.',
 
     // Providers: Edit
     'The name of this provider' => 'The name of this provider',
@@ -308,6 +316,7 @@ return [
     // Sender IDs: Index
     'New Sender ID' => 'New Sender ID',
     'All Providers' => 'All Providers',
+    'All Types' => 'All Types',
     'Search sender IDs...' => 'Search sender IDs...',
     'sender ID' => 'sender ID',
     'sender IDs' => 'sender IDs',
@@ -319,6 +328,14 @@ return [
     'Please enable it or set a different sender ID as default.' => 'Please enable it or set a different sender ID as default.',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'No default sender ID is configured. Please set one of the sender IDs as default.',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'These sender ID handles exist in both config/sms-manager.php and the database:',
+    'Delete sender ID "{name}"? This cannot be undone.' => 'Delete sender ID "{name}"? This cannot be undone.',
+    'Enabled {count} sender IDs' => 'Enabled {count} sender IDs',
+    'Failed to enable sender IDs' => 'Failed to enable sender IDs',
+    'Disabled {count} sender IDs' => 'Disabled {count} sender IDs',
+    'Failed to disable sender IDs' => 'Failed to disable sender IDs',
+    'Deleted {count} sender IDs' => 'Deleted {count} sender IDs',
+    'Failed to delete sender IDs' => 'Failed to delete sender IDs',
+    'Delete {count} sender ID(s)? This cannot be undone.' => 'Delete {count} sender ID(s)? This cannot be undone.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'The provider this sender ID belongs to',
@@ -407,10 +424,16 @@ return [
     'Search logs...' => 'Search logs...',
     'Date Range' => 'Date Range',
     'log' => 'log',
+    'logs' => 'logs',
     'No logs found.' => 'No logs found.',
     'Full Message' => 'Full Message',
     'Error' => 'Error',
     'Direct' => 'Direct',
+    'Log deleted successfully.' => 'Log deleted successfully.',
+    'Logs deleted successfully.' => 'Logs deleted successfully.',
+    'Failed to delete log.' => 'Failed to delete log.',
+    'Are you sure you want to delete this log?' => 'Are you sure you want to delete this log?',
+    'Are you sure you want to delete {count} log(s)?' => 'Are you sure you want to delete {count} log(s)?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Manage SMS providers, sender IDs, and clear analytics data.',

@@ -262,6 +262,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'Disse leverandørhandlene finnes i både config/sms-manager.php og databasen:',
     'Config takes precedence; database entries with the same handle are ignored.' => 'Konfigurasjonen har forrang; databaseposter med samme handle ignoreres.',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'Oppdater config/sms-manager.php eller fjern databasepostene for å løse dette.',
+    'Delete provider "{name}"? This cannot be undone.' => 'Slett leverandøren "{name}"? Dette kan ikke angres.',
+    'Enabled {count} providers' => '{count} leverandører aktivert',
+    'Failed to enable providers' => 'Kunne ikke aktivere leverandører',
+    'Disabled {count} providers' => '{count} leverandører deaktivert',
+    'Failed to disable providers' => 'Kunne ikke deaktivere leverandører',
+    'Deleted {count} providers' => '{count} leverandører slettet',
+    'Failed to delete providers' => 'Kunne ikke slette leverandører',
+    'Delete {count} provider(s)? This cannot be undone.' => 'Slett {count} leverandør(er)? Dette kan ikke angres.',
 
     // Providers: Edit
     'The name of this provider' => 'Navnet på denne leverandøren',
@@ -308,6 +316,7 @@ return [
     // Sender IDs: Index
     'New Sender ID' => 'Ny avsender-ID',
     'All Providers' => 'Alle leverandører',
+    'All Types' => 'Alle typer',
     'Search sender IDs...' => 'Søk avsender-ID-er...',
     'sender ID' => 'avsender-ID',
     'sender IDs' => 'avsender-ID-er',
@@ -319,6 +328,14 @@ return [
     'Please enable it or set a different sender ID as default.' => 'Aktiver den, eller angi en annen avsender-ID som standard.',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'Ingen standard-avsender-ID er konfigurert. Angi en av avsender-ID-ene som standard.',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'Disse avsender-ID-handlene finnes i både config/sms-manager.php og databasen:',
+    'Delete sender ID "{name}"? This cannot be undone.' => 'Slett avsender-ID "{name}"? Dette kan ikke angres.',
+    'Enabled {count} sender IDs' => '{count} avsender-ID-er aktivert',
+    'Failed to enable sender IDs' => 'Kunne ikke aktivere avsender-ID-er',
+    'Disabled {count} sender IDs' => '{count} avsender-ID-er deaktivert',
+    'Failed to disable sender IDs' => 'Kunne ikke deaktivere avsender-ID-er',
+    'Deleted {count} sender IDs' => '{count} avsender-ID-er slettet',
+    'Failed to delete sender IDs' => 'Kunne ikke slette avsender-ID-er',
+    'Delete {count} sender ID(s)? This cannot be undone.' => 'Slett {count} avsender-ID? Dette kan ikke angres.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'Leverandøren denne avsender-ID-en tilhører',
@@ -407,10 +424,16 @@ return [
     'Search logs...' => 'Søk i logger...',
     'Date Range' => 'Datointervall',
     'log' => 'logg',
+    'logs' => 'logger',
     'No logs found.' => 'Ingen logger funnet.',
     'Full Message' => 'Full melding',
     'Error' => 'Feil',
     'Direct' => 'Direkte',
+    'Log deleted successfully.' => 'Logg slettet.',
+    'Logs deleted successfully.' => 'Logger slettet.',
+    'Failed to delete log.' => 'Kunne ikke slette logg.',
+    'Are you sure you want to delete this log?' => 'Er du sikker på at du vil slette denne loggen?',
+    'Are you sure you want to delete {count} log(s)?' => 'Er du sikker på at du vil slette {count} logg(er)?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Administrer SMS-leverandører, avsender-ID-er og tøm analysedata.',

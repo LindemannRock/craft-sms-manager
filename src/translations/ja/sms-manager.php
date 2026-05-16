@@ -262,6 +262,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'これらのプロバイダー handle は config/sms-manager.php とデータベースの両方に存在します：',
     'Config takes precedence; database entries with the same handle are ignored.' => '設定ファイルが優先されます。同じ handle を持つデータベースエントリは無視されます。',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'この問題を解決するには、 config/sms-manager.php を更新するか、データベースエントリを削除してください。',
+    'Delete provider "{name}"? This cannot be undone.' => 'プロバイダー "{name}" を削除しますか？ この操作は取り消せません。',
+    'Enabled {count} providers' => '{count} 件のプロバイダーを有効化しました',
+    'Failed to enable providers' => 'プロバイダーを有効化できませんでした',
+    'Disabled {count} providers' => '{count} 件のプロバイダーを無効化しました',
+    'Failed to disable providers' => 'プロバイダーを無効化できませんでした',
+    'Deleted {count} providers' => '{count} 件のプロバイダーを削除しました',
+    'Failed to delete providers' => 'プロバイダーを削除できませんでした',
+    'Delete {count} provider(s)? This cannot be undone.' => '{count} 件のプロバイダーを削除しますか？ この操作は取り消せません。',
 
     // Providers: Edit
     'The name of this provider' => 'このプロバイダーの名前',
@@ -308,6 +316,7 @@ return [
     // Sender IDs: Index
     'New Sender ID' => '新規送信者 ID',
     'All Providers' => 'すべてのプロバイダー',
+    'All Types' => 'すべてのタイプ',
     'Search sender IDs...' => '送信者 ID を検索...',
     'sender ID' => '送信者 ID',
     'sender IDs' => '送信者 ID',
@@ -319,6 +328,14 @@ return [
     'Please enable it or set a different sender ID as default.' => '有効にするか、別の送信者 ID をデフォルトに設定してください。',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'デフォルト送信者 ID が設定されていません。いずれかの送信者 ID をデフォルトに設定してください。',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'これらの送信者 ID handle は config/sms-manager.php とデータベースの両方に存在します：',
+    'Delete sender ID "{name}"? This cannot be undone.' => '送信者 ID "{name}" を削除しますか？ この操作は取り消せません。',
+    'Enabled {count} sender IDs' => '{count} 件の送信者 ID を有効化しました',
+    'Failed to enable sender IDs' => '送信者 ID を有効化できませんでした',
+    'Disabled {count} sender IDs' => '{count} 件の送信者 ID を無効化しました',
+    'Failed to disable sender IDs' => '送信者 ID を無効化できませんでした',
+    'Deleted {count} sender IDs' => '{count} 件の送信者 ID を削除しました',
+    'Failed to delete sender IDs' => '送信者 ID を削除できませんでした',
+    'Delete {count} sender ID(s)? This cannot be undone.' => '{count} 件の送信者 ID を削除しますか？ この操作は取り消せません。',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'この送信者 ID が属するプロバイダー',
@@ -407,10 +424,16 @@ return [
     'Search logs...' => 'ログを検索...',
     'Date Range' => '日付範囲',
     'log' => 'ログ',
+    'logs' => 'ログ',
     'No logs found.' => 'ログが見つかりません。',
     'Full Message' => 'メッセージ全文',
     'Error' => 'エラー',
     'Direct' => 'ダイレクト',
+    'Log deleted successfully.' => 'ログを正常に削除しました。',
+    'Logs deleted successfully.' => 'ログを正常に削除しました。',
+    'Failed to delete log.' => 'ログを削除できませんでした。',
+    'Are you sure you want to delete this log?' => 'このログを削除してもよろしいですか？',
+    'Are you sure you want to delete {count} log(s)?' => '{count} 件のログを削除してもよろしいですか？',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'SMS プロバイダーと送信者 ID を管理し、アナリティクスデータをクリアします。',

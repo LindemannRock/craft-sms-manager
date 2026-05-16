@@ -262,6 +262,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'Ces handles de fournisseur existent à la fois dans config/sms-manager.php et dans la base de données :',
     'Config takes precedence; database entries with the same handle are ignored.' => 'La configuration a la priorité ; les entrées de base de données avec le même handle sont ignorées.',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'Mettez à jour votre config/sms-manager.php ou supprimez les entrées de base de données pour résoudre ce problème.',
+    'Delete provider "{name}"? This cannot be undone.' => 'Supprimer le fournisseur "{name}" ? Cette action est irréversible.',
+    'Enabled {count} providers' => '{count} fournisseurs activés',
+    'Failed to enable providers' => 'Impossible d\'activer les fournisseurs',
+    'Disabled {count} providers' => '{count} fournisseurs désactivés',
+    'Failed to disable providers' => 'Impossible de désactiver les fournisseurs',
+    'Deleted {count} providers' => '{count} fournisseurs supprimés',
+    'Failed to delete providers' => 'Impossible de supprimer les fournisseurs',
+    'Delete {count} provider(s)? This cannot be undone.' => 'Supprimer {count} fournisseur(s) ? Cette action est irréversible.',
 
     // Providers: Edit
     'The name of this provider' => 'Le nom de ce fournisseur',
@@ -308,6 +316,7 @@ return [
     // Sender IDs: Index
     'New Sender ID' => 'Nouvel identifiant d\'expéditeur',
     'All Providers' => 'Tous les fournisseurs',
+    'All Types' => 'Tous les types',
     'Search sender IDs...' => 'Rechercher des identifiants d\'expéditeur...',
     'sender ID' => 'identifiant d\'expéditeur',
     'sender IDs' => 'identifiants d\'expéditeur',
@@ -319,6 +328,14 @@ return [
     'Please enable it or set a different sender ID as default.' => 'Veuillez l\'activer ou définir un autre identifiant d\'expéditeur comme défaut.',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'Aucun identifiant d\'expéditeur par défaut n\'est configuré. Veuillez en définir un comme défaut.',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'Ces handles d\'identifiant d\'expéditeur existent à la fois dans config/sms-manager.php et dans la base de données :',
+    'Delete sender ID "{name}"? This cannot be undone.' => 'Supprimer l\'identifiant d\'expéditeur "{name}" ? Cette action est irréversible.',
+    'Enabled {count} sender IDs' => '{count} identifiants d\'expéditeur activés',
+    'Failed to enable sender IDs' => 'Impossible d\'activer les identifiants d\'expéditeur',
+    'Disabled {count} sender IDs' => '{count} identifiants d\'expéditeur désactivés',
+    'Failed to disable sender IDs' => 'Impossible de désactiver les identifiants d\'expéditeur',
+    'Deleted {count} sender IDs' => '{count} identifiants d\'expéditeur supprimés',
+    'Failed to delete sender IDs' => 'Impossible de supprimer les identifiants d\'expéditeur',
+    'Delete {count} sender ID(s)? This cannot be undone.' => 'Supprimer {count} identifiant(s) d\'expéditeur ? Cette action est irréversible.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'Le fournisseur auquel appartient cet identifiant d\'expéditeur',
@@ -407,10 +424,16 @@ return [
     'Search logs...' => 'Rechercher dans les journaux...',
     'Date Range' => 'Plage de dates',
     'log' => 'journal',
+    'logs' => 'journaux',
     'No logs found.' => 'Aucun journal trouvé.',
     'Full Message' => 'Message complet',
     'Error' => 'Erreur',
     'Direct' => 'Direct',
+    'Log deleted successfully.' => 'Journal supprimé avec succès.',
+    'Logs deleted successfully.' => 'Journaux supprimés avec succès.',
+    'Failed to delete log.' => 'Impossible de supprimer le journal.',
+    'Are you sure you want to delete this log?' => 'Êtes-vous sûr de vouloir supprimer ce journal ?',
+    'Are you sure you want to delete {count} log(s)?' => 'Êtes-vous sûr de vouloir supprimer {count} journal(aux) ?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Gérez les fournisseurs SMS, les identifiants d\'expéditeur et effacez les données analytiques.',
