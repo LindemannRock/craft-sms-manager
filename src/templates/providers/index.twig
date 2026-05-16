@@ -355,10 +355,10 @@
         // and emit as JSON-encoded JS literals via |json_encode|raw — avoids
         // the |e('js') trap (produces \uXXXX garbage when re-quoted).
         const T = {
-            defaultUpdated: {{ 'Default provider updated'|t('sms-manager')|json_encode|raw }},
-            defaultUpdateFailed: {{ 'Failed to update default provider'|t('sms-manager')|json_encode|raw }},
-            providerDeleted: {{ 'Provider deleted'|t('sms-manager')|json_encode|raw }},
-            deleteFailed: {{ 'Failed to delete provider'|t('sms-manager')|json_encode|raw }},
+            defaultUpdated: {{ 'Default provider updated.'|t('sms-manager')|json_encode|raw }},
+            defaultUpdateFailed: {{ 'Failed to update default provider.'|t('sms-manager')|json_encode|raw }},
+            providerDeleted: {{ 'Provider deleted.'|t('sms-manager')|json_encode|raw }},
+            deleteFailed: {{ 'Could not delete provider.'|t('sms-manager')|json_encode|raw }},
             deleteConfirmTemplate: {{ 'Delete provider "{name}"? This cannot be undone.'|t('sms-manager')|json_encode|raw }},
             bulkEnabledTemplate: {{ 'Enabled {count} providers'|t('sms-manager')|json_encode|raw }},
             bulkEnableFailed: {{ 'Failed to enable providers'|t('sms-manager')|json_encode|raw }},
