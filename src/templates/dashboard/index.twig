@@ -57,7 +57,7 @@
     {# SMS Today Card #}
     {% if canViewSmsLogs and settings.enableSmsLogs %}
         {% set change = (smsToday > 0 and smsYesterday > 0) ? ((smsToday - smsYesterday) / smsYesterday * 100)|round : null %}
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             title: 'SMS Today'|t('sms-manager'),
             color: '#0ea5e9',
             value: smsToday,
@@ -70,7 +70,7 @@
 
     {# Success Rate Card #}
     {% if canViewSmsLogs and settings.enableSmsLogs %}
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             title: 'Success Rate'|t('sms-manager'),
             color: '#059669',
             value: successRate ~ '%',
@@ -81,7 +81,7 @@
 
     {# Failed Today Card #}
     {% if canViewSmsLogs and settings.enableSmsLogs %}
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             title: 'Failed Today'|t('sms-manager'),
             color: failedToday > 0 ? '#ef4444' : '#9ca3af',
             value: failedToday,
@@ -92,7 +92,7 @@
 
     {# Providers Card #}
     {% if canViewProviders %}
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             title: 'Providers'|t('sms-manager'),
             color: '#8b5cf6',
             value: enabledProviders,

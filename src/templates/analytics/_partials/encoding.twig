@@ -2,19 +2,19 @@
 
 {# Encoding Summary Stats #}
 <div class="lr-unified-cards">
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.english,
         description: encodingLabels.gsm7 ~ ' ' ~ 'Messages'|t('sms-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.arabic,
         description: encodingLabels.ucs2 ~ ' ' ~ 'Messages'|t('sms-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.other,
         description: encodingLabels.mixed ~ ' ' ~ 'Messages'|t('sms-manager'),
         align: 'center',

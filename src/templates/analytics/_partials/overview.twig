@@ -2,25 +2,25 @@
 
 {# Summary Stats Grid #}
 <div class="lr-unified-cards">
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.total,
         description: 'Total Messages'|t('sms-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.sent,
         description: 'Sent Successfully'|t('sms-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.failed,
         description: 'Failed'|t('sms-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.successRate ~ '%',
         description: 'Success Rate'|t('sms-manager'),
         align: 'center',

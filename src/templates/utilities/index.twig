@@ -27,7 +27,7 @@
 
 {% block overview %}
     {# Providers Card #}
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         title: 'SMS Providers'|t('sms-manager'),
         color: lrPaletteColor('emerald').color,
         value: providersCount,
@@ -41,7 +41,7 @@
     } only %}
 
     {# Sender IDs Card #}
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         title: 'Sender IDs'|t('sms-manager'),
         color: lrPaletteColor('sky').color,
         value: senderIdsCount,
@@ -56,7 +56,7 @@
 
     {# Analytics & Logs Card #}
     {% if settings.enableAnalytics or settings.enableSmsLogs %}
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             title: 'Analytics & Logs'|t('sms-manager'),
             color: lrPaletteColor('violet').color,
             value: totalSent + totalFailed,
