@@ -28,18 +28,10 @@
 
         <h2 class="first">{{ "General Settings"|t('sms-manager') }}</h2>
 
-        {{ forms.textField({
-            label: "Plugin Name"|t('sms-manager'),
-            instructions: "The name of the plugin as it appears in the Control Panel menu"|t('sms-manager'),
-            id: 'pluginName',
-            name: 'settings[pluginName]',
-            value: settings.pluginName,
-            required: true,
-            errors: settings.getErrors('pluginName'),
-            disabled: settings.isOverriddenByConfig('pluginName'),
-            warning: settings.isOverriddenByConfig('pluginName') ?
-                "This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
-        }) }}
+        {% include 'lindemannrock-base/_partials/field-plugin-name' with {
+            settings: settings,
+            pluginHandle: 'sms-manager',
+        } only %}
 
         {% set enabledProviders = craft.app.plugins.getPlugin('sms-manager').providers.getAllProviders(true) %}
         {% set enabledSenderIds = craft.app.plugins.getPlugin('sms-manager').senderIds.getAllSenderIds(true) %}
@@ -104,30 +96,10 @@
 
         <h2>{{ "Logging Settings"|t('sms-manager') }}</h2>
 
-        {% set logOptions = [
-            {value: 'error', label: 'Error (Critical errors only)'|t('sms-manager')},
-            {value: 'warning', label: 'Warning (Errors and warnings)'|t('sms-manager')},
-            {value: 'info', label: 'Info (General information)'|t('sms-manager')},
-        ] %}
-
-        {% if craft.app.config.general.devMode %}
-            {% set logOptions = logOptions|merge([
-                {value: 'debug', label: 'Debug (Detailed debugging)'|t('sms-manager')}
-            ]) %}
-        {% endif %}
-
-        {{ forms.selectField({
-            label: 'Log Level'|t('sms-manager'),
-            instructions: 'Choose what types of messages to log. Debug level requires devMode to be enabled.'|t('sms-manager'),
-            id: 'logLevel',
-            name: 'settings[logLevel]',
-            value: settings.logLevel,
-            options: logOptions,
-            errors: settings.getErrors('logLevel'),
-            disabled: settings.isOverriddenByConfig('logLevel'),
-            warning: settings.isOverriddenByConfig('logLevel') ?
-                "This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
-        }) }}
+        {% include 'lindemannrock-base/_partials/field-log-level' with {
+            settings: settings,
+            pluginHandle: 'sms-manager',
+        } only %}
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}
