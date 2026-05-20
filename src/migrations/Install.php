@@ -85,6 +85,16 @@ class Install extends Migration
             'refreshIntervalSecs' => $this->integer()->null()->defaultValue(null),
             // Logging library
             'logLevel' => $this->string(20)->notNull()->defaultValue('error'),
+            // Base plugin overrides (cascade — null = inherit from base config)
+            'timeFormat' => $this->string(2)->null(),
+            'monthFormat' => $this->string(20)->null(),
+            'dateOrder' => $this->string(3)->null(),
+            'dateSeparator' => $this->string(1)->null(),
+            'showSeconds' => $this->boolean()->null(),
+            'defaultDateRange' => $this->string(15)->null(),
+            'exportsCsv' => $this->boolean()->null(),
+            'exportsJson' => $this->boolean()->null(),
+            'exportsExcel' => $this->boolean()->null(),
             // Standard columns
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
