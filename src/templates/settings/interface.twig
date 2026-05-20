@@ -28,21 +28,10 @@
 
         <h2 class="first">{{ "Interface Settings"|t('sms-manager') }}</h2>
 
-        {{ forms.textField({
-            label: 'Items Per Page'|t('sms-manager'),
-            instructions: 'Number of items to display per page in lists'|t('sms-manager'),
-            id: 'itemsPerPage',
-            name: 'settings[itemsPerPage]',
-            type: 'number',
-            value: settings.itemsPerPage,
-            min: 10,
-            max: 500,
-            required: true,
-            disabled: settings.isOverriddenByConfig('itemsPerPage'),
-            warning: settings.isOverriddenByConfig('itemsPerPage') ?
-                "This is being overridden by the <code>itemsPerPage</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
-            errors: settings.getErrors('itemsPerPage')
-        }) }}
+        {% include 'lindemannrock-base/_partials/field-items-per-page' with {
+            settings: settings,
+            pluginHandle: 'sms-manager',
+        } only %}
 
         {{ forms.selectField({
             label: 'Dashboard Refresh Interval'|t('sms-manager'),
@@ -63,6 +52,18 @@
             warning: settings.isOverriddenByConfig('refreshIntervalSecs') ?
                 "This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>."|t('sms-manager')|raw : null,
         }) }}
+
+        <hr>
+
+        {% include 'lindemannrock-base/_partials/cascade-base-overrides' with {
+            settings: settings,
+            pluginHandle: 'sms-manager',
+            sections: {
+                dateFormat: {},
+                dateRange: {},
+                exports: {},
+            },
+        } only %}
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}
