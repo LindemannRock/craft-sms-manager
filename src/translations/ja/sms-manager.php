@@ -130,9 +130,6 @@ return [
     // Settings: General
     'General Settings' => '一般設定',
     'Plugin Settings' => 'Plugin 設定',
-    'Plugin Name' => 'プラグイン名',
-    'The name of the plugin as it appears in the Control Panel menu' => 'コントロールパネルのメニューに表示される Plugin の名前',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => '<code>config/sms-manager.php</code> の <code>pluginName</code> 設定によって上書きされています。',
     'Default Provider & Sender ID' => 'デフォルトプロバイダーと送信者 ID',
     'Default Provider' => 'デフォルトプロバイダー',
     'The provider that will be used when no specific provider is specified.' => '特定のプロバイダーが指定されない場合に使用されるプロバイダーです。',
@@ -146,13 +143,6 @@ return [
     'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.' => '有効なプロバイダーがありません。 <a href="{url}">プロバイダーを作成</a> してデフォルトとして使用してください。',
     'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.' => '有効な送信者 ID がありません。 <a href="{url}">送信者 ID を作成</a> してデフォルトとして使用してください。',
     'Logging Settings' => 'ログ設定',
-    'Log Level' => 'ログレベル',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'ログに記録するメッセージの種類を選択してください。 Debug レベルには devMode の有効化が必要です。',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>.' => '<code>config/sms-manager.php</code> の <code>logLevel</code> 設定によって上書きされています。',
-    'Error (Critical errors only)' => 'エラー（重大なエラーのみ）',
-    'Warning (Errors and warnings)' => '警告（エラーと警告）',
-    'Info (General information)' => '情報（一般情報）',
-    'Debug (Detailed debugging)' => 'Debug（詳細なデバッグ）',
 
     // Settings: Analytics
     'Analytics Settings' => 'アナリティクス設定',
@@ -187,9 +177,6 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'インターフェース設定',
-    'Items Per Page' => '1 ページあたりの件数',
-    'Number of items to display per page in lists' => 'リストで 1 ページに表示する件数',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/sms-manager.php</code>.' => '<code>config/sms-manager.php</code> の <code>itemsPerPage</code> 設定によって上書きされています。',
     'Dashboard Refresh Interval' => 'ダッシュボードの更新間隔',
     'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'ダッシュボードデータを更新する頻度です。オフに設定すると自動更新が無効になります。',
     'This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>.' => '<code>config/sms-manager.php</code> の <code>refreshIntervalSecs</code> 設定によって上書きされています。',

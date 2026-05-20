@@ -130,9 +130,6 @@ return [
     // Settings: General
     'General Settings' => 'الإعدادات العامة',
     'Plugin Settings' => 'إعدادات Plugin',
-    'Plugin Name' => 'اسم الإضافة',
-    'The name of the plugin as it appears in the Control Panel menu' => 'اسم Plugin كما يظهر في قائمة لوحة التحكم',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>pluginName</code> في <code>config/sms-manager.php</code>.',
     'Default Provider & Sender ID' => 'مزود الخدمة الافتراضي ومعرّف المُرسِل',
     'Default Provider' => 'مزود الخدمة الافتراضي',
     'The provider that will be used when no specific provider is specified.' => 'مزود الخدمة الذي سيُستخدم عند عدم تحديد مزود معين.',
@@ -146,13 +143,6 @@ return [
     'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.' => 'لا يوجد مزوّدون مفعّلون. <a href="{url}">أنشئ مزوّدًا</a> لاستخدامه افتراضيًا.',
     'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.' => 'لا توجد معرّفات مرسلين مفعّلة. <a href="{url}">أنشئ معرّف مرسل</a> لاستخدامه افتراضيًا.',
     'Logging Settings' => 'إعدادات التسجيل',
-    'Log Level' => 'مستوى التسجيل',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'اختر أنواع الرسائل التي تريد تسجيلها. يتطلب مستوى Debug تفعيل devMode.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>logLevel</code> في <code>config/sms-manager.php</code>.',
-    'Error (Critical errors only)' => 'خطأ (الأخطاء الحرجة فقط)',
-    'Warning (Errors and warnings)' => 'تحذير (الأخطاء والتحذيرات)',
-    'Info (General information)' => 'معلومات (معلومات عامة)',
-    'Debug (Detailed debugging)' => 'Debug (تصحيح مفصّل)',
 
     // Settings: Analytics
     'Analytics Settings' => 'إعدادات التحليلات',
@@ -187,9 +177,6 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'إعدادات الواجهة',
-    'Items Per Page' => 'العناصر في الصفحة',
-    'Number of items to display per page in lists' => 'عدد العناصر التي تُعرض في كل صفحة من القوائم',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/sms-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>itemsPerPage</code> في <code>config/sms-manager.php</code>.',
     'Dashboard Refresh Interval' => 'فترة تحديث لوحة المعلومات',
     'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'مدى تكرار تحديث بيانات لوحة المعلومات. اضبطه على إيقاف لتعطيل التحديث التلقائي.',
     'This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>refreshIntervalSecs</code> في <code>config/sms-manager.php</code>.',

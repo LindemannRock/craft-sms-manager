@@ -130,9 +130,6 @@ return [
     // Settings: General
     'General Settings' => 'Generelle indstillinger',
     'Plugin Settings' => 'Plugin-indstillinger',
-    'Plugin Name' => 'Plugin-navn',
-    'The name of the plugin as it appears in the Control Panel menu' => 'Navnet på plugin-programmet, som det vises i kontrolpanelets menu',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>pluginName</code> i <code>config/sms-manager.php</code>.',
     'Default Provider & Sender ID' => 'Standardudbyder og afsender-ID',
     'Default Provider' => 'Standardudbyder',
     'The provider that will be used when no specific provider is specified.' => 'Den udbyder, der bruges, når ingen specifik udbyder er angivet.',
@@ -146,13 +143,6 @@ return [
     'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.' => 'Ingen aktiverede udbydere. <a href="{url}">Opret en udbyder</a> til brug som standard.',
     'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.' => 'Ingen aktiverede sender IDs. <a href="{url}">Opret en sender ID</a> til brug som standard.',
     'Logging Settings' => 'Logindstillinger',
-    'Log Level' => 'Logniveau',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Vælg hvilke typer meddelelser der skal logges. Fejlretningsniveauet kræver, at devMode er aktiveret.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>logLevel</code> i <code>config/sms-manager.php</code>.',
-    'Error (Critical errors only)' => 'Fejl (kun kritiske fejl)',
-    'Warning (Errors and warnings)' => 'Advarsel (fejl og advarsler)',
-    'Info (General information)' => 'Info (generelle oplysninger)',
-    'Debug (Detailed debugging)' => 'Debug (detaljeret fejlretning)',
 
     // Settings: Analytics
     'Analytics Settings' => 'Analyseindstillinger',
@@ -187,9 +177,6 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'Grænsefladeindstillinger',
-    'Items Per Page' => 'Elementer pr. side',
-    'Number of items to display per page in lists' => 'Antal elementer der vises pr. side i lister',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/sms-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>itemsPerPage</code> i <code>config/sms-manager.php</code>.',
     'Dashboard Refresh Interval' => 'Opdateringsinterval for oversigt',
     'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Hvor ofte oversigtsdata opdateres. Indstil til Fra for at deaktivere automatisk opdatering.',
     'This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>refreshIntervalSecs</code> i <code>config/sms-manager.php</code>.',

@@ -130,9 +130,6 @@ return [
     // Settings: General
     'General Settings' => 'Algemene instellingen',
     'Plugin Settings' => 'Plugin-instellingen',
-    'Plugin Name' => 'Pluginnaam',
-    'The name of the plugin as it appears in the Control Panel menu' => 'De naam van de plugin zoals deze verschijnt in het menu van het configuratiescherm',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>pluginName</code> in <code>config/sms-manager.php</code>.',
     'Default Provider & Sender ID' => 'Standaardprovider en afzender-ID',
     'Default Provider' => 'Standaardprovider',
     'The provider that will be used when no specific provider is specified.' => 'De provider die wordt gebruikt als er geen specifieke provider is opgegeven.',
@@ -146,13 +143,6 @@ return [
     'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.' => 'Geen ingeschakelde providers. <a href="{url}">Maak een provider</a> om als standaard te gebruiken.',
     'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.' => 'Geen ingeschakelde sender IDs. <a href="{url}">Maak een sender ID</a> om als standaard te gebruiken.',
     'Logging Settings' => 'Logboekinstellingen',
-    'Log Level' => 'Logboekniveau',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Kies welke soorten berichten worden gelogd. Het Debug-niveau vereist dat devMode is ingeschakeld.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>logLevel</code> in <code>config/sms-manager.php</code>.',
-    'Error (Critical errors only)' => 'Fout (alleen kritieke fouten)',
-    'Warning (Errors and warnings)' => 'Waarschuwing (fouten en waarschuwingen)',
-    'Info (Algemene informatie)' => 'Info (algemene informatie)',
-    'Debug (Detailed debugging)' => 'Debug (gedetailleerde foutopsporing)',
 
     // Settings: Analytics
     'Analytics Settings' => 'Analyse-instellingen',
@@ -187,9 +177,6 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'Interface-instellingen',
-    'Items Per Page' => 'Items per pagina',
-    'Number of items to display per page in lists' => 'Aantal items dat per pagina in lijsten wordt weergegeven',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/sms-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>itemsPerPage</code> in <code>config/sms-manager.php</code>.',
     'Dashboard Refresh Interval' => 'Dashboard verversingsinterval',
     'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Hoe vaak dashboardgegevens worden ververst. Instellen op Uit om automatisch verversen uit te schakelen.',
     'This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>refreshIntervalSecs</code> in <code>config/sms-manager.php</code>.',

@@ -130,9 +130,6 @@ return [
     // Settings: General
     'General Settings' => 'Allmänna inställningar',
     'Plugin Settings' => 'Plugin-inställningar',
-    'Plugin Name' => 'Plugin-namn',
-    'The name of the plugin as it appears in the Control Panel menu' => 'Namnet på plugin-programmet som det visas i kontrollpanelens meny',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => 'Detta åsidosätts av inställningen <code>pluginName</code> i <code>config/sms-manager.php</code>.',
     'Default Provider & Sender ID' => 'Standardleverantör och avsändar-ID',
     'Default Provider' => 'Standardleverantör',
     'The provider that will be used when no specific provider is specified.' => 'Leverantören som används när ingen specifik leverantör anges.',
@@ -146,13 +143,6 @@ return [
     'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.' => 'Inga aktiverade leverantörer. <a href="{url}">Skapa en leverantör</a> att använda som standard.',
     'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.' => 'Inga aktiverade sender IDs. <a href="{url}">Skapa en sender ID</a> att använda som standard.',
     'Logging Settings' => 'Logginställningar',
-    'Log Level' => 'Loggnivå',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Välj vilka typer av meddelanden som ska loggas. Felsökningsnivån kräver att devMode är aktiverat.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>.' => 'Detta åsidosätts av inställningen <code>logLevel</code> i <code>config/sms-manager.php</code>.',
-    'Error (Critical errors only)' => 'Fel (endast kritiska fel)',
-    'Warning (Errors and warnings)' => 'Varning (fel och varningar)',
-    'Info (General information)' => 'Info (allmän information)',
-    'Debug (Detailed debugging)' => 'Debug (detaljerad felsökning)',
 
     // Settings: Analytics
     'Analytics Settings' => 'Analysinställningar',
@@ -187,9 +177,6 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'Gränssnittsinställningar',
-    'Items Per Page' => 'Objekt per sida',
-    'Number of items to display per page in lists' => 'Antal objekt att visa per sida i listor',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/sms-manager.php</code>.' => 'Detta åsidosätts av inställningen <code>itemsPerPage</code> i <code>config/sms-manager.php</code>.',
     'Dashboard Refresh Interval' => 'Uppdateringsintervall för instrumentpanel',
     'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Hur ofta instrumentpanelsdata ska uppdateras. Ange Av för att inaktivera automatisk uppdatering.',
     'This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>.' => 'Detta åsidosätts av inställningen <code>refreshIntervalSecs</code> i <code>config/sms-manager.php</code>.',

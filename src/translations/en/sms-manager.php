@@ -130,9 +130,6 @@ return [
     // Settings: General
     'General Settings' => 'General Settings',
     'Plugin Settings' => 'Plugin Settings',
-    'Plugin Name' => 'Plugin Name',
-    'The name of the plugin as it appears in the Control Panel menu' => 'The name of the plugin as it appears in the Control Panel menu',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.' => 'This is being overridden by the <code>pluginName</code> setting in <code>config/sms-manager.php</code>.',
     'Default Provider & Sender ID' => 'Default Provider & Sender ID',
     'Default Provider' => 'Default Provider',
     'The provider that will be used when no specific provider is specified.' => 'The provider that will be used when no specific provider is specified.',
@@ -146,13 +143,6 @@ return [
     'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.' => 'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.',
     'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.' => 'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.',
     'Logging Settings' => 'Logging Settings',
-    'Log Level' => 'Log Level',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Choose what types of messages to log. Debug level requires devMode to be enabled.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>.' => 'This is being overridden by the <code>logLevel</code> setting in <code>config/sms-manager.php</code>.',
-    'Error (Critical errors only)' => 'Error (Critical errors only)',
-    'Warning (Errors and warnings)' => 'Warning (Errors and warnings)',
-    'Info (General information)' => 'Info (General information)',
-    'Debug (Detailed debugging)' => 'Debug (Detailed debugging)',
 
     // Settings: Analytics
     'Analytics Settings' => 'Analytics Settings',
@@ -187,9 +177,6 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'Interface Settings',
-    'Items Per Page' => 'Items Per Page',
-    'Number of items to display per page in lists' => 'Number of items to display per page in lists',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/sms-manager.php</code>.' => 'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/sms-manager.php</code>.',
     'Dashboard Refresh Interval' => 'Dashboard Refresh Interval',
     'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'How often to refresh dashboard data. Set to Off to disable auto-refresh.',
     'This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>.' => 'This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>.',
