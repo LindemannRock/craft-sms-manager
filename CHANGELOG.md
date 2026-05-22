@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.12.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.11.0...v5.12.0) (2026-05-22)
+
+
+### Added
+
+* add pre-commit hook for ECS and PHPStan code quality checks ([6f38beb](https://github.com/LindemannRock/craft-sms-manager/commit/6f38beb0f0f7fb50afb943c37b4600514965e1fb))
+* **analytics:** enhance analytics and logs cleanup scheduling ([dcd5a06](https://github.com/LindemannRock/craft-sms-manager/commit/dcd5a06487d2c36eb20e469c80a94a2d6b147fa3))
+* **dashboard:** add Sender ID column to recent SMS logs table ([ab87c08](https://github.com/LindemannRock/craft-sms-manager/commit/ab87c081cdeff9a3571ca96bd045a6ce517bf05a))
+* **dashboard:** add sender ID handle fallback for log attribution ([b56124f](https://github.com/LindemannRock/craft-sms-manager/commit/b56124f8888c57b23201ac746f8bb95b3fd98704))
+* **i18n:** add 'Dev' translation key across multiple languages ([9048220](https://github.com/LindemannRock/craft-sms-manager/commit/90482201e741e9ddcd3888461647cf93f292312e))
+* **i18n:** add default provider and sender ID translations in multiple languages ([1f6ef86](https://github.com/LindemannRock/craft-sms-manager/commit/1f6ef8680e3b20e9734abb26b60c6a5ea8c3ab90))
+* **i18n:** add new SMS provider and sender ID messages in multiple languages ([fa103d7](https://github.com/LindemannRock/craft-sms-manager/commit/fa103d7c0cf11ca1791c641b82c1038cf6f9860f))
+* **i18n:** add new SMS status messages and validation errors in multiple languages ([8955e79](https://github.com/LindemannRock/craft-sms-manager/commit/8955e79933effe56ced7ce7e0c48da9c6a26a567))
+* **i18n:** add translation issue template for reporting language problems ([19f0b43](https://github.com/LindemannRock/craft-sms-manager/commit/19f0b43647ffc1cbc7658d1b0506b96a1cfb104b))
+* **i18n:** register translation for country-not-allowed error message ([8a6968d](https://github.com/LindemannRock/craft-sms-manager/commit/8a6968d53a947ea9c224628a166f0f9f70d72365))
+* **logs:** add handle snapshots for provider and sender ID resolution ([1fca14d](https://github.com/LindemannRock/craft-sms-manager/commit/1fca14d1f0276a93d61dcfe0f4351156f863ec71))
+* **migrations:** add new configuration options for time and export formats ([7f8cfab](https://github.com/LindemannRock/craft-sms-manager/commit/7f8cfab06f5a207c3ff7ea9cec3a61adb50b7c77))
+* **providers:** enhance provider handling with O(1) lookup and JSON acceptance ([73e15b9](https://github.com/LindemannRock/craft-sms-manager/commit/73e15b9b2a4aeeacf9b022689af961d19602c049))
+* **tests:** add integration tests for SMS service functionality ([75cab20](https://github.com/LindemannRock/craft-sms-manager/commit/75cab207873d301054ecbae2252faead89a21e8d))
+
+
+### Fixed
+
+* **i18n:** add translation for sender ID and provider messages in settings ([16b9352](https://github.com/LindemannRock/craft-sms-manager/commit/16b9352c919bbc592770a10f45b404f03fe5f46d))
+* **i18n:** correct provider update messages for clarity ([1c04d66](https://github.com/LindemannRock/craft-sms-manager/commit/1c04d660d85e2b9d5c272fe4d591dd52cede3d7d))
+* **i18n:** correct sender ID update messages for clarity ([026753e](https://github.com/LindemannRock/craft-sms-manager/commit/026753eb89b9f5c8a11aecf32975e8d843446080))
+* **i18n:** remove deprecated plugin name and logging settings translations ([e279d64](https://github.com/LindemannRock/craft-sms-manager/commit/e279d64c0ff9e25fc5a5ac39dce187df829cffd1))
+* **i18n:** update default and dev labels for provider and sender ID options ([1a0adec](https://github.com/LindemannRock/craft-sms-manager/commit/1a0adec9ee874b93d9f7d2fe42206f38fad4c96b))
+* **i18n:** update sender ID option text to use translation keys ([9fc40d1](https://github.com/LindemannRock/craft-sms-manager/commit/9fc40d11514a2b08bce2951add5494f8f9fee024))
+* **settings:** handle empty multi-state select values correctly ([50b795f](https://github.com/LindemannRock/craft-sms-manager/commit/50b795fba7865b53a55749f22ed40f6a7694fb62))
+
 ## [5.11.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.10.2...v5.11.0) (2026-05-06)
 
 
