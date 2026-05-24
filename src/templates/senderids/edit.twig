@@ -319,13 +319,13 @@
                 </div>
                 {% if senderId.dateCreated %}
                     <div class="data">
-                        <dt class="heading">{{ 'Created'|t('app') }}</dt>
+                        <dt class="heading">{{ 'Created at'|t('app') }}</dt>
                         <dd class="value">{{ senderId.dateCreated|lrDatetime }}</dd>
                     </div>
                 {% endif %}
                 {% if senderId.dateUpdated %}
                     <div class="data">
-                        <dt class="heading">{{ 'Updated'|t('app') }}</dt>
+                        <dt class="heading">{{ 'Updated at'|t('app') }}</dt>
                         <dd class="value">{{ senderId.dateUpdated|lrDatetime }}</dd>
                     </div>
                 {% endif %}
