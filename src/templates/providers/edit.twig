@@ -312,18 +312,14 @@
                     <dt class="heading">{{ 'ID'|t('app') }}</dt>
                     <dd class="value">{{ provider.id }}</dd>
                 </div>
-                {% if provider.dateCreated %}
-                    <div class="data">
-                        <dt class="heading">{{ 'Created at'|t('app') }}</dt>
-                        <dd class="value">{{ provider.dateCreated|lrDatetime }}</dd>
-                    </div>
-                {% endif %}
-                {% if provider.dateUpdated %}
-                    <div class="data">
-                        <dt class="heading">{{ 'Updated at'|t('app') }}</dt>
-                        <dd class="value">{{ provider.dateUpdated|lrDatetime }}</dd>
-                    </div>
-                {% endif %}
+                <div class="data">
+                    <dt class="heading">{{ 'Created at'|t('app') }}</dt>
+                    <dd class="value">{{ provider.dateCreated|lrDatetime }}</dd>
+                </div>
+                <div class="data">
+                    <dt class="heading">{{ 'Updated at'|t('app') }}</dt>
+                    <dd class="value">{{ provider.dateUpdated|lrDatetime }}</dd>
+                </div>
             {% endif %}
         </dl>
     </fieldset>
