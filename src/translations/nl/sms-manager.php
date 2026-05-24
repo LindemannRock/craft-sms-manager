@@ -437,7 +437,7 @@ return [
     'Manage Sender IDs' => 'Afzender-ID\'s beheren',
     'View Settings' => 'Instellingen bekijken',
     'Navigation' => 'Navigatie',
-    'Access main plugin sections' => 'Toegang tot de hoofdsecties van de plugin',
+    'Access main plugin sections' => 'Toegang tot de belangrijkste pluginsecties',
     'Analytics Data Management' => 'Beheer van analysegegevens',
     'Permanently delete all SMS analytics data. This action cannot be undone!' => 'Alle SMS-analysegegevens permanent verwijderen. Deze actie kan niet ongedaan worden gemaakt!',
     'Clear All Analytics' => 'Alle analyses wissen',

@@ -150,7 +150,7 @@ return [
     'Track SMS sending statistics and trends' => 'SMS-Versandstatistiken und -trends verfolgen',
     'When enabled, {pluginName} will track SMS sending statistics including success rates, language distribution, and provider usage.' => 'Wenn aktiviert, verfolgt {pluginName} SMS-Versandstatistiken einschließlich Erfolgsraten, Sprachverteilung und Anbieternutzung.',
     'This is being overridden by the <code>enableAnalytics</code> setting in <code>config/sms-manager.php</code>.' => 'Dies wird durch die Einstellung <code>enableAnalytics</code> in <code>config/sms-manager.php</code> überschrieben.',
-    'Data Retention' => 'Datenhaltung',
+    'Data Retention' => 'Datenaufbewahrung',
     'Analytics Retention (Days)' => 'Analytik-Aufbewahrung (Tage)',
     'Number of days to retain analytics (0 = keep forever)' => 'Anzahl der Tage zur Aufbewahrung der Analytik (0 = dauerhaft behalten)',
     'This is being overridden by the <code>analyticsRetention</code> setting in <code>config/sms-manager.php</code>.' => 'Dies wird durch die Einstellung <code>analyticsRetention</code> in <code>config/sms-manager.php</code> überschrieben.',
@@ -176,7 +176,7 @@ return [
     'This is being overridden by the <code>autoTrimSmsLogs</code> setting in <code>config/sms-manager.php</code>.' => 'Dies wird durch die Einstellung <code>autoTrimSmsLogs</code> in <code>config/sms-manager.php</code> überschrieben.',
 
     // Settings: Interface
-    'Interface Settings' => 'Oberflächeneinstellungen',
+    'Interface Settings' => 'Oberflächen-Einstellungen',
     'Dashboard Refresh Interval' => 'Dashboard-Aktualisierungsintervall',
     'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Wie oft die Dashboard-Daten aktualisiert werden sollen. Auf „Aus" setzen, um die automatische Aktualisierung zu deaktivieren.',
     'This is being overridden by the <code>refreshIntervalSecs</code> setting in <code>config/sms-manager.php</code>.' => 'Dies wird durch die Einstellung <code>refreshIntervalSecs</code> in <code>config/sms-manager.php</code> überschrieben.',

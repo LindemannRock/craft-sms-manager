@@ -33,7 +33,7 @@ return [
     'Delete sender IDs' => '送信者 ID を削除する',
     'View analytics' => 'アナリティクスを表示する',
     'Export analytics' => 'アナリティクスをエクスポートする',
-    'Clear analytics' => 'アナリティクスをクリアする',
+    'Clear analytics' => 'アナリティクスを削除する',
     'View logs' => 'ログを表示する',
     'View system logs' => 'システムログを表示する',
     'Download system logs' => 'システムログをダウンロードする',
@@ -74,7 +74,7 @@ return [
     'Unknown' => '不明',
 
     // Jobs
-    '{pluginName}: Cleaning up old SMS logs' => '{pluginName} ：古い SMS ログを削除しています',
+    '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: 古い SMS ログを削除しています',
     '{pluginName}: Cleaning up old analytics' => '{pluginName} ：古いアナリティクスデータを削除しています',
 
     // Controller messages
@@ -100,9 +100,9 @@ return [
     '{count} log(s) deleted.' => '{count} 件のログを削除しました。',
     'Failed to delete logs.' => 'ログの削除に失敗しました。',
     'All analytics data cleared successfully ({count} records deleted).' => 'すべてのアナリティクスデータを正常にクリアしました（ {count} 件のレコードを削除）。',
-    'Failed to clear analytics data.' => 'アナリティクスデータのクリアに失敗しました。',
+    'Failed to clear analytics data.' => 'アナリティクスデータの削除に失敗しました。',
     'All SMS logs cleared successfully ({count} records deleted).' => 'すべての SMS ログを正常にクリアしました（ {count} 件のレコードを削除）。',
-    'Failed to clear SMS logs.' => 'SMS ログのクリアに失敗しました。',
+    'Failed to clear SMS logs.' => 'SMS ログの削除に失敗しました。',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} 件のエラーが見つかりました',
@@ -437,18 +437,18 @@ return [
     'Manage Sender IDs' => '送信者 ID を管理する',
     'View Settings' => '設定を表示する',
     'Navigation' => 'ナビゲーション',
-    'Access main plugin sections' => 'Plugin のメインセクションにアクセスする',
+    'Access main plugin sections' => 'プラグインのメインセクションにアクセスする',
     'Analytics Data Management' => 'アナリティクスデータ管理',
     'Permanently delete all SMS analytics data. This action cannot be undone!' => 'すべての SMS アナリティクスデータを完全に削除します。この操作は元に戻せません！',
-    'Clear All Analytics' => 'すべてのアナリティクスをクリアする',
+    'Clear All Analytics' => 'すべてのアナリティクスを削除する',
     'SMS Logs Management' => 'SMS ログ管理',
     'Permanently delete all SMS logs. This action cannot be undone!' => 'すべての SMS ログを完全に削除します。この操作は元に戻せません！',
     'Clear All SMS Logs' => 'すべての SMS ログをクリアする',
     'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => 'すべてのアナリティクスデータを完全に削除してもよろしいですか？この操作は元に戻せません！',
     'This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?' => 'これにより、すべての SMS トラッキングデータが削除され、すべての統計がリセットされます。本当によろしいですか？',
-    'Failed to clear analytics' => 'アナリティクスのクリアに失敗しました',
+    'Failed to clear analytics' => 'アナリティクスの削除に失敗しました',
     'Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!' => 'すべての SMS ログを完全に削除してもよろしいですか？この操作は元に戻せません！',
     'This will delete all SMS log entries. Are you absolutely sure?' => 'これにより、すべての SMS ログエントリが削除されます。本当によろしいですか？',
-    'Failed to clear SMS logs' => 'SMS ログのクリアに失敗しました',
+    'Failed to clear SMS logs' => 'SMS ログの削除に失敗しました',
 
 ];
