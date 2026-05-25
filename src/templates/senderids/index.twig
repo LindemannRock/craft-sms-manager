@@ -222,7 +222,7 @@
     {% if canEdit %}
         <div class="btngroup">
             <button type="button" class="btn menubtn secondary" id="lr-bulk-status-btn">
-                {{ 'Set status'|t('app') }}
+                {{ 'Set status'|t('sms-manager') }}
             </button>
             <div class="menu">
                 <ul>
@@ -234,7 +234,7 @@
     {% endif %}
     {% if canDelete %}
         <button type="button" class="btn secondary" id="lr-bulk-delete-btn">
-            {{ 'Delete'|t('app') }} (<span id="lr-selected-count">0</span>)
+            {{ 'Delete'|t('sms-manager') }} (<span id="lr-selected-count">0</span>)
         </button>
     {% endif %}
 {% endblock %}
@@ -252,13 +252,13 @@
 
     {% if item.canEdit() %}
         {% set actionItems = actionItems|merge([{
-            label: 'Edit'|t('app'),
+            label: 'Edit'|t('sms-manager'),
             url: url('sms-manager/sender-ids/' ~ item.id),
             permission: 'smsManager:editSenderIds',
         }]) %}
     {% else %}
         {% set actionItems = actionItems|merge([{
-            label: 'View'|t('app'),
+            label: 'View'|t('sms-manager'),
             url: url('sms-manager/sender-ids/view/' ~ item.handle),
         }]) %}
     {% endif %}
@@ -277,7 +277,7 @@
     {% set actionItems = actionItems|merge([
         {type: 'divider'},
         {
-            label: 'Delete'|t('app'),
+            label: 'Delete'|t('sms-manager'),
             class: 'error',
             jsAction: 'delete',
             data: {name: item.name},
@@ -292,7 +292,7 @@
         actions: {
             type: 'menu',
             icon: 'settings',
-            title: 'Actions'|t('app'),
+            title: 'Actions'|t('sms-manager'),
             items: actionItems,
         },
     } only %}

@@ -37,13 +37,13 @@
 {% block actionButton %}
     {% if canEdit %}
         <div class="btngroup submit">
-            <button type="submit" class="btn submit">{{ "Save"|t('app') }}</button>
+            <button type="submit" class="btn submit">{{ "Save"|t('sms-manager') }}</button>
             <button type="button" class="btn submit menubtn"></button>
             <div class="menu">
                 <ul role="listbox">
                     <li>
                         <a class="formsubmit" role="option" tabindex="0" data-redirect="{{ cpUrl('sms-manager/providers/{id}')|hash }}">
-                            <span class="label">{{ 'Save and continue editing'|t('app') }}</span>
+                            <span class="label">{{ 'Save and continue editing'|t('sms-manager') }}</span>
                             <span class="shortcut" id="save-shortcut"></span>
                         </a>
                     </li>
@@ -52,13 +52,13 @@
         </div>
         {% set isDefault = provider and defaultProviderHandle == provider.handle %}
         {% if not isNew and currentUser.can('smsManager:deleteProviders') and not isDefault %}
-            <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('app') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('app') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
+            <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('sms-manager') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('sms-manager') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
             <div id="action-menu" class="menu menu--disclosure">
                 <ul>
                     <li>
                         <button class="menu-item error formsubmit" data-destructive data-action="sms-manager/providers/delete" data-params='{"providerId":{{ provider.id }}}' data-confirm="{{ 'Are you sure you want to delete this provider?'|t('sms-manager') }}" data-redirect="{{ 'sms-manager/providers'|hash }}">
                             <span class="icon">{{ svg('@app/icons/trash.svg') }}</span>
-                            <span class="menu-item-label">{{ "Delete"|t('app') }}</span>
+                            <span class="menu-item-label">{{ "Delete"|t('sms-manager') }}</span>
                         </button>
                     </li>
                 </ul>
@@ -309,15 +309,15 @@
                 {# Config providers don't have database IDs or timestamps #}
             {% else %}
                 <div class="data">
-                    <dt class="heading">{{ 'ID'|t('app') }}</dt>
+                    <dt class="heading">{{ 'ID'|t('sms-manager') }}</dt>
                     <dd class="value">{{ provider.id }}</dd>
                 </div>
                 <div class="data">
-                    <dt class="heading">{{ 'Created at'|t('app') }}</dt>
+                    <dt class="heading">{{ 'Created at'|t('sms-manager') }}</dt>
                     <dd class="value">{{ provider.dateCreated|lrDatetime }}</dd>
                 </div>
                 <div class="data">
-                    <dt class="heading">{{ 'Updated at'|t('app') }}</dt>
+                    <dt class="heading">{{ 'Updated at'|t('sms-manager') }}</dt>
                     <dd class="value">{{ provider.dateUpdated|lrDatetime }}</dd>
                 </div>
             {% endif %}
