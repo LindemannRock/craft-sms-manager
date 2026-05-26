@@ -226,7 +226,16 @@
 
         {# Default toggle - shown for all providers (config or database) #}
         {% if not isNew %}
-            {% if isDefaultFromConfig %}
+            {% if not canEdit %}
+                {# Config provider - show as read-only #}
+                {{ forms.lightswitchField({
+                    label: 'Default Provider'|t('sms-manager'),
+                    instructions: 'Set via config/sms-manager.php. Edit the file to change.'|t('sms-manager'),
+                    id: 'isDefault',
+                    on: isDefault,
+                    disabled: true
+                }) }}
+            {% elseif isDefaultFromConfig %}
                 {# Default is set via config - disable for ALL providers #}
                 {{ forms.lightswitchField({
                     label: 'Default Provider'|t('sms-manager'),

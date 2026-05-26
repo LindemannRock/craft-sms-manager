@@ -192,7 +192,16 @@
 
         {# Default toggle - shown for all sender IDs (config or database) #}
         {% if not isNew %}
-            {% if isDefaultFromConfig %}
+            {% if not canEdit %}
+                {# Config sender ID - show as read-only #}
+                {{ forms.lightswitchField({
+                    label: 'Default Sender ID'|t('sms-manager'),
+                    instructions: 'Set via config/sms-manager.php. Edit the file to change.'|t('sms-manager'),
+                    id: 'isDefault',
+                    on: isDefault,
+                    disabled: true
+                }) }}
+            {% elseif isDefaultFromConfig %}
                 {# Default is set via config - disable for ALL sender IDs #}
                 {{ forms.lightswitchField({
                     label: 'Default Sender ID'|t('sms-manager'),
