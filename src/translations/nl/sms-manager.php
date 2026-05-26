@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'Instellingen beheren',
 
     // Common
-    'Save Settings' => 'Instellingen opslaan',
     'General' => 'Algemeen',
     'Interface' => 'Interface',
     'Name' => 'Naam',

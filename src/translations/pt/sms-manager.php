@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'Gerir definições',
 
     // Common
-    'Save Settings' => 'Guardar definições',
     'General' => 'Geral',
     'Interface' => 'Interface',
     'Name' => 'Nome',

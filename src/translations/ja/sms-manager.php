@@ -43,7 +43,6 @@ return [
     'Manage settings' => '設定を管理する',
 
     // Common
-    'Save Settings' => '設定を保存する',
     'General' => '一般',
     'Interface' => 'インターフェース',
     'Name' => '名前',

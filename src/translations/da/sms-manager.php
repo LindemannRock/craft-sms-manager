@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'Administrer indstillinger',
 
     // Common
-    'Save Settings' => 'Gem indstillinger',
     'General' => 'Generelt',
     'Interface' => 'Brugerflade',
     'Name' => 'Navn',

@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'Hantera inställningar',
 
     // Common
-    'Save Settings' => 'Spara inställningar',
     'General' => 'Allmänt',
     'Interface' => 'Gränssnitt',
     'Name' => 'Namn',

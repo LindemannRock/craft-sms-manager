@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'Einstellungen verwalten',
 
     // Common
-    'Save Settings' => 'Einstellungen speichern',
     'General' => 'Allgemein',
     'Interface' => 'Oberfläche',
     'Name' => 'Name',

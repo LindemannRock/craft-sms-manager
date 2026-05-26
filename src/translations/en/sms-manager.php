@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'Manage settings',
 
     // Common
-    'Save Settings' => 'Save Settings',
     'General' => 'General',
     'Interface' => 'Interface',
     'Name' => 'Name',

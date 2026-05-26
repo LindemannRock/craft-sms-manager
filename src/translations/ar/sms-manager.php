@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'إدارة الإعدادات',
 
     // Common
-    'Save Settings' => 'حفظ الإعدادات',
     'General' => 'عام',
     'Interface' => 'الواجهة',
     'Name' => 'الاسم',

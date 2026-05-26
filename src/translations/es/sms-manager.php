@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'Gestionar configuración',
 
     // Common
-    'Save Settings' => 'Guardar configuración',
     'General' => 'General',
     'Interface' => 'Interfaz',
     'Name' => 'Nombre',

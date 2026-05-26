@@ -43,7 +43,6 @@ return [
     'Manage settings' => 'Administrer innstillinger',
 
     // Common
-    'Save Settings' => 'Lagre innstillinger',
     'General' => 'Generelt',
     'Interface' => 'Grensesnitt',
     'Name' => 'Navn',
