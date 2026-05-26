@@ -14,6 +14,7 @@ use lindemannrock\smsmanager\helpers\ConfigFileHelper;
 use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\tests\Stubs\StubProvider;
 use lindemannrock\smsmanager\tests\TestCase;
+use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 use ReflectionClass;
 
 /**
@@ -47,10 +48,10 @@ final class SmsServiceSendWithHandleDetailsTest extends TestCase
      */
     private function seedConfigCache(array $config): void
     {
-        $ref = new ReflectionClass(ConfigFileHelper::class);
+        $ref = new ReflectionClass(BaseConfigFileHelper::class);
         $prop = $ref->getProperty('_configCache');
         $prop->setAccessible(true);
-        $prop->setValue(null, $config);
+        $prop->setValue(null, ['sms-manager' => $config]);
     }
 
     public function testReturnsRichResultForConfigOnlyProviderAndSender(): void
