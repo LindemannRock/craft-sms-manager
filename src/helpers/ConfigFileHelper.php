@@ -2,7 +2,7 @@
 
 namespace lindemannrock\smsmanager\helpers;
 
-use Craft;
+use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 
 /**
  * Config File Helper
@@ -18,10 +18,7 @@ use Craft;
  */
 class ConfigFileHelper
 {
-    /**
-     * @var array|null Cached config file contents
-     */
-    private static ?array $_configCache = null;
+    private const PLUGIN_HANDLE = 'sms-manager';
 
     /**
      * Get the full config from sms-manager.php
@@ -30,11 +27,7 @@ class ConfigFileHelper
      */
     public static function getConfig(): array
     {
-        if (self::$_configCache === null) {
-            self::$_configCache = Craft::$app->getConfig()->getConfigFromFile('sms-manager');
-        }
-
-        return self::$_configCache;
+        return BaseConfigFileHelper::getConfig(self::PLUGIN_HANDLE);
     }
 
     /**
@@ -45,8 +38,7 @@ class ConfigFileHelper
      */
     public static function getConfigSection(string $key): array
     {
-        $config = self::getConfig();
-        return $config[$key] ?? [];
+        return BaseConfigFileHelper::getConfigSection(self::PLUGIN_HANDLE, $key);
     }
 
     /**
@@ -78,8 +70,7 @@ class ConfigFileHelper
      */
     public static function handleExistsInConfig(string $section, string $handle): bool
     {
-        $configs = self::getConfigSection($section);
-        return isset($configs[$handle]);
+        return BaseConfigFileHelper::handleExistsInConfig(self::PLUGIN_HANDLE, $section, $handle);
     }
 
     /**
@@ -91,8 +82,7 @@ class ConfigFileHelper
      */
     public static function getConfigByHandle(string $section, string $handle): ?array
     {
-        $configs = self::getConfigSection($section);
-        return $configs[$handle] ?? null;
+        return BaseConfigFileHelper::getConfigByHandle(self::PLUGIN_HANDLE, $section, $handle);
     }
 
     /**
@@ -102,7 +92,7 @@ class ConfigFileHelper
      */
     public static function clearCache(): void
     {
-        self::$_configCache = null;
+        BaseConfigFileHelper::clearCache(self::PLUGIN_HANDLE);
     }
 
     /**
@@ -113,8 +103,7 @@ class ConfigFileHelper
      */
     public static function getHandles(string $section): array
     {
-        $configs = self::getConfigSection($section);
-        return array_keys($configs);
+        return BaseConfigFileHelper::getHandles(self::PLUGIN_HANDLE, $section);
     }
 
     /**
@@ -129,16 +118,6 @@ class ConfigFileHelper
      */
     public static function mergeConfigAndDatabase(array $configItems, array $databaseItems): array
     {
-        $merged = $configItems;
-        $configHandles = array_keys($configItems);
-
-        foreach ($databaseItems as $item) {
-            $handle = is_object($item) ? $item->handle : ($item['handle'] ?? null);
-            if ($handle && !in_array($handle, $configHandles, true)) {
-                $merged[$handle] = $item;
-            }
-        }
-
-        return $merged;
+        return BaseConfigFileHelper::mergeConfigAndDatabase($configItems, $databaseItems);
     }
 }
