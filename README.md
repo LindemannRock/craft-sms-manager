@@ -645,6 +645,18 @@ Event::on(
 - Check `enableAnalytics` setting is `true`
 - Analytics only tracks when messages are sent via the service
 
+### Scheduled Cleanup Jobs Missing
+
+SMS Manager schedules recurring queue jobs for analytics cleanup and SMS log cleanup. Recurring cleanup jobs should push their next occurrence from inside the running job; duplicate guards belong in the initial bootstrap path only.
+
+If a cleanup job is missing:
+
+- Confirm the queue worker is running.
+- Visit any CP page to let SMS Manager bootstrap initial cleanup jobs.
+- Check that `analyticsRetention` is greater than `0` for analytics cleanup.
+- Check that `smsLogsRetention` is greater than `0` for logs cleanup.
+- Check that `enableAnalytics` or `enableSmsLogs` is enabled for the relevant cleanup job.
+
 ### Provider Response Errors
 
 Common MPP-SMS errors:
