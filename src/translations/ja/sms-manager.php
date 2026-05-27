@@ -443,7 +443,6 @@ return [
     'SMS tracking and message logs' => 'SMS トラッキングとメッセージログ',
     'Manage Providers' => 'プロバイダーを管理する',
     'Manage Sender IDs' => '送信者 ID を管理する',
-    'View Settings' => '設定を表示する',
     'Navigation' => 'ナビゲーション',
     'Access main plugin sections' => 'プラグインのメインセクションにアクセスする',
     'Analytics Data Management' => 'アナリティクスデータ管理',

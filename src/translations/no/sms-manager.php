@@ -443,7 +443,6 @@ return [
     'SMS tracking and message logs' => 'SMS-sporing og meldingslogger',
     'Manage Providers' => 'Administrer leverandører',
     'Manage Sender IDs' => 'Administrer avsender-ID-er',
-    'View Settings' => 'Vis innstillinger',
     'Navigation' => 'Navigasjon',
     'Access main plugin sections' => 'Tilgang til plugin-programmets hovedseksjoner',
     'Analytics Data Management' => 'Administrasjon av analysedata',

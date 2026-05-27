@@ -443,7 +443,6 @@ return [
     'SMS tracking and message logs' => 'Rastreamento SMS e logs de mensagens',
     'Manage Providers' => 'Gerir fornecedores',
     'Manage Sender IDs' => 'Gerir IDs de remetente',
-    'View Settings' => 'Ver configurações',
     'Navigation' => 'Navegação',
     'Access main plugin sections' => 'Aceder às secções principais do plugin',
     'Analytics Data Management' => 'Gestão de dados de análise',

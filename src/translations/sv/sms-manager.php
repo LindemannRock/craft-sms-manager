@@ -443,7 +443,6 @@ return [
     'SMS tracking and message logs' => 'SMS-spårning och meddelandeloggar',
     'Manage Providers' => 'Hantera leverantörer',
     'Manage Sender IDs' => 'Hantera avsändar-ID:n',
-    'View Settings' => 'Visa inställningar',
     'Navigation' => 'Navigering',
     'Access main plugin sections' => 'Åtkomst till plugin-programmets huvudavsnitt',
     'Analytics Data Management' => 'Hantering av analysdata',
