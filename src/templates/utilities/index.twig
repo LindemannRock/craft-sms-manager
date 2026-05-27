@@ -27,6 +27,7 @@
 
 {% block overview %}
     {# Providers Card #}
+    {% if canViewProviders %}
     {% include 'lindemannrock-base/_components/unified-card' with {
         title: 'SMS Providers'|t('sms-manager'),
         color: lrPaletteColor('emerald').color,
@@ -39,8 +40,10 @@
             {value: activeProviders, label: 'Active Providers'|t('sms-manager')},
         ],
     } only %}
+    {% endif %}
 
     {# Sender IDs Card #}
+    {% if canViewSenderIds %}
     {% include 'lindemannrock-base/_components/unified-card' with {
         title: 'Sender IDs'|t('sms-manager'),
         color: lrPaletteColor('sky').color,
@@ -53,9 +56,10 @@
             {value: activeSenderIds, label: 'Active Sender IDs'|t('sms-manager')},
         ],
     } only %}
+    {% endif %}
 
     {# Analytics & Logs Card #}
-    {% if settings.enableAnalytics or settings.enableSmsLogs %}
+    {% if settings.enableAnalytics and settings.enableSmsLogs and canViewAnalytics and canViewLogs %}
         {% include 'lindemannrock-base/_components/unified-card' with {
             title: 'Analytics & Logs'|t('sms-manager'),
             color: lrPaletteColor('violet').color,
@@ -126,7 +130,7 @@
 
 {% block scripts %}
 {% js %}
-{% if settings.enableAnalytics %}
+{% if hasAnalyticsManagement %}
 {% include 'lindemannrock-base/_layouts/cp-utilities/_ajax-button' with {
     id: 'clear-all-analytics',
     action: actionUrl('sms-manager/utilities/clear-all-analytics'),
@@ -137,7 +141,7 @@
 } only %}
 {% endif %}
 
-{% if settings.enableSmsLogs %}
+{% if hasLogsManagement %}
 {% include 'lindemannrock-base/_layouts/cp-utilities/_ajax-button' with {
     id: 'clear-all-logs',
     action: actionUrl('sms-manager/utilities/clear-all-logs'),
