@@ -85,14 +85,14 @@
             {% if canViewSenderIds %}
                 {% set navButtons = navButtons|merge([{type: 'link', label: 'Manage Sender IDs'|t('sms-manager'), url: url('sms-manager/sender-ids')}]) %}
             {% endif %}
+            {% if canManageSettings %}
+                {% set navButtons = navButtons|merge([{type: 'link', label: 'Manage settings'|t('sms-manager'), url: url('sms-manager/settings')}]) %}
+            {% endif %}
             {% if settings.enableAnalytics and canViewAnalytics %}
                 {% set navButtons = navButtons|merge([{type: 'link', label: 'View Analytics'|t('sms-manager'), url: url('sms-manager/analytics')}]) %}
             {% endif %}
             {% if settings.enableSmsLogs and canViewLogs %}
                 {% set navButtons = navButtons|merge([{type: 'link', label: 'View SMS Logs'|t('sms-manager'), url: url('sms-manager/sms-logs')}]) %}
-            {% endif %}
-            {% if canManageSettings %}
-                {% set navButtons = navButtons|merge([{type: 'link', label: 'View Settings'|t('sms-manager'), url: url('sms-manager/settings')}]) %}
             {% endif %}
 
             {% include 'lindemannrock-base/_layouts/cp-utilities/_action-section' with {
