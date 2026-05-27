@@ -1,15 +1,15 @@
 {% extends 'lindemannrock-base/_layouts/cp-utilities' %}
 
 {# Permission checks #}
-{% set canViewProviders = currentUser.can('smsManager:manageProviders') %}
-{% set canViewSenderIds = currentUser.can('smsManager:manageSenderIds') %}
+{% set canManageProviders = currentUser.can('smsManager:manageProviders') %}
+{% set canManageSenderIds = currentUser.can('smsManager:manageSenderIds') %}
 {% set canViewAnalytics = currentUser.can('smsManager:viewAnalytics') %}
 {% set canClearAnalytics = currentUser.can('smsManager:clearAnalytics') %}
 {% set canViewLogs = currentUser.can('smsManager:viewSmsLogs') %}
 {% set canClearLogs = currentUser.can('smsManager:deleteSmsLogs') %}
 {% set canManageSettings = currentUser.can('smsManager:manageSettings') %}
 
-{% set hasNavigation = canViewProviders or canViewSenderIds or (settings.enableAnalytics and canViewAnalytics) or (settings.enableSmsLogs and canViewLogs) or canManageSettings %}
+{% set hasNavigation = canManageProviders or canManageSenderIds or (settings.enableAnalytics and canViewAnalytics) or (settings.enableSmsLogs and canViewLogs) or canManageSettings %}
 {% set hasAnalyticsManagement = canClearAnalytics and settings.enableAnalytics %}
 {% set hasLogsManagement = canClearLogs and settings.enableSmsLogs %}
 {% set hasAnyQuickAction = hasNavigation or hasAnalyticsManagement or hasLogsManagement %}
@@ -27,7 +27,7 @@
 
 {% block overview %}
     {# Providers Card #}
-    {% if canViewProviders %}
+    {% if canManageProviders %}
     {% include 'lindemannrock-base/_components/unified-card' with {
         title: 'SMS Providers'|t('sms-manager'),
         color: lrPaletteColor('emerald').color,
@@ -43,7 +43,7 @@
     {% endif %}
 
     {# Sender IDs Card #}
-    {% if canViewSenderIds %}
+    {% if canManageSenderIds %}
     {% include 'lindemannrock-base/_components/unified-card' with {
         title: 'Sender IDs'|t('sms-manager'),
         color: lrPaletteColor('sky').color,
@@ -79,10 +79,10 @@
         {# Navigation Section #}
         {% if hasNavigation %}
             {% set navButtons = [] %}
-            {% if canViewProviders %}
+            {% if canManageProviders %}
                 {% set navButtons = navButtons|merge([{type: 'link', label: 'Manage Providers'|t('sms-manager'), url: url('sms-manager/providers')}]) %}
             {% endif %}
-            {% if canViewSenderIds %}
+            {% if canManageSenderIds %}
                 {% set navButtons = navButtons|merge([{type: 'link', label: 'Manage Sender IDs'|t('sms-manager'), url: url('sms-manager/sender-ids')}]) %}
             {% endif %}
             {% if canManageSettings %}
