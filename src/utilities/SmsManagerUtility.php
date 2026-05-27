@@ -52,30 +52,37 @@ class SmsManagerUtility extends Utility
     public static function contentHtml(): string
     {
         $settings = SmsManager::$plugin->getSettings();
+        $user = Craft::$app->getUser();
 
-        // Get provider stats
-        $providersCount = (new Query())
-            ->from('{{%smsmanager_providers}}')
-            ->count();
+        $providersCount = 0;
+        $activeProviders = 0;
+        if ($user->getIdentity() && $user->checkPermission('smsManager:manageProviders')) {
+            $providersCount = (new Query())
+                ->from('{{%smsmanager_providers}}')
+                ->count();
 
-        $activeProviders = (new Query())
-            ->from('{{%smsmanager_providers}}')
-            ->where(['enabled' => true])
-            ->count();
+            $activeProviders = (new Query())
+                ->from('{{%smsmanager_providers}}')
+                ->where(['enabled' => true])
+                ->count();
+        }
 
-        // Get sender ID stats
-        $senderIdsCount = (new Query())
-            ->from('{{%smsmanager_senderids}}')
-            ->count();
+        $senderIdsCount = 0;
+        $activeSenderIds = 0;
+        if ($user->getIdentity() && $user->checkPermission('smsManager:manageSenderIds')) {
+            $senderIdsCount = (new Query())
+                ->from('{{%smsmanager_senderids}}')
+                ->count();
 
-        $activeSenderIds = (new Query())
-            ->from('{{%smsmanager_senderids}}')
-            ->where(['enabled' => true])
-            ->count();
+            $activeSenderIds = (new Query())
+                ->from('{{%smsmanager_senderids}}')
+                ->where(['enabled' => true])
+                ->count();
+        }
 
         // Get analytics stats (last 7 days)
         $analyticsCount = 0;
-        if ($settings->enableAnalytics) {
+        if ($settings->enableAnalytics && $user->getIdentity() && $user->checkPermission('smsManager:clearAnalytics')) {
             $analyticsCount = (new Query())
                 ->from('{{%smsmanager_analytics}}')
                 ->count();
@@ -84,7 +91,7 @@ class SmsManagerUtility extends Utility
         // Get message stats from analytics (using aggregated columns)
         $totalSent = 0;
         $totalFailed = 0;
-        if ($settings->enableAnalytics) {
+        if ($settings->enableAnalytics && $user->getIdentity() && $user->checkPermission('smsManager:viewAnalytics')) {
             $messageStats = (new Query())
                 ->select([
                     'SUM([[totalSent]]) as sent',
@@ -99,7 +106,10 @@ class SmsManagerUtility extends Utility
 
         // Get logs count
         $logsCount = 0;
-        if ($settings->enableSmsLogs) {
+        if ($settings->enableSmsLogs && $user->getIdentity() && (
+            $user->checkPermission('smsManager:viewSmsLogs') ||
+            $user->checkPermission('smsManager:deleteSmsLogs')
+        )) {
             $logsCount = (new Query())
                 ->from('{{%smsmanager_logs}}')
                 ->count();
