@@ -12,6 +12,8 @@ use Craft;
 use craft\db\Query;
 use craft\helpers\Db;
 use craft\queue\BaseJob;
+use lindemannrock\base\helpers\DateFormatHelper;
+use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\SmsLogRecord;
@@ -57,14 +59,6 @@ class CleanupLogsJob extends BaseJob implements RetryableJobInterface
     {
         parent::init();
         $this->setLoggingHandle(SmsManager::$plugin->id);
-
-        // Calculate and set next run time if not already set
-        if ($this->reschedule && !$this->nextRunTime) {
-            $delay = $this->calculateNextRunDelay();
-            if ($delay > 0) {
-                $this->nextRunTime = date('M j, g:ia', time() + $delay);
-            }
-        }
     }
 
     /**
@@ -109,8 +103,21 @@ class CleanupLogsJob extends BaseJob implements RetryableJobInterface
             'pluginName' => $settings->getDisplayName(),
         ]);
 
-        if ($this->nextRunTime) {
-            $description .= " ({$this->nextRunTime})";
+        $nextRunTime = $this->nextRunTime;
+        if ($nextRunTime === null && $this->reschedule) {
+            $nextRun = $this->calculateNextRun();
+            if ($nextRun !== null) {
+                $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
+                    $nextRun,
+                    $settings,
+                    false,
+                    false,
+                );
+            }
+        }
+
+        if ($nextRunTime) {
+            $description .= " ({$nextRunTime})";
         }
 
         return $description;
@@ -128,7 +135,7 @@ class CleanupLogsJob extends BaseJob implements RetryableJobInterface
             return 0;
         }
 
-        $date = (new \DateTime())->modify("-{$retention} days");
+        $date = (clone DateFormatHelper::now())->modify("-{$retention} days");
 
         $deleted = Craft::$app->getDb()->createCommand()
             ->delete(
@@ -202,22 +209,20 @@ class CleanupLogsJob extends BaseJob implements RetryableJobInterface
             return;
         }
 
-        // Prevent duplicate scheduling - check if another cleanup job already exists
-        // This prevents fan-out if multiple jobs end up in the queue (manual runs, retries, etc.)
-        $existingJob = (new \craft\db\Query())
-            ->from('{{%queue}}')
-            ->where(['like', 'job', 'smsmanager'])
-            ->andWhere(['like', 'job', 'CleanupLogsJob'])
-            ->exists();
-
-        if ($existingJob) {
+        $nextRun = $this->calculateNextRun();
+        if ($nextRun === null) {
             return;
         }
 
-        $delay = $this->calculateNextRunDelay();
+        $delay = $this->calculateNextRunDelay($nextRun);
 
         if ($delay > 0) {
-            $nextRunTime = date('M j, g:ia', time() + $delay);
+            $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
+                $nextRun,
+                $settings,
+                false,
+                false,
+            );
 
             $job = new self([
                 'reschedule' => true,
@@ -234,10 +239,23 @@ class CleanupLogsJob extends BaseJob implements RetryableJobInterface
     }
 
     /**
-     * Calculate the delay in seconds for the next cleanup (24 hours)
+     * Calculate the next cleanup run.
      */
-    private function calculateNextRunDelay(): int
+    private function calculateNextRun(): ?\DateTime
     {
-        return 86400; // 24 hours
+        return ScheduleHelper::calculateNext('daily');
+    }
+
+    /**
+     * Calculate the delay in seconds for the next cleanup.
+     */
+    private function calculateNextRunDelay(?\DateTime $nextRun = null): int
+    {
+        $nextRun ??= $this->calculateNextRun();
+        if ($nextRun === null) {
+            return 0;
+        }
+
+        return max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
     }
 }
