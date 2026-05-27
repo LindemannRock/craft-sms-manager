@@ -21,6 +21,7 @@ use craft\services\Utilities;
 use craft\web\UrlManager;
 use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\CpNavHelper;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -441,15 +442,6 @@ class SmsManager extends Plugin
             return;
         }
 
-        // Cache the "scheduled" flag so we don't run a LIKE-scan on {{%queue}}
-        // on every page load. The job reschedules itself every 24h via
-        // CleanupAnalyticsJob::scheduleNextCleanup(); a 6h TTL gives us
-        // 4 cache misses per day instead of N per request.
-        $cacheKey = 'sms-manager.analyticsCleanupScheduled';
-        if (Craft::$app->getCache()->get($cacheKey)) {
-            return;
-        }
-
         $existingJob = (new \craft\db\Query())
             ->from('{{%queue}}')
             ->where(['like', 'job', 'smsmanager'])
@@ -457,17 +449,24 @@ class SmsManager extends Plugin
             ->exists();
 
         if (!$existingJob) {
+            $initialDelay = 5 * 60;
+            $initialRun = (clone DateFormatHelper::now())->modify("+{$initialDelay} seconds");
+
             $job = new CleanupAnalyticsJob([
                 'reschedule' => true,
+                'nextRunTime' => DateFormatHelper::formatCompactDatetimeFromSettings(
+                    $initialRun,
+                    $settings,
+                    false,
+                    false,
+                ),
             ]);
 
             // Add to queue with a small initial delay
-            Craft::$app->queue->delay(5 * 60)->push($job);
+            Craft::$app->queue->delay($initialDelay)->push($job);
 
             $this->logInfo('Scheduled initial analytics cleanup job', ['interval' => '24 hours']);
         }
-
-        Craft::$app->getCache()->set($cacheKey, true, 21600);
     }
 
     /**
@@ -481,11 +480,6 @@ class SmsManager extends Plugin
             return;
         }
 
-        $cacheKey = 'sms-manager.logsCleanupScheduled';
-        if (Craft::$app->getCache()->get($cacheKey)) {
-            return;
-        }
-
         $existingJob = (new \craft\db\Query())
             ->from('{{%queue}}')
             ->where(['like', 'job', 'smsmanager'])
@@ -493,16 +487,23 @@ class SmsManager extends Plugin
             ->exists();
 
         if (!$existingJob) {
+            $initialDelay = 5 * 60;
+            $initialRun = (clone DateFormatHelper::now())->modify("+{$initialDelay} seconds");
+
             $job = new CleanupLogsJob([
                 'reschedule' => true,
+                'nextRunTime' => DateFormatHelper::formatCompactDatetimeFromSettings(
+                    $initialRun,
+                    $settings,
+                    false,
+                    false,
+                ),
             ]);
 
             // Add to queue with a small initial delay
-            Craft::$app->queue->delay(5 * 60)->push($job);
+            Craft::$app->queue->delay($initialDelay)->push($job);
 
             $this->logInfo('Scheduled initial logs cleanup job', ['interval' => '24 hours']);
         }
-
-        Craft::$app->getCache()->set($cacheKey, true, 21600);
     }
 }
