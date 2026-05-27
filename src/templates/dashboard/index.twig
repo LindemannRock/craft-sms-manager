@@ -14,8 +14,8 @@
 
 {# Permission checks #}
 {% set canViewSmsLogs = currentUser.can('smsManager:viewSmsLogs') %}
-{% set canViewProviders = currentUser.can('smsManager:manageProviders') %}
-{% set canViewSenderIds = currentUser.can('smsManager:manageSenderIds') %}
+{% set canManageProviders = currentUser.can('smsManager:manageProviders') %}
+{% set canManageSenderIds = currentUser.can('smsManager:manageSenderIds') %}
 {% set canViewAnalytics = currentUser.can('smsManager:viewAnalytics') %}
 {% set canCreateProviders = currentUser.can('smsManager:createProviders') %}
 {% set canCreateSenderIds = currentUser.can('smsManager:createSenderIds') %}
@@ -91,7 +91,7 @@
     {% endif %}
 
     {# Providers Card #}
-    {% if canViewProviders %}
+    {% if canManageProviders %}
         {% include 'lindemannrock-base/_components/unified-card' with {
             title: 'Providers'|t('sms-manager'),
             color: '#8b5cf6',
