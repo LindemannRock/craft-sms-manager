@@ -462,19 +462,21 @@ class SmsLogsController extends Controller
         // Build filename
         $settings = SmsManager::$plugin->getSettings();
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = $format === 'excel' ? 'xlsx' : $format;
+        $extension = ExportHelper::extensionForFormat($format);
         $filename = ExportHelper::filename($settings, ['logs', $dateRangeLabel], $extension);
 
         $dateColumns = ['dateCreated'];
 
-        return match ($format) {
-            'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),
-            'json' => ExportHelper::toJson($rows, $filename, $dateColumns),
-            'excel' => ExportHelper::toExcel($rows, $headers, $filename, $dateColumns, [
+        return ExportHelper::dispatchTable(
+            rows: $rows,
+            headers: $headers,
+            format: $format,
+            filename: $filename,
+            dateColumns: $dateColumns,
+            excelOptions: [
                 'sheetTitle' => 'SMS Logs',
-            ]),
-            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
-        };
+            ],
+        );
     }
 
     /**
