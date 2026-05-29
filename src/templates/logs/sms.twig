@@ -182,7 +182,7 @@
            Craft.sendActionRequest is XHR-only — the browser won't trigger
            Save-As on its response. #}
         {% include 'lindemannrock-base/_components/export-menu' with {
-            action: 'sms-manager/logs/sms/export',
+            action: 'sms-manager/sms-logs/export',
             permission: 'smsManager:exportSmsLogs',
             pluginHandle: pluginHandle,
             selectionAware: true,
