@@ -766,16 +766,17 @@ class AnalyticsController extends Controller
         // Build filename
         $settings = SmsManager::$plugin->getSettings();
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = $format === 'excel' ? 'xlsx' : $format;
+        $extension = ExportHelper::extensionForFormat($format);
         $filename = ExportHelper::filename($settings, ['analytics', $dateRangeLabel], $extension);
 
-        return match ($format) {
-            'csv' => ExportHelper::toCsv($rows, $headers, $filename),
-            'json' => ExportHelper::toJson($rows, $filename),
-            'excel' => ExportHelper::toExcel($rows, $headers, $filename, [], [
+        return ExportHelper::dispatchTable(
+            rows: $rows,
+            headers: $headers,
+            format: $format,
+            filename: $filename,
+            excelOptions: [
                 'sheetTitle' => 'Analytics',
-            ]),
-            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
-        };
+            ],
+        );
     }
 }
