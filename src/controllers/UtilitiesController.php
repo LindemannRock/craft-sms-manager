@@ -131,7 +131,7 @@ class UtilitiesController extends Controller
 
             return $this->asJson([
                 'success' => false,
-                'error' => Craft::t('sms-manager', 'Failed to clear SMS logs.'),
+                'error' => Craft::t('sms-manager', 'Failed to clear SMS logs'),
             ]);
         }
     }
