@@ -110,14 +110,17 @@ return [
     'All analytics data cleared successfully ({count} records deleted).' => 'Todos os dados de análise foram limpos com sucesso ({count} registos eliminados).',
     'Failed to clear analytics data.' => 'Falha ao limpar os dados de análise.',
     'All SMS logs cleared successfully ({count} records deleted).' => 'Todos os registos de SMS foram limpos com sucesso ({count} registos eliminados).',
-    'Failed to clear SMS logs.' => 'Não foi possível limpar os registos de SMS.',
+    'Provider handle required' => 'Handle do fornecedor obrigatório',
+    'Provider not found' => 'Fornecedor não encontrado',
+    'Sender ID handle required' => 'Handle do ID de remetente obrigatório',
+    'Sender ID not found' => 'ID de remetente não encontrado',
+    'User does not have permission to access this area.' => 'O utilizador não tem permissão para aceder a esta área.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{erro} other{erros}} encontrado(s)',
     'API Key is required.' => 'A chave API é obrigatória.',
     'API URL must be a valid URL.' => 'A API URL deve ser uma URL válida.',
     'API URL must use HTTPS.' => 'A API URL deve usar HTTPS.',
-    'Provider not found.' => 'Fornecedor não encontrado.',
     'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.' => 'Não é possível eliminar um fornecedor baseado em configuração. Remova-o de config/sms-manager.php.',
     'Cannot delete the default provider. Set another provider as default first.' => 'Não é possível eliminar o fornecedor padrão. Defina outro fornecedor como padrão primeiro.',
     'Cannot delete provider. It is in use by: {usages}' => 'Não é possível eliminar o fornecedor. Está em uso por: {usages}',
@@ -125,7 +128,6 @@ return [
     'Default provider is set via config file and cannot be changed here.' => 'O fornecedor padrão é definido pelo ficheiro de configuração e não pode ser alterado aqui.',
     'Cannot modify config-based provider "{name}".' => 'Não é possível modificar o fornecedor baseado em configuração "{name}".',
     'Cannot disable default provider "{name}".' => 'Não é possível desativar o fornecedor padrão "{name}".',
-    'Sender ID not found.' => 'ID de remetente não encontrado.',
     'Cannot delete config-based sender ID. Remove it from config/sms-manager.php instead.' => 'Não é possível eliminar um ID de remetente baseado em configuração. Remova-o de config/sms-manager.php.',
     'Cannot delete the default sender ID. Set another sender ID as default first.' => 'Não é possível eliminar o ID de remetente padrão. Defina outro ID de remetente como padrão primeiro.',
     'Cannot delete sender ID. It is in use by: {usages}' => 'Não é possível eliminar o ID de remetente. Está em uso por: {usages}',
@@ -257,14 +259,14 @@ return [
     'These provider handles exist in both config/sms-manager.php and the database:' => 'Esses handles de fornecedor existem em config/sms-manager.php e na base de dados:',
     'Config takes precedence; database entries with the same handle are ignored.' => 'A configuração tem precedência; as entradas da base de dados com o mesmo handle são ignoradas.',
     'Update your config/sms-manager.php or remove the database entries to resolve this.' => 'Atualize o seu config/sms-manager.php ou remova as entradas da base de dados para resolver isso.',
-    'Delete provider "{name}"? This cannot be undone.' => 'Eliminar o fornecedor "{name}"? Esta ação não pode ser desfeita.',
+    'Delete provider "{name}"? This cannot be undone.' => 'Eliminar o fornecedor "{name}"? Esta ação não pode ser anulada.',
     'Enabled {count} providers' => '{count} fornecedores ativados',
     'Failed to enable providers' => 'Não foi possível ativar os fornecedores',
     'Disabled {count} providers' => '{count} fornecedores desativados',
     'Failed to disable providers' => 'Não foi possível desativar os fornecedores',
     'Deleted {count} providers' => '{count} fornecedores eliminados',
     'Failed to delete providers' => 'Não foi possível eliminar os fornecedores',
-    'Delete {count} provider(s)? This cannot be undone.' => 'Eliminar {count} fornecedor(es)? Esta ação não pode ser desfeita.',
+    'Delete {count} provider(s)? This cannot be undone.' => 'Eliminar {count} fornecedor(es)? Esta ação não pode ser anulada.',
 
     // Providers: Edit
     'The name of this provider' => 'O nome deste fornecedor',
@@ -296,7 +298,7 @@ return [
     'Supported' => 'Suportado',
     'Not Supported' => 'Não suportado',
     'Delivery Reports' => 'Relatórios de entrega',
-    'Are you sure you want to delete this provider?' => 'Eliminar este fornecedor? Esta ação não pode ser desfeita.',
+    'Are you sure you want to delete this provider?' => 'Eliminar este fornecedor?',
 
     // Providers: MPP-SMS settings
     'Optional API endpoint override. Leave blank to use the provider default.' => 'Substituição opcional do endpoint da API. Deixe em branco para usar o padrão do fornecedor.',
@@ -323,14 +325,14 @@ return [
     'Please enable it or set a different sender ID as default.' => 'Ative-o ou defina outro ID de remetente como padrão.',
     'No default sender ID is configured. Please set one of the sender IDs as default.' => 'Nenhum ID de remetente padrão configurado. Defina um dos IDs de remetente como padrão.',
     'These sender ID handles exist in both config/sms-manager.php and the database:' => 'Esses handles de ID de remetente existem em config/sms-manager.php e na base de dados:',
-    'Delete sender ID "{name}"? This cannot be undone.' => 'Eliminar o ID de remetente "{name}"? Esta ação não pode ser desfeita.',
+    'Delete sender ID "{name}"? This cannot be undone.' => 'Eliminar o ID de remetente "{name}"? Esta ação não pode ser anulada.',
     'Enabled {count} sender IDs' => '{count} IDs de remetente ativados',
     'Failed to enable sender IDs' => 'Não foi possível ativar os IDs de remetente',
     'Disabled {count} sender IDs' => '{count} IDs de remetente desativados',
     'Failed to disable sender IDs' => 'Não foi possível desativar os IDs de remetente',
     'Deleted {count} sender IDs' => '{count} IDs de remetente eliminados',
     'Failed to delete sender IDs' => 'Não foi possível eliminar os IDs de remetente',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'Eliminar {count} ID(s) de remetente? Esta ação não pode ser desfeita.',
+    'Delete {count} sender ID(s)? This cannot be undone.' => 'Eliminar {count} ID(s) de remetente? Esta ação não pode ser anulada.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'O fornecedor ao qual este ID de remetente pertence',
@@ -347,7 +349,7 @@ return [
     'First sender ID is automatically set as default.' => 'O primeiro ID de remetente é automaticamente definido como padrão.',
     'Development Sender ID' => 'ID de remetente de desenvolvimento',
     'Use this sender ID for messages in development mode.' => 'Usar este ID de remetente para mensagens no modo de desenvolvimento.',
-    'Are you sure you want to delete this sender ID?' => 'Eliminar este ID de remetente? Esta ação não pode ser desfeita.',
+    'Are you sure you want to delete this sender ID?' => 'Eliminar este ID de remetente?',
 
     // Dashboard
     'Quick Actions' => 'Ações rápidas',
@@ -449,7 +451,7 @@ return [
     'Permanently delete all SMS analytics data. This action cannot be undone!' => 'Eliminar permanentemente todos os dados de análise SMS. Esta ação não pode ser anulada!',
     'Clear All Analytics' => 'Limpar todas as análises',
     'SMS Logs Management' => 'Gestão de registos de SMS',
-    'Permanently delete all SMS logs. This action cannot be undone!' => 'Eliminar permanentemente todos os registos de SMS. Esta ação não pode ser desfeita!',
+    'Permanently delete all SMS logs. This action cannot be undone!' => 'Eliminar permanentemente todos os registos de SMS. Esta ação não pode ser anulada!',
     'Clear All SMS Logs' => 'Limpar todos os registos de SMS',
     'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => 'Eliminar permanentemente TODOS os dados de análise? Esta ação não pode ser anulada!',
     'This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?' => 'Todos os dados de rastreamento SMS serão eliminados e todas as estatísticas serão repostas. Tem a certeza absoluta?',
