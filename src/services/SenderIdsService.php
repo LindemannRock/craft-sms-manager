@@ -255,7 +255,7 @@ class SenderIdsService extends Component
     {
         $senderId = $this->getSenderIdById($id);
         if (!$senderId) {
-            return ['success' => false, 'error' => Craft::t('sms-manager', 'Sender ID not found.')];
+            return ['success' => false, 'error' => Craft::t('sms-manager', 'Sender ID not found')];
         }
 
         // Cannot delete config-based sender IDs
