@@ -283,13 +283,13 @@ class SenderIdsController extends Controller
         $this->requirePermission('smsManager:manageSenderIds');
 
         if (!$handle) {
-            throw new NotFoundHttpException('Sender ID handle required');
+            throw new NotFoundHttpException(Craft::t('sms-manager', 'Sender ID handle required'));
         }
 
         $senderId = SenderIdRecord::findByHandleWithConfig($handle);
 
         if (!$senderId) {
-            throw new NotFoundHttpException('Sender ID not found');
+            throw new NotFoundHttpException(Craft::t('sms-manager', 'Sender ID not found'));
         }
 
         $providers = SmsManager::$plugin->providers->getAllProviders(true);
@@ -329,7 +329,7 @@ class SenderIdsController extends Controller
             $senderId = SenderIdRecord::findOne($senderIdId);
 
             if (!$senderId) {
-                throw new NotFoundHttpException('Sender ID not found');
+                throw new NotFoundHttpException(Craft::t('sms-manager', 'Sender ID not found'));
             }
         }
 
@@ -371,7 +371,7 @@ class SenderIdsController extends Controller
         $senderId = $senderIdId ? SenderIdRecord::findOne($senderIdId) : new SenderIdRecord();
 
         if ($senderIdId && !$senderId) {
-            throw new NotFoundHttpException('Sender ID not found');
+            throw new NotFoundHttpException(Craft::t('sms-manager', 'Sender ID not found'));
         }
 
         // Set attributes
@@ -518,7 +518,7 @@ class SenderIdsController extends Controller
         if (!$senderId) {
             return $this->asJson([
                 'success' => false,
-                'error' => Craft::t('sms-manager', 'Sender ID not found.'),
+                'error' => Craft::t('sms-manager', 'Sender ID not found'),
             ]);
         }
 
