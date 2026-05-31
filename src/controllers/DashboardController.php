@@ -54,7 +54,7 @@ class DashboardController extends Controller
             }
 
             // No accessible sections - throw forbidden
-            throw new ForbiddenHttpException('You do not have permission to access this area.');
+            throw new ForbiddenHttpException(Craft::t('sms-manager', 'User does not have permission to access this area.'));
         }
 
         // Date bounds come from the base DateRangeHelper so they live in the
