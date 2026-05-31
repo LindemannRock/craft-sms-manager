@@ -340,7 +340,7 @@ class ProvidersService extends Component
     {
         $provider = $this->getProviderById($id);
         if (!$provider) {
-            return ['success' => false, 'error' => Craft::t('sms-manager', 'Provider not found.')];
+            return ['success' => false, 'error' => Craft::t('sms-manager', 'Provider not found')];
         }
 
         // Cannot delete config-based providers
