@@ -429,8 +429,8 @@ return [
     'Log deleted successfully.' => 'Registo eliminado com sucesso.',
     'Logs deleted successfully.' => 'Registos eliminados com sucesso.',
     'Failed to delete log.' => 'Não foi possível eliminar o registo.',
-    'Are you sure you want to delete this log?' => 'Tem a certeza de que pretende eliminar este registo?',
-    'Are you sure you want to delete {count} log(s)?' => 'Tem a certeza de que pretende eliminar {count} registo(s)?',
+    'Are you sure you want to delete this log?' => 'Eliminar este registo?',
+    'Are you sure you want to delete {count} log(s)?' => 'Eliminar {count} registo(s)?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Gira fornecedores SMS, IDs de remetente e limpe dados de análise.',
