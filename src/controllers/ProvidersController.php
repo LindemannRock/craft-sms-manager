@@ -239,13 +239,13 @@ class ProvidersController extends Controller
         $this->requirePermission('smsManager:manageProviders');
 
         if (!$handle) {
-            throw new NotFoundHttpException('Provider handle required');
+            throw new NotFoundHttpException(Craft::t('sms-manager', 'Provider handle required'));
         }
 
         $provider = ProviderRecord::findByHandleWithConfig($handle);
 
         if (!$provider) {
-            throw new NotFoundHttpException('Provider not found');
+            throw new NotFoundHttpException(Craft::t('sms-manager', 'Provider not found'));
         }
 
         $providerSettings = $provider->getSettingsArray();
@@ -284,7 +284,7 @@ class ProvidersController extends Controller
             $provider = ProviderRecord::findOne($providerId);
 
             if (!$provider) {
-                throw new NotFoundHttpException('Provider not found');
+                throw new NotFoundHttpException(Craft::t('sms-manager', 'Provider not found'));
             }
 
             $providerSettings = $provider->getSettingsArray();
@@ -327,7 +327,7 @@ class ProvidersController extends Controller
         $provider = $providerId ? ProviderRecord::findOne($providerId) : new ProviderRecord();
 
         if ($providerId && !$provider) {
-            throw new NotFoundHttpException('Provider not found');
+            throw new NotFoundHttpException(Craft::t('sms-manager', 'Provider not found'));
         }
 
         // Set basic attributes
@@ -499,7 +499,7 @@ class ProvidersController extends Controller
         if (!$provider) {
             return $this->asJson([
                 'success' => false,
-                'error' => Craft::t('sms-manager', 'Provider not found.'),
+                'error' => Craft::t('sms-manager', 'Provider not found'),
             ]);
         }
 
