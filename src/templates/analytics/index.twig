@@ -13,6 +13,11 @@
     'mixed': 'Mixed'|t('sms-manager')
 } %}
 
+{% set providerOptions = [{ value: 'all', label: 'All Providers'|t('sms-manager') }] %}
+{% for provider in providers %}
+    {% set providerOptions = providerOptions|merge([{ value: provider.id, label: provider.name }]) %}
+{% endfor %}
+
 {# ============================================================================
    ANALYTICS CONFIGURATION
    ============================================================================ #}
@@ -40,6 +45,23 @@
         dateRange: {
             current: dateRange,
         },
+        sites: {
+            enabled: craft.app.getIsMultiSite(),
+            current: siteId == 'all' ? '' : siteId,
+            sites: sites,
+        },
+        custom: [
+            {
+                param: 'providerId',
+                current: providerId,
+                options: providerOptions,
+            },
+            {
+                param: 'language',
+                current: language,
+                options: languageOptions,
+            },
+        ],
     },
     export: {
         permission: 'smsManager:exportAnalytics',
@@ -96,7 +118,11 @@
 {% set smsAnalyticsConfig = {
     prefix: analyticsConfig.charts.prefix,
     dateRange: dateRange,
-    siteId: siteId ?? '',
+    siteId: siteId == 'all' ? '' : siteId,
+    customFilters: {
+        providerId: providerId,
+        language: language,
+    },
     csrfName: craft.app.config.general.csrfTokenName,
     csrfToken: craft.app.request.csrfToken,
     dataEndpoint: analyticsConfig.charts.dataEndpoint,

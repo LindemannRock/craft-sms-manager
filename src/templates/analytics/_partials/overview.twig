@@ -37,8 +37,8 @@
     </div>
 </div>
 
-{# Two Column Layout - Provider and Language breakdown #}
-<div class="lr-analytics-charts two-columns">
+{# Provider, language, and site breakdown #}
+<div class="lr-analytics-charts">
     <div class="lr-chart-container">
         <h3>{{ 'By Provider'|t('sms-manager') }}</h3>
         <canvas id="provider-chart"></canvas>
@@ -46,6 +46,10 @@
     <div class="lr-chart-container">
         <h3>{{ 'By Language'|t('sms-manager') }}</h3>
         <canvas id="language-chart"></canvas>
+    </div>
+    <div class="lr-chart-container">
+        <h3>{{ 'Distribution'|t('sms-manager') }}: {{ 'Site'|t('sms-manager') }}</h3>
+        <canvas id="site-chart"></canvas>
     </div>
 </div>
 
@@ -57,6 +61,7 @@
             <thead>
                 <tr>
                     <th>{{ 'Provider'|t('sms-manager') }}</th>
+                    <th>{{ 'Site'|t('sms-manager') }}</th>
                     <th class="lr-text-end">{{ 'Sent'|t('sms-manager') }}</th>
                     <th class="lr-text-end">{{ 'Failed'|t('sms-manager') }}</th>
                     <th class="lr-text-end">{{ 'Success Rate'|t('sms-manager') }}</th>
@@ -69,6 +74,7 @@
                         {% set itemRate = itemTotal > 0 ? ((item.sent|default(0)) / itemTotal * 100)|round(1) : 0 %}
                         <tr>
                             <td><strong>{{ item.providerName }}</strong></td>
+                            <td>{{ item.siteName }}</td>
                             <td class="lr-text-end lr-text-green">{{ item.sent|number_format }}</td>
                             <td class="lr-text-end lr-text-red">{{ item.failed|number_format }}</td>
                             <td class="lr-text-end">{{ itemRate }}%</td>
@@ -76,7 +82,7 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="4" class="light lr-text-center">{{ 'No data available'|t('sms-manager') }}</td>
+                        <td colspan="5" class="light lr-text-center">{{ 'No data available'|t('sms-manager') }}</td>
                     </tr>
                 {% endif %}
             </tbody>

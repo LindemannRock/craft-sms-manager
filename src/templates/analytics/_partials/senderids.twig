@@ -10,8 +10,8 @@
     </div>
 </div>
 
-{# Two Column Layout - Success/Failure distribution #}
-<div class="lr-analytics-charts two-columns">
+{# Sender ID and site distribution #}
+<div class="lr-analytics-charts">
     <div class="lr-chart-container">
         <h3>{{ 'Sender ID Distribution'|t('sms-manager') }}</h3>
         <canvas id="senderid-pie-chart"></canvas>
@@ -19,6 +19,10 @@
     <div class="lr-chart-container">
         <h3>{{ 'Success Rate by Sender ID'|t('sms-manager') }}</h3>
         <canvas id="senderid-success-chart"></canvas>
+    </div>
+    <div class="lr-chart-container">
+        <h3>{{ 'Distribution'|t('sms-manager') }}: {{ 'Site'|t('sms-manager') }}</h3>
+        <canvas id="senderid-site-chart"></canvas>
     </div>
 </div>
 
@@ -30,6 +34,7 @@
             <thead>
                 <tr>
                     <th>{{ 'Sender ID'|t('sms-manager') }}</th>
+                    <th>{{ 'Site'|t('sms-manager') }}</th>
                     <th class="lr-text-end">{{ 'Total'|t('sms-manager') }}</th>
                     <th class="lr-text-end">{{ 'Sent'|t('sms-manager') }}</th>
                     <th class="lr-text-end">{{ 'Failed'|t('sms-manager') }}</th>
@@ -37,7 +42,7 @@
                 </tr>
             </thead>
             <tbody id="senderid-table-body">
-                <tr><td colspan="5" class="light lr-text-center">{{ "Loading..."|t('sms-manager') }}</td></tr>
+                <tr><td colspan="6" class="light lr-text-center">{{ "Loading..."|t('sms-manager') }}</td></tr>
             </tbody>
         </table>
     </div>
