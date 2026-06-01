@@ -49,7 +49,7 @@ return [
     'Handle' => 'Identificativo',
     'Description' => 'Descrizione',
     'Status' => 'Stato',
-    'Source' => 'Origine',
+    'Source' => 'Sorgente',
     'Site' => 'Sito',
     'Enabled' => 'Abilitato',
     'Disabled' => 'Disabilitato',
@@ -84,7 +84,7 @@ return [
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: Pulizia dei vecchi log SMS',
-    '{pluginName}: Cleaning up old analytics' => '{pluginName}: Pulizia delle vecchie analisi',
+    '{pluginName}: Cleaning up old analytics' => '{pluginName}: Pulizia analisi obsolete',
 
     // Controller messages
     'Settings saved.' => 'Impostazioni salvate.',
@@ -120,7 +120,7 @@ return [
     'User does not have permission to view analytics for this site.' => 'L\'utente non dispone dell\'autorizzazione per visualizzare le analisi di questo sito.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Trovato/i {count, number} {count, plural, =1{errore} other{errori}}',
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{errore trovato} other{errori trovati}}',
     'API Key is required.' => 'La chiave API è obbligatoria.',
     'API URL must be a valid URL.' => 'L\'API URL deve essere un URL valido.',
     'API URL must use HTTPS.' => 'L\'API URL deve utilizzare HTTPS.',
@@ -151,7 +151,7 @@ return [
     'Select a default sender ID...' => 'Selezionare un ID mittente predefinito...',
     'No enabled providers. <a href="{url}">Create a provider</a> to use as the default.' => 'Nessun provider abilitato. <a href="{url}">Creare un provider</a> da utilizzare come predefinito.',
     'No enabled sender IDs. <a href="{url}">Create a sender ID</a> to use as the default.' => 'Nessun ID mittente abilitato. <a href="{url}">Creare un ID mittente</a> da utilizzare come predefinito.',
-    'Logging Settings' => 'Impostazioni di registrazione',
+    'Logging Settings' => 'Impostazioni di log',
 
     // Settings: Analytics
     'Analytics Settings' => 'Impostazioni analisi',
@@ -163,8 +163,8 @@ return [
     'Number of days to retain analytics (0 = keep forever)' => 'Numero di giorni per conservare le analisi (0 = conserva sempre)',
     'Analytics Limit' => 'Limite analisi',
     'Maximum number of analytics records to retain' => 'Numero massimo di record di analisi da conservare',
-    'Auto Trim Analytics' => 'Riduzione automatica analisi',
-    'Automatically trim analytics to respect the limit' => 'Riduce automaticamente le analisi per rispettare il limite',
+    'Auto Trim Analytics' => 'Riduci analisi automaticamente',
+    'Automatically trim analytics to respect the limit' => 'Riduci automaticamente le analisi per rispettare il limite',
     'Delivery Logs' => 'Log di consegna',
     'Enable Delivery Logs' => 'Abilita log di consegna',
     'Store individual SMS delivery records for auditing and debugging' => 'Archivia i record di consegna SMS individuali per audit e debug',
@@ -222,7 +222,7 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'Impostazioni interfaccia',
-    'Dashboard Refresh Interval' => 'Intervallo di aggiornamento del pannello',
+    'Dashboard Refresh Interval' => 'Intervallo di aggiornamento pannello',
     'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Con quale frequenza aggiornare i dati del pannello. Impostare su Disattivato per disabilitare l\'aggiornamento automatico.',
     'Off' => 'Disattivato',
     '15 seconds' => '15 secondi',
@@ -354,7 +354,7 @@ return [
     'Success Rate %' => 'Tasso di successo %',
     'Total Messages' => 'Messaggi totali',
     'Sent Successfully' => 'Inviato con successo',
-    'Failed' => 'Fallito',
+    'Failed' => 'Non riusciti',
     'Daily SMS Volume' => 'Volume SMS giornaliero',
     'By Provider' => 'Per provider',
     'By Language' => 'Per lingua',
@@ -426,7 +426,7 @@ return [
     'SMS Logs Management' => 'Gestione log SMS',
     'Permanently delete all SMS logs. This action cannot be undone!' => 'Elimina definitivamente tutti i log SMS. Questa azione non può essere annullata!',
     'Clear All SMS Logs' => 'Cancella tutti i log SMS',
-    'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => 'Sei sicuro di voler eliminare definitivamente TUTTI i dati di analisi? Questa azione non può essere annullata!',
+    'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => 'Eliminare definitivamente TUTTI i dati analisi? Questa azione non può essere annullata!',
     'This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?' => 'Questo eliminerà tutti i dati di tracciamento SMS e azzererà tutte le statistiche. Sei assolutamente sicuro?',
     'Failed to clear analytics' => 'Impossibile cancellare le analisi',
     'Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!' => 'Sei sicuro di voler eliminare definitivamente TUTTI i log SMS? Questa azione non può essere annullata!',

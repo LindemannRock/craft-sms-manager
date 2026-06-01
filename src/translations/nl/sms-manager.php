@@ -84,7 +84,7 @@ return [
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: Oude SMS-logboeken opruimen',
-    '{pluginName}: Cleaning up old analytics' => '{pluginName}: Oude analysegegevens opruimen',
+    '{pluginName}: Cleaning up old analytics' => '{pluginName}: Oude analyses opruimen',
 
     // Controller messages
     'Settings saved.' => 'Instellingen opgeslagen.',
@@ -159,12 +159,12 @@ return [
     'Track SMS sending statistics and trends' => 'SMS-verzendstatistieken en -trends bijhouden',
     'When enabled, {pluginName} will track SMS sending statistics including success rates, language distribution, and provider usage.' => 'Indien ingeschakeld, houdt {pluginName} SMS-verzendstatistieken bij, waaronder slagingspercentages, taaldistributie en providergebruik.',
     'Data Retention' => 'Gegevensbewaring',
-    'Analytics Retention (Days)' => 'Analyses bewaren (dagen)',
-    'Number of days to retain analytics (0 = keep forever)' => 'Aantal dagen analysegegevens bewaren (0 = altijd bewaren)',
+    'Analytics Retention (Days)' => 'Analysebewaring (dagen)',
+    'Number of days to retain analytics (0 = keep forever)' => 'Aantal dagen analysegegevens bewaren (0 = voor altijd bewaren)',
     'Analytics Limit' => 'Analyselimiet',
     'Maximum number of analytics records to retain' => 'Maximaal aantal te bewaren analyserecords',
-    'Auto Trim Analytics' => 'Analyses automatisch inkorten',
-    'Automatically trim analytics to respect the limit' => 'Analyses automatisch inkorten om de limiet te respecteren',
+    'Auto Trim Analytics' => 'Analyses automatisch bijsnijden',
+    'Automatically trim analytics to respect the limit' => 'Analyses automatisch bijsnijden om de limiet te respecteren',
     'Delivery Logs' => 'Bezorgingslogboeken',
     'Enable Delivery Logs' => 'Bezorgingslogboeken inschakelen',
     'Store individual SMS delivery records for auditing and debugging' => 'Afzonderlijke SMS-bezorgingsrecords opslaan voor audit en foutopsporing',
@@ -177,7 +177,7 @@ return [
     'Automatically trim logs to respect the limit' => 'Logboeken automatisch inkorten om de limiet te respecteren',
 
     // Settings: Test
-    'Test' => 'Test',
+    'Test' => 'Testen',
     'Test SMS' => 'Test-SMS',
     'Test SMS Sending' => 'SMS-verzending testen',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'Test uw SMS-providerconfiguratie door een testbericht te verzenden. Dit maakt gebruik van de daadwerkelijke provider-API en kan kosten met zich meebrengen.',
@@ -222,8 +222,8 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'Interface-instellingen',
-    'Dashboard Refresh Interval' => 'Dashboard verversingsinterval',
-    'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Hoe vaak dashboardgegevens worden ververst. Instellen op Uit om automatisch verversen uit te schakelen.',
+    'Dashboard Refresh Interval' => 'Verversingsinterval dashboard',
+    'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Hoe vaak dashboardgegevens worden ververst. Stel in op Uit om automatisch verversen uit te schakelen.',
     'Off' => 'Uit',
     '15 seconds' => '15 seconden',
     '30 seconds' => '30 seconden',
@@ -422,13 +422,13 @@ return [
     'Access main plugin sections' => 'Toegang tot de belangrijkste pluginsecties',
     'Analytics Data Management' => 'Beheer van analysegegevens',
     'Permanently delete all SMS analytics data. This action cannot be undone!' => 'Alle SMS-analysegegevens permanent verwijderen. Deze actie kan niet ongedaan worden gemaakt!',
-    'Clear All Analytics' => 'Alle analyses wissen',
+    'Clear All Analytics' => 'Alle analysegegevens wissen',
     'SMS Logs Management' => 'Beheer van SMS-logboeken',
     'Permanently delete all SMS logs. This action cannot be undone!' => 'Alle SMS-logboeken permanent verwijderen. Deze actie kan niet ongedaan worden gemaakt!',
     'Clear All SMS Logs' => 'Alle SMS-logboeken wissen',
     'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => 'Weet u zeker dat u ALLE analysegegevens permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!',
     'This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?' => 'Dit verwijdert alle SMS-trackinggegevens en reset alle statistieken. Weet u het zeker?',
-    'Failed to clear analytics' => 'Kon analyses niet wissen',
+    'Failed to clear analytics' => 'Analysegegevens konden niet worden gewist',
     'Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!' => 'Weet u zeker dat u ALLE SMS-logboeken permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!',
     'This will delete all SMS log entries. Are you absolutely sure?' => 'Dit verwijdert alle SMS-logboekitems. Weet u het zeker?',
     'Failed to clear SMS logs' => 'Kon SMS-logboeken niet wissen',

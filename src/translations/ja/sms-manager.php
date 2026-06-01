@@ -84,7 +84,7 @@ return [
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: 古い SMS ログを削除しています',
-    '{pluginName}: Cleaning up old analytics' => '{pluginName} ：古いアナリティクスデータを削除しています',
+    '{pluginName}: Cleaning up old analytics' => '{pluginName}: 古いアナリティクスを整理しています',
 
     // Controller messages
     'Settings saved.' => '設定を保存しました。',
@@ -120,7 +120,7 @@ return [
     'User does not have permission to view analytics for this site.' => 'ユーザーにこのサイトのアナリティクスを表示する権限がありません。',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} 件のエラーが見つかりました',
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} 件の{count, plural, =1{エラー} other{エラー}}が見つかりました',
     'API Key is required.' => 'API キーは必須です。',
     'API URL must be a valid URL.' => 'API URL は有効な URL である必要があります。',
     'API URL must use HTTPS.' => 'API URL は HTTPS を使用する必要があります。',
@@ -158,13 +158,13 @@ return [
     'Enable Analytics' => 'アナリティクスを有効にする',
     'Track SMS sending statistics and trends' => 'SMS 送信の統計とトレンドを追跡します',
     'When enabled, {pluginName} will track SMS sending statistics including success rates, language distribution, and provider usage.' => '有効にすると、 {pluginName} は成功率、言語分布、プロバイダー使用状況を含む SMS 送信統計を追跡します。',
-    'Data Retention' => 'データ保持',
-    'Analytics Retention (Days)' => 'アナリティクス保持期間（日）',
+    'Data Retention' => 'データ保持期間',
+    'Analytics Retention (Days)' => 'アナリティクスの保持期間（日）',
     'Number of days to retain analytics (0 = keep forever)' => 'アナリティクスを保持する日数（0 = 永久に保持）',
     'Analytics Limit' => 'アナリティクスの上限',
     'Maximum number of analytics records to retain' => '保持するアナリティクスレコードの最大数',
-    'Auto Trim Analytics' => 'アナリティクスを自動トリムする',
-    'Automatically trim analytics to respect the limit' => '上限を守るためにアナリティクスを自動的にトリムします',
+    'Auto Trim Analytics' => 'アナリティクスを自動削減する',
+    'Automatically trim analytics to respect the limit' => '上限を守るためにアナリティクスを自動的に削減する',
     'Delivery Logs' => '配信ログ',
     'Enable Delivery Logs' => '配信ログを有効にする',
     'Store individual SMS delivery records for auditing and debugging' => '監査とデバッグのために個別の SMS 配信レコードを保存します',
@@ -223,7 +223,7 @@ return [
     // Settings: Interface
     'Interface Settings' => 'インターフェース設定',
     'Dashboard Refresh Interval' => 'ダッシュボードの更新間隔',
-    'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'ダッシュボードデータを更新する頻度です。オフに設定すると自動更新が無効になります。',
+    'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'ダッシュボードデータを更新する頻度です。自動更新を無効にするには「オフ」に設定してください。',
     'Off' => 'オフ',
     '15 seconds' => '15 秒',
     '30 seconds' => '30 秒',
@@ -426,7 +426,7 @@ return [
     'SMS Logs Management' => 'SMS ログ管理',
     'Permanently delete all SMS logs. This action cannot be undone!' => 'すべての SMS ログを完全に削除します。この操作は元に戻せません！',
     'Clear All SMS Logs' => 'すべての SMS ログを削除する',
-    'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => 'すべてのアナリティクスデータを完全に削除してもよろしいですか？この操作は元に戻せません！',
+    'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => 'すべてのアナリティクスデータを完全に削除しますか？この操作は取り消せません！',
     'This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?' => 'これにより、すべての SMS トラッキングデータが削除され、すべての統計がリセットされます。本当によろしいですか？',
     'Failed to clear analytics' => 'アナリティクスの削除に失敗しました',
     'Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!' => 'すべての SMS ログを完全に削除してもよろしいですか？この操作は元に戻せません！',

@@ -84,7 +84,7 @@ return [
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: Alte SMS-Protokolle werden bereinigt',
-    '{pluginName}: Cleaning up old analytics' => '{pluginName}: Alte Analysedaten werden bereinigt',
+    '{pluginName}: Cleaning up old analytics' => '{pluginName}: Alte Analysedaten bereinigen',
 
     // Controller messages
     'Settings saved.' => 'Einstellungen gespeichert.',
@@ -120,7 +120,7 @@ return [
     'User does not have permission to view analytics for this site.' => 'Der Benutzer hat keine Berechtigung, Analytics für diese Website anzuzeigen.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{Fehler} other{Fehler}} gefunden',
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Es wurde {count, number} {count, plural, =1{Fehler} other{Fehler}} gefunden',
     'API Key is required.' => 'API-Schlüssel ist erforderlich.',
     'API URL must be a valid URL.' => 'API-URL muss eine gültige URL sein.',
     'API URL must use HTTPS.' => 'API-URL muss HTTPS verwenden.',
@@ -160,7 +160,7 @@ return [
     'When enabled, {pluginName} will track SMS sending statistics including success rates, language distribution, and provider usage.' => 'Wenn aktiviert, verfolgt {pluginName} SMS-Versandstatistiken einschließlich Erfolgsraten, Sprachverteilung und Anbieternutzung.',
     'Data Retention' => 'Datenaufbewahrung',
     'Analytics Retention (Days)' => 'Analysedaten-Aufbewahrung (Tage)',
-    'Number of days to retain analytics (0 = keep forever)' => 'Anzahl der Tage zur Aufbewahrung der Analysedaten (0 = dauerhaft behalten)',
+    'Number of days to retain analytics (0 = keep forever)' => 'Anzahl der Tage, für die Analysedaten aufbewahrt werden (0 = für immer aufbewahren)',
     'Analytics Limit' => 'Analysedaten-Limit',
     'Maximum number of analytics records to retain' => 'Maximale Anzahl der aufzubewahrenden Analysedatensätze',
     'Auto Trim Analytics' => 'Analysedaten automatisch kürzen',
@@ -223,7 +223,7 @@ return [
     // Settings: Interface
     'Interface Settings' => 'Oberflächen-Einstellungen',
     'Dashboard Refresh Interval' => 'Dashboard-Aktualisierungsintervall',
-    'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Wie oft die Dashboard-Daten aktualisiert werden sollen. Auf „Aus" setzen, um die automatische Aktualisierung zu deaktivieren.',
+    'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Wie häufig Dashboard-Daten aktualisiert werden sollen. Auf "Aus" setzen, um die automatische Aktualisierung zu deaktivieren.',
     'Off' => 'Aus',
     '15 seconds' => '15 Sekunden',
     '30 seconds' => '30 Sekunden',

@@ -120,7 +120,7 @@ return [
     'User does not have permission to view analytics for this site.' => 'El usuario no tiene permiso para ver las analíticas de este sitio.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Se {count, plural, =1{encontró} other{encontraron}} {count, number} {count, plural, =1{error} other{errores}}',
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{error encontrado} other{errores encontrados}}',
     'API Key is required.' => 'La clave API es obligatoria.',
     'API URL must be a valid URL.' => 'La URL de la API debe ser una URL válida.',
     'API URL must use HTTPS.' => 'La URL de la API debe usar HTTPS.',
@@ -164,7 +164,7 @@ return [
     'Analytics Limit' => 'Límite de analíticas',
     'Maximum number of analytics records to retain' => 'Número máximo de registros de analíticas a conservar',
     'Auto Trim Analytics' => 'Recortar analíticas automáticamente',
-    'Automatically trim analytics to respect the limit' => 'Recortar automáticamente las analíticas para respetar el límite',
+    'Automatically trim analytics to respect the limit' => 'Recortar analíticas automáticamente para respetar el límite',
     'Delivery Logs' => 'Registros de entrega',
     'Enable Delivery Logs' => 'Activar registros de entrega',
     'Store individual SMS delivery records for auditing and debugging' => 'Almacenar registros individuales de entrega de SMS para auditoría y depuración',
@@ -177,7 +177,7 @@ return [
     'Automatically trim logs to respect the limit' => 'Recortar automáticamente los registros para respetar el límite',
 
     // Settings: Test
-    'Test' => 'Prueba',
+    'Test' => 'Probar',
     'Test SMS' => 'SMS de prueba',
     'Test SMS Sending' => 'Probar envío de SMS',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'Pruebe la configuración de su proveedor SMS enviando un mensaje de prueba. Se utilizará la API real del proveedor y puede generar costes.',
@@ -223,7 +223,7 @@ return [
     // Settings: Interface
     'Interface Settings' => 'Configuración de interfaz',
     'Dashboard Refresh Interval' => 'Intervalo de actualización del panel',
-    'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Con qué frecuencia actualizar los datos del panel. Configurar en Desactivado para desactivar la actualización automática.',
+    'How often to refresh dashboard data. Set to Off to disable auto-refresh.' => 'Con qué frecuencia actualizar los datos del panel. Establezca en Desactivado para desactivar la actualización automática.',
     'Off' => 'Desactivado',
     '15 seconds' => '15 segundos',
     '30 seconds' => '30 segundos',
@@ -420,13 +420,13 @@ return [
     'Manage Sender IDs' => 'Gestionar IDs de remitente',
     'Navigation' => 'Navegación',
     'Access main plugin sections' => 'Acceder a las secciones principales del plugin',
-    'Analytics Data Management' => 'Gestión de datos de analíticas',
+    'Analytics Data Management' => 'Gestión de datos analíticos',
     'Permanently delete all SMS analytics data. This action cannot be undone!' => 'Eliminar permanentemente todos los datos de analíticas SMS. ¡Esta acción no se puede deshacer!',
     'Clear All Analytics' => 'Borrar todas las analíticas',
     'SMS Logs Management' => 'Gestión de registros SMS',
     'Permanently delete all SMS logs. This action cannot be undone!' => 'Eliminar permanentemente todos los registros SMS. ¡Esta acción no se puede deshacer!',
     'Clear All SMS Logs' => 'Borrar todos los registros SMS',
-    'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => '¿Está seguro de que desea eliminar permanentemente TODOS los datos de analíticas? ¡Esta acción no se puede deshacer!',
+    'Are you sure you want to permanently delete ALL analytics data? This action cannot be undone!' => '¿Está seguro de que desea eliminar PERMANENTEMENTE todos los datos analíticos? ¡Esta acción no se puede deshacer!',
     'This will delete all SMS tracking data and reset all statistics. Are you absolutely sure?' => 'Esto eliminará todos los datos de seguimiento SMS y restablecerá todas las estadísticas. ¿Está absolutamente seguro?',
     'Failed to clear analytics' => 'No se pudieron borrar las analíticas',
     'Are you sure you want to permanently delete ALL SMS logs? This action cannot be undone!' => '¿Está seguro de que desea eliminar permanentemente TODOS los registros SMS? ¡Esta acción no se puede deshacer!',
