@@ -30,6 +30,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
   - Daily SMS statistics (sent, failed, pending)
   - Site and language filtering for multisite reporting
   - Exact language breakdown with encoding buckets
+  - Site-aware provider and sender ID performance breakdowns
   - Provider and sender ID performance tracking
   - Source plugin tracking (know which plugin triggered each SMS)
   - Configurable retention period
