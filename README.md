@@ -28,7 +28,8 @@ This plugin is in active development and not yet available on the Craft Plugin S
 - **Multi-Language Support**: Native support for Arabic (UCS-2 encoding) and English messages
 - **Comprehensive Analytics**:
   - Daily SMS statistics (sent, failed, pending)
-  - Language breakdown (English, Arabic, other)
+  - Site and language filtering for multisite reporting
+  - Exact language breakdown with encoding buckets
   - Provider and sender ID performance tracking
   - Source plugin tracking (know which plugin triggered each SMS)
   - Configurable retention period
@@ -469,7 +470,8 @@ Navigate to **SMS Manager → Analytics** to see:
 
 - Total messages sent vs failed
 - Daily trends chart
-- Language breakdown (English, Arabic, other)
+- Site and language filters
+- Exact language breakdown with encoding buckets
 - Provider performance comparison
 - Source plugin breakdown
 
