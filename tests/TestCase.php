@@ -75,6 +75,7 @@ abstract class TestCase extends IntegrationTestCase
         $this->providers = $plugin->providers;
         $this->senderIds = $plugin->senderIds;
         $this->seedCounter = 0;
+        $this->ensureAnalyticsTestSchema();
         $this->purgeTestRows();
     }
 
@@ -212,5 +213,31 @@ abstract class TestCase extends IntegrationTestCase
     {
         $this->seedCounter++;
         return self::MARKER . 'src_' . $this->seedCounter . $suffix;
+    }
+
+    /**
+     * Keep local pre-release test databases aligned with the current install schema.
+     */
+    private function ensureAnalyticsTestSchema(): void
+    {
+        $db = Craft::$app->getDb();
+
+        $this->ensureColumn(SmsLogRecord::tableName(), 'siteId', 'integer NULL');
+        $this->ensureColumn(AnalyticsRecord::tableName(), 'siteId', 'integer NULL');
+        $this->ensureColumn(AnalyticsRecord::tableName(), 'language', 'varchar(10) NULL');
+
+        $db->getSchema()->refreshTableSchema(SmsLogRecord::tableName());
+        $db->getSchema()->refreshTableSchema(AnalyticsRecord::tableName());
+    }
+
+    private function ensureColumn(string $tableName, string $columnName, string $definition): void
+    {
+        $db = Craft::$app->getDb();
+        $table = $db->getSchema()->getTableSchema($tableName, true);
+        if ($table !== null && $table->getColumn($columnName) !== null) {
+            return;
+        }
+
+        $db->createCommand()->addColumn($tableName, $columnName, $definition)->execute();
     }
 }
