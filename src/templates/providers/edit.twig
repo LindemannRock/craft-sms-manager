@@ -283,13 +283,16 @@
     {% if not isNew %}
     <fieldset>
         <dl class="meta read-only">
-            <div class="data">
-                <dt class="heading">{{ 'Status'|t('sms-manager') }}</dt>
-                <dd class="value">
-                    <span class="status {{ provider.enabled ? 'live' : 'disabled' }}"></span>
-                    <span>{{ provider.enabled ? 'Enabled'|t('sms-manager') : 'Disabled'|t('sms-manager') }}</span>
-                </dd>
-            </div>
+	            <div class="data">
+	                <dt class="heading">{{ 'Status'|t('sms-manager') }}</dt>
+	                <dd class="value">
+	                    {% include 'lindemannrock-base/_components/status-dot' with {
+	                        value: provider.enabled ? 'enabled' : 'disabled',
+	                        colorSet: 'status',
+	                    } only %}
+	                    <span>{{ provider.enabled ? 'Enabled'|t('sms-manager') : 'Disabled'|t('sms-manager') }}</span>
+	                </dd>
+	            </div>
             <div class="data">
                 <dt class="heading">{{ 'Handle'|t('sms-manager') }}</dt>
                 <dd class="value"><code>{{ provider.handle }}</code></dd>
@@ -356,20 +359,26 @@
                         <dd class="value"><a href="{{ providerMeta.dashboardUrl }}" target="_blank" rel="noopener">{{ 'Open Dashboard'|t('sms-manager') }} &rarr;</a></dd>
                     </div>
                 {% endif %}
-                <div class="data">
-                    <dt class="heading">{{ 'Unicode'|t('sms-manager') }}</dt>
-                    <dd class="value">
-                        <span class="status {{ providerMeta.supportsUnicode ? 'live' : 'disabled' }}"></span>
-                        {{ providerMeta.supportsUnicode ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}
-                    </dd>
-                </div>
-                <div class="data">
-                    <dt class="heading">{{ 'Delivery Reports'|t('sms-manager') }}</dt>
-                    <dd class="value">
-                        <span class="status {{ providerMeta.supportsDeliveryReports ? 'live' : 'disabled' }}"></span>
-                        {{ providerMeta.supportsDeliveryReports ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}
-                    </dd>
-                </div>
+	                <div class="data">
+	                    <dt class="heading">{{ 'Unicode'|t('sms-manager') }}</dt>
+	                    <dd class="value">
+	                        {% include 'lindemannrock-base/_components/status-dot' with {
+	                            value: providerMeta.supportsUnicode ? 'enabled' : 'disabled',
+	                            colorSet: 'status',
+	                        } only %}
+	                        <span>{{ providerMeta.supportsUnicode ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}</span>
+	                    </dd>
+	                </div>
+	                <div class="data">
+	                    <dt class="heading">{{ 'Delivery Reports'|t('sms-manager') }}</dt>
+	                    <dd class="value">
+	                        {% include 'lindemannrock-base/_components/status-dot' with {
+	                            value: providerMeta.supportsDeliveryReports ? 'enabled' : 'disabled',
+	                            colorSet: 'status',
+	                        } only %}
+	                        <span>{{ providerMeta.supportsDeliveryReports ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}</span>
+	                    </dd>
+	                </div>
             </dl>
         </fieldset>
     {% endif %}
