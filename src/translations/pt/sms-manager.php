@@ -50,6 +50,7 @@ return [
     'Description' => 'Descrição',
     'Status' => 'Estado',
     'Source' => 'Origem',
+    'Site' => 'Site',
     'Enabled' => 'Ativado',
     'Disabled' => 'Desativado',
     'Default' => 'Padrão',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'Falha ao atualizar o ID de remetente padrão.',
     '{count} analytics records deleted.' => '{count} registos de análises eliminados.',
     'No analytics data to export for the selected date range.' => 'Nenhum dado de análise para exportar no intervalo de datas selecionado.',
+    'No analytics data to export for the selected filters.' => 'Nenhum dado de análise para exportar com os filtros selecionados.',
     '{count} log records deleted.' => '{count} registos eliminados.',
     'No logs to export for the selected date range.' => 'Nenhum registo para exportar no intervalo de datas selecionado.',
     'No logs selected.' => 'Nenhum registo selecionado.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Handle do ID de remetente obrigatório',
     'Sender ID not found' => 'ID de remetente não encontrado',
     'User does not have permission to access this area.' => 'O utilizador não tem permissão para aceder a esta área.',
+    'User does not have permission to view analytics for this site.' => 'O utilizador não tem permissão para ver as análises deste site.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{erro} other{erros}} encontrado(s)',

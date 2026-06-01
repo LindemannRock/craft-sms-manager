@@ -50,6 +50,7 @@ return [
     'Description' => 'Descripción',
     'Status' => 'Estado',
     'Source' => 'Origen',
+    'Site' => 'Sitio',
     'Enabled' => 'Activado',
     'Disabled' => 'Desactivado',
     'Default' => 'Predeterminado',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'No se pudo actualizar el ID de remitente predeterminado.',
     '{count} analytics records deleted.' => '{count} registros de analíticas eliminados.',
     'No analytics data to export for the selected date range.' => 'No hay datos de analíticas para exportar en el rango de fechas seleccionado.',
+    'No analytics data to export for the selected filters.' => 'No hay datos analíticos que exportar para los filtros seleccionados.',
     '{count} log records deleted.' => '{count} registros de log eliminados.',
     'No logs to export for the selected date range.' => 'No hay registros para exportar en el rango de fechas seleccionado.',
     'No logs selected.' => 'No se seleccionaron registros.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Handle de ID de remitente obligatorio',
     'Sender ID not found' => 'ID de remitente no encontrado',
     'User does not have permission to access this area.' => 'El usuario no tiene permiso para acceder a esta área.',
+    'User does not have permission to view analytics for this site.' => 'El usuario no tiene permiso para ver las analíticas de este sitio.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Se {count, plural, =1{encontró} other{encontraron}} {count, number} {count, plural, =1{error} other{errores}}',
@@ -152,7 +155,7 @@ return [
 
     // Settings: Analytics
     'Analytics Settings' => 'Configuración de analíticas',
-    'Enable Analytics' => 'Habilitar analíticas',
+    'Enable Analytics' => 'Activar analíticas',
     'Track SMS sending statistics and trends' => 'Rastrear estadísticas y tendencias de envío de SMS',
     'When enabled, {pluginName} will track SMS sending statistics including success rates, language distribution, and provider usage.' => 'Cuando esté activado, {pluginName} rastreará estadísticas de envío de SMS incluyendo tasas de éxito, distribución de idiomas y uso de proveedores.',
     'Data Retention' => 'Retención de datos',
@@ -163,7 +166,7 @@ return [
     'Auto Trim Analytics' => 'Recortar analíticas automáticamente',
     'Automatically trim analytics to respect the limit' => 'Recortar automáticamente las analíticas para respetar el límite',
     'Delivery Logs' => 'Registros de entrega',
-    'Enable Delivery Logs' => 'Habilitar registros de entrega',
+    'Enable Delivery Logs' => 'Activar registros de entrega',
     'Store individual SMS delivery records for auditing and debugging' => 'Almacenar registros individuales de entrega de SMS para auditoría y depuración',
     'When enabled, individual SMS records will be stored including recipient, message, status, and provider response.' => 'Cuando esté activado, se almacenarán registros SMS individuales que incluirán destinatario, mensaje, estado y respuesta del proveedor.',
     'Logs Retention (Days)' => 'Retención de registros (días)',

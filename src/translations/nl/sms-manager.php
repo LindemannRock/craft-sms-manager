@@ -50,6 +50,7 @@ return [
     'Description' => 'Beschrijving',
     'Status' => 'Status',
     'Source' => 'Bron',
+    'Site' => 'Site',
     'Enabled' => 'Ingeschakeld',
     'Disabled' => 'Uitgeschakeld',
     'Default' => 'Standaard',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'Kon standaard afzender-ID niet bijwerken.',
     '{count} analytics records deleted.' => '{count} analyserecords verwijderd.',
     'No analytics data to export for the selected date range.' => 'Geen analysegegevens te exporteren voor het geselecteerde datumbereik.',
+    'No analytics data to export for the selected filters.' => 'Geen analysegegevens te exporteren voor de geselecteerde filters.',
     '{count} log records deleted.' => '{count} logboekrecords verwijderd.',
     'No logs to export for the selected date range.' => 'Geen logboeken te exporteren voor het geselecteerde datumbereik.',
     'No logs selected.' => 'Geen logboeken geselecteerd.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Afzender-ID handle vereist',
     'Sender ID not found' => 'Afzender-ID niet gevonden',
     'User does not have permission to access this area.' => 'De gebruiker heeft geen toestemming om toegang te krijgen tot dit gebied.',
+    'User does not have permission to view analytics for this site.' => 'De gebruiker heeft geen toestemming om analyses voor deze site te bekijken.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fout} other{fouten}} gevonden',

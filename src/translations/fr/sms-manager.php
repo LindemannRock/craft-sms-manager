@@ -50,6 +50,7 @@ return [
     'Description' => 'Description',
     'Status' => 'Statut',
     'Source' => 'Source',
+    'Site' => 'Site',
     'Enabled' => 'Activé',
     'Disabled' => 'Désactivé',
     'Default' => 'Par défaut',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'Impossible de mettre à jour l\'identifiant d\'expéditeur par défaut.',
     '{count} analytics records deleted.' => '{count} enregistrements analytiques supprimés.',
     'No analytics data to export for the selected date range.' => 'Aucune donnée analytique à exporter pour la plage de dates sélectionnée.',
+    'No analytics data to export for the selected filters.' => 'Aucune donnée analytique à exporter pour les filtres sélectionnés.',
     '{count} log records deleted.' => '{count} entrées de journal supprimées.',
     'No logs to export for the selected date range.' => 'Aucun journal à exporter pour la plage de dates sélectionnée.',
     'No logs selected.' => 'Aucun journal sélectionné.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Handle de l\'identifiant d\'expéditeur requis',
     'Sender ID not found' => 'Identifiant d\'expéditeur introuvable',
     'User does not have permission to access this area.' => 'L\'utilisateur n\'a pas la permission d\'accéder à cette zone.',
+    'User does not have permission to view analytics for this site.' => 'L\'utilisateur n\'a pas la permission de consulter les analytiques de ce site.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{erreur} other{erreurs}} trouvée(s)',

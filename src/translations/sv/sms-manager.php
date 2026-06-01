@@ -50,6 +50,7 @@ return [
     'Description' => 'Beskrivning',
     'Status' => 'Status',
     'Source' => 'Källa',
+    'Site' => 'Webbplats',
     'Enabled' => 'Aktiverad',
     'Disabled' => 'Inaktiverad',
     'Default' => 'Standard',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'Misslyckades med att uppdatera standard-avsändar-ID:t.',
     '{count} analytics records deleted.' => '{count} analysposter borttagna.',
     'No analytics data to export for the selected date range.' => 'Ingen analysdata att exportera för det valda datumintervallet.',
+    'No analytics data to export for the selected filters.' => 'Inga analysdata att exportera för de valda filtren.',
     '{count} log records deleted.' => '{count} loggposter borttagna.',
     'No logs to export for the selected date range.' => 'Inga loggar att exportera för det valda datumintervallet.',
     'No logs selected.' => 'Inga loggar valda.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Avsändar-ID:ts handle krävs',
     'Sender ID not found' => 'Avsändar-ID:t hittades inte',
     'User does not have permission to access this area.' => 'Användaren har inte behörighet att komma åt detta område.',
+    'User does not have permission to view analytics for this site.' => 'Användaren har inte behörighet att visa analys för den här webbplatsen.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Hittade {count, number} {count, plural, =1{fel} other{fel}}',

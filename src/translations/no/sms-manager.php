@@ -50,6 +50,7 @@ return [
     'Description' => 'Beskrivelse',
     'Status' => 'Status',
     'Source' => 'Kilde',
+    'Site' => 'Nettsted',
     'Enabled' => 'Aktivert',
     'Disabled' => 'Deaktivert',
     'Default' => 'Standard',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'Kunne ikke oppdatere standard-avsender-ID-en.',
     '{count} analytics records deleted.' => '{count} analyseposter slettet.',
     'No analytics data to export for the selected date range.' => 'Ingen analysedata å eksportere for det valgte datointervallet.',
+    'No analytics data to export for the selected filters.' => 'Ingen analysedata å eksportere for de valgte filtrene.',
     '{count} log records deleted.' => '{count} loggposter slettet.',
     'No logs to export for the selected date range.' => 'Ingen logger å eksportere for det valgte datointervallet.',
     'No logs selected.' => 'Ingen logger valgt.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Avsender-ID-ens handle påkrevd',
     'Sender ID not found' => 'Avsender-ID ikke funnet',
     'User does not have permission to access this area.' => 'Brukeren har ikke tillatelse til å få tilgang til dette området.',
+    'User does not have permission to view analytics for this site.' => 'Brukeren har ikke tillatelse til å se analyse for dette nettstedet.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Fant {count, number} {count, plural, =1{feil} other{feil}}',

@@ -50,6 +50,7 @@ return [
     'Description' => 'Description',
     'Status' => 'Status',
     'Source' => 'Source',
+    'Site' => 'Site',
     'Enabled' => 'Enabled',
     'Disabled' => 'Disabled',
     'Default' => 'Default',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'Failed to update default sender ID.',
     '{count} analytics records deleted.' => '{count} analytics records deleted.',
     'No analytics data to export for the selected date range.' => 'No analytics data to export for the selected date range.',
+    'No analytics data to export for the selected filters.' => 'No analytics data to export for the selected filters.',
     '{count} log records deleted.' => '{count} log records deleted.',
     'No logs to export for the selected date range.' => 'No logs to export for the selected date range.',
     'No logs selected.' => 'No logs selected.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Sender ID handle required',
     'Sender ID not found' => 'Sender ID not found',
     'User does not have permission to access this area.' => 'User does not have permission to access this area.',
+    'User does not have permission to view analytics for this site.' => 'User does not have permission to view analytics for this site.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Found {count, number} {count, plural, =1{error} other{errors}}',

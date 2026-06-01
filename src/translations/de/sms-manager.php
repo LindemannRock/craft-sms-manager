@@ -50,6 +50,7 @@ return [
     'Description' => 'Beschreibung',
     'Status' => 'Status',
     'Source' => 'Quelle',
+    'Site' => 'Website',
     'Enabled' => 'Aktiviert',
     'Disabled' => 'Deaktiviert',
     'Default' => 'Standard',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'Standard-Absender-ID konnte nicht aktualisiert werden.',
     '{count} analytics records deleted.' => '{count} Analysedatensätze gelöscht.',
     'No analytics data to export for the selected date range.' => 'Keine Analysedaten für den ausgewählten Zeitraum zum Exportieren vorhanden.',
+    'No analytics data to export for the selected filters.' => 'Keine Analysedaten für die gewählten Filter zum Exportieren vorhanden.',
     '{count} log records deleted.' => '{count} Protokolleinträge gelöscht.',
     'No logs to export for the selected date range.' => 'Keine Protokolle für den ausgewählten Zeitraum zum Exportieren vorhanden.',
     'No logs selected.' => 'Keine Protokolle ausgewählt.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Absender-ID-Handle erforderlich',
     'Sender ID not found' => 'Absender-ID nicht gefunden',
     'User does not have permission to access this area.' => 'Der Benutzer hat keine Berechtigung, auf diesen Bereich zuzugreifen.',
+    'User does not have permission to view analytics for this site.' => 'Der Benutzer hat keine Berechtigung, Analytics für diese Website anzuzeigen.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{Fehler} other{Fehler}} gefunden',

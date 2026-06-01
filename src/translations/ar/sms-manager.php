@@ -50,6 +50,7 @@ return [
     'Description' => 'الوصف',
     'Status' => 'الحالة',
     'Source' => 'المصدر',
+    'Site' => 'الموقع',
     'Enabled' => 'مفعّل',
     'Disabled' => 'معطّل',
     'Default' => 'افتراضي',
@@ -102,6 +103,7 @@ return [
     'Failed to update default sender ID.' => 'فشل تحديث معرّف المُرسِل الافتراضي.',
     '{count} analytics records deleted.' => 'تم حذف {count} سجل من سجلات التحليلات.',
     'No analytics data to export for the selected date range.' => 'لا توجد بيانات تحليلات لتصديرها في النطاق الزمني المحدد.',
+    'No analytics data to export for the selected filters.' => 'لا توجد بيانات تحليلية للتصدير وفق الفلاتر المحددة.',
     '{count} log records deleted.' => 'تم حذف {count} سجل.',
     'No logs to export for the selected date range.' => 'لا توجد سجلات لتصديرها في النطاق الزمني المحدد.',
     'No logs selected.' => 'لم يتم تحديد أي سجلات.',
@@ -115,6 +117,7 @@ return [
     'Sender ID handle required' => 'Handle معرّف المُرسِل مطلوب',
     'Sender ID not found' => 'لم يتم العثور على معرّف المُرسِل',
     'User does not have permission to access this area.' => 'ليس لدى المستخدم صلاحية للوصول إلى هذه المنطقة.',
+    'User does not have permission to view analytics for this site.' => 'ليس لدى المستخدم صلاحية لعرض تحليلات هذا الموقع.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => 'تم العثور على {count, number} {count, plural, =1{خطأ} other{أخطاء}}',
