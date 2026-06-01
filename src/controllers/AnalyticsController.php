@@ -127,7 +127,8 @@ class AnalyticsController extends Controller
         $sitesById = $this->sitesByIdFromRows($providerData);
         foreach ($providerData as &$row) {
             $provider = $providersById[$row['providerId']] ?? null;
-            $site = $sitesById[$row['siteId']] ?? null;
+            $rowSiteId = $row['siteId'] ? (int) $row['siteId'] : null;
+            $site = $rowSiteId ? ($sitesById[$rowSiteId] ?? null) : null;
             $row['providerName'] = $provider ? $provider->name : Craft::t('sms-manager', 'Unknown');
             $row['siteName'] = $site ? $site->name : Craft::t('sms-manager', 'Unknown');
         }
@@ -399,7 +400,8 @@ class AnalyticsController extends Controller
         $sitesById = $this->sitesByIdFromRows($data);
         foreach ($data as &$row) {
             $senderId = $senderIdsById[$row['senderIdId']] ?? null;
-            $site = $sitesById[$row['siteId']] ?? null;
+            $rowSiteId = $row['siteId'] ? (int) $row['siteId'] : null;
+            $site = $rowSiteId ? ($sitesById[$rowSiteId] ?? null) : null;
             $row['senderIdName'] = $senderId ? $senderId->name : Craft::t('sms-manager', 'Unknown');
             $row['siteName'] = $site ? $site->name : Craft::t('sms-manager', 'Unknown');
             $row['sent'] = (int)$row['sent'];
@@ -433,7 +435,8 @@ class AnalyticsController extends Controller
         $values = [];
 
         foreach ($data as $row) {
-            $site = $sitesById[$row['siteId']] ?? null;
+            $rowSiteId = $row['siteId'] ? (int) $row['siteId'] : null;
+            $site = $rowSiteId ? ($sitesById[$rowSiteId] ?? null) : null;
             $labels[] = $site ? $site->name : Craft::t('sms-manager', 'Unknown');
             $values[] = (int)$row['sent'] + (int)$row['failed'];
         }
@@ -816,7 +819,10 @@ class AnalyticsController extends Controller
      */
     private function sitesByIdFromRows(array $rows, string $key = 'siteId'): array
     {
-        $ids = array_values(array_unique(array_filter(array_map(static fn(mixed $id): int => (int) $id, array_column($rows, $key)))));
+        $ids = array_values(array_unique(array_filter(array_map(
+            static fn(mixed $id): int => (int) $id,
+            array_column($rows, $key),
+        ))));
         if (!$ids) {
             return [];
         }
