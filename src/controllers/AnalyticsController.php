@@ -21,6 +21,7 @@ use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -63,7 +64,7 @@ class AnalyticsController extends Controller
 
         $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
 
-        $providerId = (string) $request->getQueryParam('provider', 'all');
+        $providerId = (string) ($request->getQueryParam('providerId') ?? $request->getQueryParam('provider', 'all'));
         $validProviderIds = ['all'];
         foreach ($providers as $p) {
             $validProviderIds[] = (string) $p->id;
@@ -81,6 +82,13 @@ class AnalyticsController extends Controller
             $senderIdId = 'all';
         }
 
+        $rawSiteId = (string) $request->getQueryParam('siteId', 'all');
+        $siteId = $this->resolveSiteId($rawSiteId);
+        $sites = Craft::$app->getSites()->getEditableSites();
+
+        $languageOptions = $this->getLanguageFilterOptions();
+        $language = $this->resolveLanguageFilter((string) $request->getQueryParam('language', 'all'), $languageOptions);
+
         $bounds = DateRangeHelper::getBounds($dateRange);
         $startDate = $bounds['start'] ?? null;
         $endDate = $bounds['end'] ?? null;
@@ -89,21 +97,7 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->from(AnalyticsRecord::tableName());
 
-        // Apply date filters (DATETIME column)
-        if ($startDate) {
-            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
-        }
-
-        if ($providerId !== 'all') {
-            $query->andWhere(['providerId' => (int) $providerId]);
-        }
-
-        if ($senderIdId !== 'all') {
-            $query->andWhere(['senderIdId' => (int) $senderIdId]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId);
 
         // Get summary stats
         $summaryStats = (clone $query)
@@ -122,16 +116,20 @@ class AnalyticsController extends Controller
         $providerData = (clone $query)
             ->select([
                 'providerId',
+                'siteId',
                 'SUM(totalSent) as sent',
                 'SUM(totalFailed) as failed',
             ])
-            ->groupBy(['providerId'])
+            ->groupBy(['providerId', 'siteId'])
             ->all();
 
         $providersById = $this->providersByIdFromRows($providerData);
+        $sitesById = $this->sitesByIdFromRows($providerData);
         foreach ($providerData as &$row) {
             $provider = $providersById[$row['providerId']] ?? null;
-            $row['providerName'] = $provider ? $provider->name : 'Unknown';
+            $site = $sitesById[$row['siteId']] ?? null;
+            $row['providerName'] = $provider ? $provider->name : Craft::t('sms-manager', 'Unknown');
+            $row['siteName'] = $site ? $site->name : Craft::t('sms-manager', 'Unknown');
         }
         unset($row);
 
@@ -146,6 +144,8 @@ class AnalyticsController extends Controller
             'dateRange' => $dateRange,
             'providerId' => $providerId,
             'senderIdId' => $senderIdId,
+            'siteId' => $siteId,
+            'language' => $language,
             'summaryStats' => [
                 'sent' => $totalSent,
                 'delivered' => (int)($summaryStats['delivered'] ?? 0),
@@ -160,6 +160,8 @@ class AnalyticsController extends Controller
             'providerData' => $providerData,
             'providers' => $providers,
             'senderIds' => $senderIds,
+            'sites' => $sites,
+            'languageOptions' => $languageOptions,
             'pluginHandle' => SmsManager::$plugin->id,
         ]);
     }
@@ -179,7 +181,7 @@ class AnalyticsController extends Controller
         $request = Craft::$app->getRequest();
         $type = $request->getBodyParam('type', 'daily');
 
-        $validTypes = ['daily', 'providers', 'senderids', 'languages', 'encoding', 'encoding-daily', 'sender-id-table'];
+        $validTypes = ['daily', 'providers', 'senderids', 'languages', 'sites', 'senderid-sites', 'encoding', 'encoding-daily', 'sender-id-table'];
         if (!in_array($type, $validTypes, true)) {
             throw new \yii\web\BadRequestHttpException('Invalid data type.');
         }
@@ -194,19 +196,27 @@ class AnalyticsController extends Controller
             ? 'all'
             : (string) (int) $providerIdRaw;
 
+        $siteId = $this->resolveSiteId((string) $request->getBodyParam('siteId', 'all'));
+        $language = $this->resolveLanguageFilter(
+            (string) $request->getBodyParam('language', 'all'),
+            $this->getLanguageFilterOptions(),
+        );
+
         // Calculate date range (supports all options: thisMonth, lastYear, etc.)
         $bounds = DateRangeHelper::getBounds($dateRange);
         $startDate = $bounds['start'] ?? null;
         $endDate = $bounds['end'] ?? null;
 
         $data = match ($type) {
-            'daily' => $this->getDailyChartData($startDate, $endDate, $providerId),
-            'providers' => $this->getProviderChartData($startDate, $endDate),
-            'senderids' => $this->getSenderIdChartData($startDate, $endDate, $providerId),
-            'languages' => $this->getLanguageChartData($startDate, $endDate, $providerId),
-            'encoding' => $this->getEncodingChartData($startDate, $endDate, $providerId),
-            'encoding-daily' => $this->getEncodingDailyChartData($startDate, $endDate, $providerId),
-            'sender-id-table' => $this->getSenderIdTableData($startDate, $endDate, $providerId),
+            'daily' => $this->getDailyChartData($startDate, $endDate, $providerId, $siteId, $language),
+            'providers' => $this->getProviderChartData($startDate, $endDate, $providerId, $siteId, $language),
+            'senderids' => $this->getSenderIdChartData($startDate, $endDate, $providerId, $siteId, $language),
+            'languages' => $this->getLanguageChartData($startDate, $endDate, $providerId, $siteId, $language),
+            'sites' => $this->getSiteChartData($startDate, $endDate, $providerId, $siteId, $language),
+            'senderid-sites' => $this->getSiteChartData($startDate, $endDate, $providerId, $siteId, $language),
+            'encoding' => $this->getEncodingChartData($startDate, $endDate, $providerId, $siteId, $language),
+            'encoding-daily' => $this->getEncodingDailyChartData($startDate, $endDate, $providerId, $siteId, $language),
+            'sender-id-table' => $this->getSenderIdTableData($startDate, $endDate, $providerId, $siteId, $language),
         };
 
         return $this->asJson([
@@ -218,7 +228,7 @@ class AnalyticsController extends Controller
     /**
      * Get daily chart data
      */
-    private function getDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId): array
+    private function getDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId, int|string $siteId, string $language): array
     {
         $localDate = DateFormatHelper::localDateExpression('date');
 
@@ -232,16 +242,7 @@ class AnalyticsController extends Controller
             ->groupBy([$localDate])
             ->orderBy(['date' => SORT_ASC]);
 
-        if ($startDate) {
-            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
-        }
-
-        if ($providerId !== 'all') {
-            $query->andWhere(['providerId' => $providerId]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
 
         $data = $query->all();
 
@@ -306,7 +307,7 @@ class AnalyticsController extends Controller
     /**
      * Get provider chart data
      */
-    private function getProviderChartData(?\DateTime $startDate, ?\DateTime $endDate): array
+    private function getProviderChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
     {
         $query = (new Query())
             ->select([
@@ -318,12 +319,7 @@ class AnalyticsController extends Controller
             ->groupBy(['providerId'])
             ;
 
-        if ($startDate) {
-            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
 
         $data = $query->all();
 
@@ -346,7 +342,7 @@ class AnalyticsController extends Controller
     /**
      * Get sender ID chart data
      */
-    private function getSenderIdChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
+    private function getSenderIdChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
     {
         $query = (new Query())
             ->select([
@@ -357,16 +353,7 @@ class AnalyticsController extends Controller
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['senderIdId']);
 
-        if ($startDate) {
-            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
-        }
-
-        if ($providerId !== 'all') {
-            $query->andWhere(['providerId' => $providerId]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
 
         $data = $query->all();
 
@@ -392,34 +379,29 @@ class AnalyticsController extends Controller
     /**
      * Get sender ID table data for AJAX lazy-loading
      */
-    private function getSenderIdTableData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
+    private function getSenderIdTableData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
     {
         $query = (new Query())
             ->select([
                 'senderIdId',
+                'siteId',
                 'SUM(totalSent) as sent',
                 'SUM(totalFailed) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
-            ->groupBy(['senderIdId']);
+            ->groupBy(['senderIdId', 'siteId']);
 
-        if ($startDate) {
-            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
-        }
-
-        if ($providerId !== 'all') {
-            $query->andWhere(['providerId' => $providerId]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
 
         $data = $query->all();
 
         $senderIdsById = $this->senderIdsByIdFromRows($data);
+        $sitesById = $this->sitesByIdFromRows($data);
         foreach ($data as &$row) {
             $senderId = $senderIdsById[$row['senderIdId']] ?? null;
-            $row['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            $site = $sitesById[$row['siteId']] ?? null;
+            $row['senderIdName'] = $senderId ? $senderId->name : Craft::t('sms-manager', 'Unknown');
+            $row['siteName'] = $site ? $site->name : Craft::t('sms-manager', 'Unknown');
             $row['sent'] = (int)$row['sent'];
             $row['failed'] = (int)$row['failed'];
         }
@@ -429,29 +411,54 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Get language chart data from actual log records
+     * Get site chart data from analytics records.
      */
-    private function getLanguageChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
+    private function getSiteChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
+    {
+        $query = (new Query())
+            ->select([
+                'siteId',
+                'SUM(totalSent) as sent',
+                'SUM(totalFailed) as failed',
+            ])
+            ->from(AnalyticsRecord::tableName())
+            ->groupBy(['siteId']);
+
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+
+        $data = $query->all();
+
+        $sitesById = $this->sitesByIdFromRows($data);
+        $labels = [];
+        $values = [];
+
+        foreach ($data as $row) {
+            $site = $sitesById[$row['siteId']] ?? null;
+            $labels[] = $site ? $site->name : Craft::t('sms-manager', 'Unknown');
+            $values[] = (int)$row['sent'] + (int)$row['failed'];
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $values,
+        ];
+    }
+
+    /**
+     * Get language chart data from analytics records
+     */
+    private function getLanguageChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
     {
         $query = (new Query())
             ->select([
                 'language',
-                'COUNT(*) as count',
+                'SUM(totalSent + totalFailed + totalDelivered + totalPending) as count',
             ])
-            ->from('{{%smsmanager_logs}}')
+            ->from(AnalyticsRecord::tableName())
             ->groupBy(['language'])
             ->orderBy(['count' => SORT_DESC]);
 
-        if ($startDate) {
-            $query->andWhere(['>=', 'dateCreated', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'dateCreated', Db::prepareDateForDb($endDate)]);
-        }
-
-        if ($providerId !== 'all') {
-            $query->andWhere(['providerId' => $providerId]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
 
         $data = $query->all();
 
@@ -463,7 +470,7 @@ class AnalyticsController extends Controller
 
         foreach ($data as $row) {
             $langCode = $row['language'] ?? 'unknown';
-            $labels[] = $languageNames[$langCode] ?? ucfirst($langCode);
+            $labels[] = $this->languageLabel((string) $langCode, $languageNames);
             $values[] = (int)$row['count'];
         }
 
@@ -500,7 +507,7 @@ class AnalyticsController extends Controller
     /**
      * Get encoding chart data (GSM-7 vs UCS-2)
      */
-    private function getEncodingChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId): array
+    private function getEncodingChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
     {
         $query = (new Query())
             ->select([
@@ -510,16 +517,7 @@ class AnalyticsController extends Controller
             ])
             ->from(AnalyticsRecord::tableName());
 
-        if ($startDate) {
-            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
-        }
-
-        if ($providerId !== 'all') {
-            $query->andWhere(['providerId' => $providerId]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
 
         $data = $query->one();
 
@@ -540,7 +538,7 @@ class AnalyticsController extends Controller
     /**
      * Get encoding daily chart data
      */
-    private function getEncodingDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId): array
+    private function getEncodingDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId, int|string $siteId, string $language): array
     {
         $localDate = DateFormatHelper::localDateExpression('date');
 
@@ -555,16 +553,7 @@ class AnalyticsController extends Controller
             ->groupBy([$localDate])
             ->orderBy(['date' => SORT_ASC]);
 
-        if ($startDate) {
-            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
-        }
-
-        if ($providerId !== 'all') {
-            $query->andWhere(['providerId' => $providerId]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
 
         $data = $query->all();
 
@@ -630,6 +619,143 @@ class AnalyticsController extends Controller
     }
 
     /**
+     * Apply the shared analytics filters to a query.
+     */
+    private function applyAnalyticsFilters(
+        Query $query,
+        ?\DateTimeInterface $startDate,
+        ?\DateTimeInterface $endDate,
+        string $providerId,
+        int|string $siteId,
+        string $language,
+        string $senderIdId = 'all',
+    ): void {
+        if ($startDate) {
+            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
+        }
+        if ($endDate) {
+            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
+        }
+
+        if ($providerId !== 'all') {
+            $query->andWhere(['providerId' => (int) $providerId]);
+        }
+
+        if ($senderIdId !== 'all') {
+            $query->andWhere(['senderIdId' => (int) $senderIdId]);
+        }
+
+        if ($language !== 'all') {
+            $query->andWhere(['language' => $language]);
+        }
+
+        if ($siteId !== 'all') {
+            $query->andWhere(['siteId' => (int) $siteId]);
+            return;
+        }
+
+        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
+        if ($editableSiteIds === []) {
+            $query->andWhere(['siteId' => null]);
+            return;
+        }
+
+        $query->andWhere(['or', ['siteId' => $editableSiteIds], ['siteId' => null]]);
+    }
+
+    /**
+     * Resolve and validate a requested site ID against editable sites.
+     *
+     * @return int|'all'
+     * @throws ForbiddenHttpException
+     */
+    private function resolveSiteId(?string $rawSiteId): int|string
+    {
+        if ($rawSiteId === null || $rawSiteId === '' || $rawSiteId === 'all') {
+            return 'all';
+        }
+
+        $siteId = null;
+        if (is_numeric($rawSiteId)) {
+            $siteId = (int) $rawSiteId;
+        } else {
+            $site = Craft::$app->getSites()->getSiteByHandle($rawSiteId);
+            $siteId = $site ? $site->id : null;
+        }
+
+        if ($siteId === null || !in_array($siteId, Craft::$app->getSites()->getEditableSiteIds(), true)) {
+            throw new ForbiddenHttpException(Craft::t('sms-manager', 'User does not have permission to view analytics for this site.'));
+        }
+
+        return $siteId;
+    }
+
+    /**
+     * Build language filter options from editable site languages and stored analytics languages.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function getLanguageFilterOptions(): array
+    {
+        $languages = [];
+        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
+            $languages[strtolower(explode('-', (string) $site->language)[0])] = true;
+        }
+
+        $storedLanguageQuery = (new Query())
+            ->select(['language'])
+            ->distinct()
+            ->from(AnalyticsRecord::tableName())
+            ->where(['not', ['language' => null]])
+            ->andWhere(['not', ['language' => '']]);
+
+        $this->applyAnalyticsFilters($storedLanguageQuery, null, null, 'all', 'all', 'all');
+        $storedLanguages = $storedLanguageQuery->column();
+
+        foreach ($storedLanguages as $language) {
+            $languages[strtolower((string) $language)] = true;
+        }
+
+        unset($languages['']);
+        ksort($languages);
+
+        $languageNames = $this->getLanguageDisplayNames();
+        $options = [
+            ['value' => 'all', 'label' => Craft::t('sms-manager', 'All Languages')],
+        ];
+
+        foreach (array_keys($languages) as $language) {
+            $options[] = [
+                'value' => $language,
+                'label' => $this->languageLabel($language, $languageNames),
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Validate a language filter against the available language options.
+     *
+     * @param array<int, array{value: string, label: string}> $languageOptions
+     */
+    private function resolveLanguageFilter(string $language, array $languageOptions): string
+    {
+        $valid = array_column($languageOptions, 'value');
+        return in_array($language, $valid, true) ? $language : 'all';
+    }
+
+    /**
+     * Return the display label for a language code.
+     *
+     * @param array<string, string> $languageNames
+     */
+    private function languageLabel(string $language, array $languageNames): string
+    {
+        return $languageNames[$language] ?? strtoupper($language);
+    }
+
+    /**
      * Normalize a DateTimeInterface into a mutable DateTime.
      *
      * @param \DateTimeInterface $dateTime
@@ -683,6 +809,35 @@ class AnalyticsController extends Controller
     }
 
     /**
+     * Batch-load editable sites referenced by a set of rows.
+     *
+     * @param array<int, array<string, mixed>> $rows
+     * @return array<int, \craft\models\Site>
+     */
+    private function sitesByIdFromRows(array $rows, string $key = 'siteId'): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map(static fn(mixed $id): int => (int) $id, array_column($rows, $key)))));
+        if (!$ids) {
+            return [];
+        }
+
+        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
+        $sites = [];
+        foreach ($ids as $id) {
+            if (!in_array($id, $editableSiteIds, true)) {
+                continue;
+            }
+
+            $site = Craft::$app->getSites()->getSiteById($id);
+            if ($site) {
+                $sites[$id] = $site;
+            }
+        }
+
+        return $sites;
+    }
+
+    /**
      * Export analytics data
      *
      * @return Response
@@ -697,6 +852,16 @@ class AnalyticsController extends Controller
         $request = Craft::$app->getRequest();
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
         $format = $request->getBodyParam('format', 'csv');
+        $providerId = (string) ($request->getBodyParam('providerId') ?? $request->getBodyParam('provider', 'all'));
+        $language = $this->resolveLanguageFilter(
+            (string) $request->getBodyParam('language', 'all'),
+            $this->getLanguageFilterOptions(),
+        );
+        $siteId = $this->resolveSiteId((string) $request->getBodyParam('siteId', 'all'));
+
+        if ($providerId !== 'all' && !is_numeric($providerId)) {
+            $providerId = 'all';
+        }
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, SmsManager::$plugin->id)) {
@@ -712,13 +877,7 @@ class AnalyticsController extends Controller
             ->from(AnalyticsRecord::tableName())
             ->orderBy(['date' => SORT_ASC]);
 
-        // Apply date filters (DATETIME column)
-        if ($startDate) {
-            $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
-        }
-        if ($endDate) {
-            $query->andWhere(['<', 'date', Db::prepareDateForDb($endDate)]);
-        }
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
 
         $data = $query->all();
 
@@ -729,9 +888,12 @@ class AnalyticsController extends Controller
         foreach ($data as $row) {
             $provider = $providersById[$row['providerId']] ?? null;
             $senderId = $senderIdsById[$row['senderIdId']] ?? null;
+            $site = $row['siteId'] ? Craft::$app->getSites()->getSiteById((int) $row['siteId']) : null;
 
             $rows[] = [
                 'date' => $row['date'],
+                'site' => $site?->name ?? Craft::t('sms-manager', 'Unknown'),
+                'language' => $row['language'] ?: Craft::t('sms-manager', 'Unknown'),
                 'provider' => $provider ? $provider->name : 'Unknown',
                 'senderId' => $senderId ? $senderId->name : 'Unknown',
                 'totalSent' => (int)$row['totalSent'],
@@ -746,12 +908,14 @@ class AnalyticsController extends Controller
 
         // Check for empty data
         if (empty($rows)) {
-            Craft::$app->getSession()->setError(Craft::t('sms-manager', 'No analytics data to export for the selected date range.'));
+            Craft::$app->getSession()->setError(Craft::t('sms-manager', 'No analytics data to export for the selected filters.'));
             return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
         $headers = [
             'Date',
+            Craft::t('sms-manager', 'Site'),
+            Craft::t('sms-manager', 'Language'),
             'Provider',
             'Sender ID',
             'Total Sent',
@@ -767,7 +931,19 @@ class AnalyticsController extends Controller
         $settings = SmsManager::$plugin->getSettings();
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
         $extension = ExportHelper::extensionForFormat($format);
-        $filename = ExportHelper::filename($settings, ['analytics', $dateRangeLabel], $extension);
+        $filenameParts = ['analytics'];
+        if (is_int($siteId)) {
+            $site = Craft::$app->getSites()->getSiteById($siteId);
+            if ($site) {
+                $filenameParts[] = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
+            }
+        }
+        if ($language !== 'all') {
+            $filenameParts[] = strtolower(preg_replace('/[^a-z0-9]+/', '-', $language));
+        }
+        $filenameParts[] = $dateRangeLabel;
+
+        $filename = ExportHelper::filename($settings, $filenameParts, $extension);
 
         return ExportHelper::dispatchTable(
             rows: $rows,

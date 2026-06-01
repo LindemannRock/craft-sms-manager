@@ -206,6 +206,7 @@ class Install extends Migration
             // log row still knows which handle was used). See audit 8.6.
             'providerHandle' => $this->string(64)->null(),
             'senderIdHandle' => $this->string(64)->null(),
+            'siteId' => $this->integer()->null(),
             // Message details
             'recipient' => $this->string(64)->notNull(),
             'message' => $this->text()->null(),
@@ -230,6 +231,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_logs}}', ['senderIdId'], false);
         $this->createIndex(null, '{{%smsmanager_logs}}', ['providerHandle'], false);
         $this->createIndex(null, '{{%smsmanager_logs}}', ['senderIdHandle'], false);
+        $this->createIndex(null, '{{%smsmanager_logs}}', ['siteId'], false);
         $this->createIndex(null, '{{%smsmanager_logs}}', ['recipient'], false);
         $this->createIndex(null, '{{%smsmanager_logs}}', ['status'], false);
         $this->createIndex(null, '{{%smsmanager_logs}}', ['sourcePlugin'], false);
@@ -255,6 +257,16 @@ class Install extends Migration
             'SET NULL',
             'CASCADE'
         );
+
+        $this->addForeignKey(
+            null,
+            '{{%smsmanager_logs}}',
+            ['siteId'],
+            '{{%sites}}',
+            ['id'],
+            'SET NULL',
+            'CASCADE'
+        );
     }
 
     /**
@@ -270,6 +282,8 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'providerId' => $this->integer()->null(),
             'senderIdId' => $this->integer()->null(),
+            'siteId' => $this->integer()->null(),
+            'language' => $this->string(10)->null(),
             // Aggregation period
             'date' => $this->dateTime()->notNull(), // Datetime of stats
             // Counts
@@ -295,6 +309,8 @@ class Install extends Migration
         // Indexes for performance
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['providerId'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['senderIdId'], false);
+        $this->createIndex(null, '{{%smsmanager_analytics}}', ['siteId'], false);
+        $this->createIndex(null, '{{%smsmanager_analytics}}', ['language'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['date'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['sourcePlugin'], false);
 
@@ -314,6 +330,16 @@ class Install extends Migration
             '{{%smsmanager_analytics}}',
             ['senderIdId'],
             '{{%smsmanager_senderids}}',
+            ['id'],
+            'SET NULL',
+            'CASCADE'
+        );
+
+        $this->addForeignKey(
+            null,
+            '{{%smsmanager_analytics}}',
+            ['siteId'],
+            '{{%sites}}',
             ['id'],
             'SET NULL',
             'CASCADE'

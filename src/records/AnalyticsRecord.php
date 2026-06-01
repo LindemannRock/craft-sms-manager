@@ -9,6 +9,8 @@
 namespace lindemannrock\smsmanager\records;
 
 use craft\db\ActiveRecord;
+use craft\records\Site;
+use yii\db\ActiveQueryInterface;
 
 /**
  * Analytics Record
@@ -22,6 +24,8 @@ use craft\db\ActiveRecord;
  * @property int $id
  * @property int|null $providerId
  * @property int|null $senderIdId
+ * @property int|null $siteId
+ * @property string|null $language
  * @property \DateTime|string $date
  * @property int $totalSent
  * @property int $totalDelivered
@@ -50,9 +54,9 @@ class AnalyticsRecord extends ActiveRecord
     /**
      * Get the provider for this analytics record
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQueryInterface
      */
-    public function getProvider(): \yii\db\ActiveQuery
+    public function getProvider(): ActiveQueryInterface
     {
         return $this->hasOne(ProviderRecord::class, ['id' => 'providerId']);
     }
@@ -60,11 +64,21 @@ class AnalyticsRecord extends ActiveRecord
     /**
      * Get the sender ID for this analytics record
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQueryInterface
      */
-    public function getSenderId(): \yii\db\ActiveQuery
+    public function getSenderId(): ActiveQueryInterface
     {
         return $this->hasOne(SenderIdRecord::class, ['id' => 'senderIdId']);
+    }
+
+    /**
+     * Get the site for this analytics record
+     *
+     * @return ActiveQueryInterface
+     */
+    public function getSite(): ActiveQueryInterface
+    {
+        return $this->hasOne(Site::class, ['id' => 'siteId']);
     }
 
     /**

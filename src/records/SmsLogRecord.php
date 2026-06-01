@@ -9,6 +9,8 @@
 namespace lindemannrock\smsmanager\records;
 
 use craft\db\ActiveRecord;
+use craft\records\Site;
+use yii\db\ActiveQueryInterface;
 
 /**
  * SMS Log Record
@@ -24,6 +26,7 @@ use craft\db\ActiveRecord;
  * @property int|null $senderIdId
  * @property string|null $providerHandle
  * @property string|null $senderIdHandle
+ * @property int|null $siteId
  * @property string $recipient
  * @property string|null $message
  * @property string|null $language
@@ -59,9 +62,9 @@ class SmsLogRecord extends ActiveRecord
     /**
      * Get the provider for this log
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQueryInterface
      */
-    public function getProvider(): \yii\db\ActiveQuery
+    public function getProvider(): ActiveQueryInterface
     {
         return $this->hasOne(ProviderRecord::class, ['id' => 'providerId']);
     }
@@ -69,10 +72,20 @@ class SmsLogRecord extends ActiveRecord
     /**
      * Get the sender ID for this log
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQueryInterface
      */
-    public function getSenderId(): \yii\db\ActiveQuery
+    public function getSenderId(): ActiveQueryInterface
     {
         return $this->hasOne(SenderIdRecord::class, ['id' => 'senderIdId']);
+    }
+
+    /**
+     * Get the site for this log
+     *
+     * @return ActiveQueryInterface
+     */
+    public function getSite(): ActiveQueryInterface
+    {
+        return $this->hasOne(Site::class, ['id' => 'siteId']);
     }
 }

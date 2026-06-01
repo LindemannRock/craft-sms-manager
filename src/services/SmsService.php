@@ -8,6 +8,7 @@
 
 namespace lindemannrock\smsmanager\services;
 
+use Craft;
 use craft\base\Component;
 use craft\helpers\StringHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -49,6 +50,7 @@ class SmsService extends Component
      * @param int|null $senderIdId Sender ID (uses default if null)
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID
+     * @param int|null $siteId Site ID for analytics attribution
      * @return bool True if sent successfully
      */
     public function send(
@@ -59,6 +61,7 @@ class SmsService extends Component
         ?int $senderIdId = null,
         ?string $sourcePlugin = null,
         ?int $sourceElementId = null,
+        ?int $siteId = null,
     ): bool {
         $plugin = SmsManager::$plugin;
 
@@ -80,7 +83,7 @@ class SmsService extends Component
             return false;
         }
 
-        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId)['success'];
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId, $siteId)['success'];
     }
 
     /**
@@ -96,6 +99,7 @@ class SmsService extends Component
      * @param int|null $senderIdId Sender ID (uses default if null)
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID
+     * @param int|null $siteId Site ID for analytics attribution
      * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
      */
     public function sendWithDetails(
@@ -106,6 +110,7 @@ class SmsService extends Component
         ?int $senderIdId = null,
         ?string $sourcePlugin = null,
         ?int $sourceElementId = null,
+        ?int $siteId = null,
     ): array {
         $startTime = microtime(true);
         $plugin = SmsManager::$plugin;
@@ -148,7 +153,7 @@ class SmsService extends Component
             ];
         }
 
-        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId);
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId, $siteId);
     }
 
     /**
@@ -160,6 +165,7 @@ class SmsService extends Component
      * @param string $language Message language
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID (e.g., Formie submission id) for log attribution
+     * @param int|null $siteId Site ID for analytics attribution
      * @return bool
      * @since 5.7.0
      */
@@ -170,6 +176,7 @@ class SmsService extends Component
         string $language = 'en',
         ?string $sourcePlugin = null,
         ?int $sourceElementId = null,
+        ?int $siteId = null,
     ): bool {
         $plugin = SmsManager::$plugin;
 
@@ -196,7 +203,7 @@ class SmsService extends Component
             return false;
         }
 
-        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId)['success'];
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId, $siteId)['success'];
     }
 
     /**
@@ -214,6 +221,7 @@ class SmsService extends Component
      * @param string $language Message language
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID for log attribution
+     * @param int|null $siteId Site ID for analytics attribution
      * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
      * @since 5.12.0
      */
@@ -224,6 +232,7 @@ class SmsService extends Component
         string $language = 'en',
         ?string $sourcePlugin = null,
         ?int $sourceElementId = null,
+        ?int $siteId = null,
     ): array {
         $startTime = microtime(true);
         $plugin = SmsManager::$plugin;
@@ -267,7 +276,7 @@ class SmsService extends Component
             ];
         }
 
-        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId);
+        return $this->dispatchSms($provider, $senderId, $to, $message, $language, $sourcePlugin, $sourceElementId, $siteId);
     }
 
     /**
@@ -290,10 +299,13 @@ class SmsService extends Component
         string $language,
         ?string $sourcePlugin,
         ?int $sourceElementId,
+        ?int $siteId,
     ): array {
         $startTime = microtime(true);
         $plugin = SmsManager::$plugin;
         $settings = $plugin->getSettings();
+        $siteId = $siteId ?? $this->currentSiteId();
+        $language = $this->normalizeLanguage($language);
 
         if (!$provider->enabled) {
             $this->logError('Provider is disabled', ['providerId' => $provider->id, 'name' => $provider->name]);
@@ -335,6 +347,7 @@ class SmsService extends Component
             // the SET NULL constraint but the handle survives). Audit 8.6.
             'providerHandle' => $provider->handle,
             'senderIdHandle' => $senderId->handle,
+            'siteId' => $siteId,
             'recipient' => $to,
             'message' => $message,
             'language' => $language,
@@ -395,7 +408,7 @@ class SmsService extends Component
             );
 
             if ($settings->enableAnalytics) {
-                $this->updateAnalytics($provider->id, $senderId->id, $language, true, $sourcePlugin);
+                $this->updateAnalytics($provider->id, $senderId->id, $siteId, $language, true, $sourcePlugin);
             }
 
             $this->logInfo('SMS sent successfully', [
@@ -413,7 +426,7 @@ class SmsService extends Component
             );
 
             if ($settings->enableAnalytics) {
-                $this->updateAnalytics($provider->id, $senderId->id, $language, false, $sourcePlugin);
+                $this->updateAnalytics($provider->id, $senderId->id, $siteId, $language, false, $sourcePlugin);
             }
 
             $this->logError('SMS sending failed', [
@@ -470,6 +483,7 @@ class SmsService extends Component
      *
      * @param int|null $providerId Provider ID (null for config-only providers)
      * @param int|null $senderIdId Sender ID (null for config-only senders)
+     * @param int|null $siteId Site ID
      * @param string $language Message language
      * @param bool $success Whether send was successful
      * @param string|null $sourcePlugin Source plugin
@@ -477,6 +491,7 @@ class SmsService extends Component
     private function updateAnalytics(
         ?int $providerId,
         ?int $senderIdId,
+        ?int $siteId,
         string $language,
         bool $success,
         ?string $sourcePlugin,
@@ -488,6 +503,8 @@ class SmsService extends Component
             'date' => $now,
             'providerId' => $providerId,
             'senderIdId' => $senderIdId,
+            'siteId' => $siteId,
+            'language' => $language,
             'sourcePlugin' => $sourcePlugin,
             'totalSent' => $success ? 1 : 0,
             'totalDelivered' => 0,
@@ -504,5 +521,26 @@ class SmsService extends Component
         ]);
 
         $analytics->save(false);
+    }
+
+    /**
+     * Resolve the current Craft site for direct sends that do not pass one.
+     */
+    private function currentSiteId(): ?int
+    {
+        try {
+            return Craft::$app->getSites()->getCurrentSite()->id;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Normalize language tags before provider dispatch and analytics storage.
+     */
+    private function normalizeLanguage(string $language): string
+    {
+        $language = strtolower(trim($language));
+        return $language !== '' ? $language : 'en';
     }
 }
