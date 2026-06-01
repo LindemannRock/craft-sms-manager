@@ -358,6 +358,7 @@ return [
     'Daily SMS Volume' => 'حجم SMS اليومي',
     'By Provider' => 'حسب مزود الخدمة',
     'By Language' => 'حسب اللغة',
+    'By Site' => 'حسب الموقع',
     'Provider Performance' => 'أداء مزود الخدمة',
     'Messages by Sender ID' => 'الرسائل حسب معرّف المُرسِل',
     'Sender ID Distribution' => 'توزيع معرّفات المُرسِل',

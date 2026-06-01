@@ -358,6 +358,7 @@ return [
     'Daily SMS Volume' => 'Volume diário de SMS',
     'By Provider' => 'Por fornecedor',
     'By Language' => 'Por idioma',
+    'By Site' => 'Por site',
     'Provider Performance' => 'Desempenho do fornecedor',
     'Messages by Sender ID' => 'Mensagens por ID de remetente',
     'Sender ID Distribution' => 'Distribuição de IDs de remetente',

@@ -358,6 +358,7 @@ return [
     'Daily SMS Volume' => '日別 SMS 送信数',
     'By Provider' => 'プロバイダー別',
     'By Language' => '言語別',
+    'By Site' => 'サイト別',
     'Provider Performance' => 'プロバイダーのパフォーマンス',
     'Messages by Sender ID' => '送信者 ID 別メッセージ数',
     'Sender ID Distribution' => '送信者 ID の分布',

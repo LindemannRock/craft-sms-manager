@@ -358,6 +358,7 @@ return [
     'Daily SMS Volume' => 'Daily SMS Volume',
     'By Provider' => 'By Provider',
     'By Language' => 'By Language',
+    'By Site' => 'By Site',
     'Provider Performance' => 'Provider Performance',
     'Messages by Sender ID' => 'Messages by Sender ID',
     'Sender ID Distribution' => 'Sender ID Distribution',

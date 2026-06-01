@@ -358,6 +358,7 @@ return [
     'Daily SMS Volume' => 'Daglig SMS-volum',
     'By Provider' => 'Per leverandør',
     'By Language' => 'Per språk',
+    'By Site' => 'Per nettsted',
     'Provider Performance' => 'Leverandørytelse',
     'Messages by Sender ID' => 'Meldinger per avsender-ID',
     'Sender ID Distribution' => 'Fordeling av avsender-ID-er',
