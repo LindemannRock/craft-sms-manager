@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace lindemannrock\smsmanager\tests\Integration;
 
+use Craft;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
 use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\tests\Stubs\StubProvider;
@@ -41,6 +42,7 @@ final class SmsServiceSendHappyPathTest extends TestCase
         $senderId = $this->seedSenderId($provider, ['senderId' => 'TestBrand', 'isDev' => true]);
         $recipient = $this->markerRecipient();
         $sourcePlugin = $this->markerSourcePlugin();
+        $siteId = Craft::$app->getSites()->getPrimarySite()->id;
 
         $ok = $this->sms->send(
             to: $recipient,
@@ -49,6 +51,7 @@ final class SmsServiceSendHappyPathTest extends TestCase
             providerId: $provider->id,
             senderIdId: $senderId->id,
             sourcePlugin: $sourcePlugin,
+            siteId: $siteId,
         );
 
         self::assertTrue($ok, 'send() should return true when the provider returns success=true');
@@ -69,11 +72,14 @@ final class SmsServiceSendHappyPathTest extends TestCase
         self::assertNull($logRow['errorMessage']);
         self::assertSame((int) $provider->id, (int) $logRow['providerId']);
         self::assertSame((int) $senderId->id, (int) $logRow['senderIdId']);
+        self::assertSame((int) $siteId, (int) $logRow['siteId']);
         self::assertSame('en', $logRow['language']);
         self::assertSame(10, (int) $logRow['messageLength'], 'messageLength should be mb_strlen("Hello stub") = 10');
 
         $analyticsCount = $this->countRows(AnalyticsRecord::tableName(), [
             'sourcePlugin' => $sourcePlugin,
+            'siteId' => $siteId,
+            'language' => 'en',
             'totalSent' => 1,
             'totalFailed' => 0,
         ]);
