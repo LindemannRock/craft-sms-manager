@@ -69,6 +69,11 @@
         return visible ? visible.id : 'overview';
     }
 
+    function getChartFilters() {
+        var activeConfig = window.lrAnalyticsConfig || config || {};
+        return Object.assign({}, activeConfig.customFilters || {});
+    }
+
     // Per-tab loaders
     function loadOverviewCharts() {
         var prefix = window.lrSmsChartPrefix || 'analytics';
@@ -85,7 +90,7 @@
             } else {
                 renderEmptyState('daily-trend-chart', strings.noActivity, prefix);
             }
-        });
+        }, getChartFilters());
 
         window.lrLoadChartData('providers', function(data) {
             if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(function(v) { return Number(v) > 0; })) {
@@ -93,7 +98,7 @@
             } else {
                 renderEmptyState('provider-chart', strings.noProvider, prefix);
             }
-        });
+        }, getChartFilters());
 
         window.lrLoadChartData('languages', function(data) {
             if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(function(v) { return Number(v) > 0; })) {
@@ -101,7 +106,15 @@
             } else {
                 renderEmptyState('language-chart', strings.noLanguage, prefix);
             }
-        });
+        }, getChartFilters());
+
+        window.lrLoadChartData('sites', function(data) {
+            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(function(v) { return Number(v) > 0; })) {
+                renderSiteChart('site-chart', data);
+            } else {
+                renderEmptyState('site-chart', strings.noActivity, prefix);
+            }
+        }, getChartFilters());
     }
 
     function loadSenderIdData() {
@@ -123,11 +136,19 @@
                 renderEmptyState('senderid-pie-chart', strings.noSenderId, prefix);
                 renderEmptyState('senderid-success-chart', strings.noSenderId, prefix);
             }
-        });
+        }, getChartFilters());
 
         window.lrLoadChartData('sender-id-table', function(data) {
             renderSenderIdTable(data);
-        });
+        }, getChartFilters());
+
+        window.lrLoadChartData('senderid-sites', function(data) {
+            if (data && data.labels && data.labels.length > 0 && Array.isArray(data.values) && data.values.some(function(v) { return Number(v) > 0; })) {
+                renderSiteChart('senderid-site-chart', data);
+            } else {
+                renderEmptyState('senderid-site-chart', strings.noActivity, prefix);
+            }
+        }, getChartFilters());
     }
 
     function loadEncodingData() {
@@ -139,7 +160,7 @@
             } else {
                 renderEmptyState('encoding-pie-chart', strings.noEncoding, prefix);
             }
-        });
+        }, getChartFilters());
 
         window.lrLoadChartData('encoding-daily', function(data) {
             if (data && data.labels && data.labels.length > 0) {
@@ -154,7 +175,7 @@
             } else {
                 renderEmptyState('encoding-daily-chart', strings.noEncoding, prefix);
             }
-        });
+        }, getChartFilters());
     }
 
     function loadTabData(tabName) {
@@ -196,7 +217,7 @@
         var tbody = document.getElementById('senderid-table-body');
         if (!tbody) return;
         if (!data || !data.length) {
-            tbody.innerHTML = '<tr><td colspan="5" class="light lr-text-center">' +
+            tbody.innerHTML = '<tr><td colspan="6" class="light lr-text-center">' +
                 (strings.noSenderId || 'No data available') + '</td></tr>';
             return;
         }
@@ -208,6 +229,7 @@
             var rateClass = rate >= 90 ? 'lr-text-green' : (rate >= 70 ? 'lr-text-amber' : 'lr-text-red');
             html += '<tr>' +
                 '<td><strong>' + Craft.escapeHtml(item.senderIdName) + '</strong></td>' +
+                '<td>' + Craft.escapeHtml(item.siteName) + '</td>' +
                 '<td class="lr-text-end">' + total.toLocaleString() + '</td>' +
                 '<td class="lr-text-end lr-text-green">' + item.sent.toLocaleString() + '</td>' +
                 '<td class="lr-text-end lr-text-red">' + item.failed.toLocaleString() + '</td>' +
@@ -253,6 +275,19 @@
         if (!ctx) return;
         resetChartState(ctx);
         window.lrCreateChart('provider-chart', 'doughnut', {
+            labels: data.labels,
+            datasets: [{
+                data: data.values,
+                backgroundColor: chartColors.slice(0, data.labels.length)
+            }]
+        });
+    }
+
+    function renderSiteChart(canvasId, data) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+        resetChartState(ctx);
+        window.lrCreateChart(canvasId, 'doughnut', {
             labels: data.labels,
             datasets: [{
                 data: data.values,
