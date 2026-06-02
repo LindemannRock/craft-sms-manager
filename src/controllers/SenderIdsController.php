@@ -10,7 +10,6 @@ namespace lindemannrock\smsmanager\controllers;
 
 use Craft;
 use craft\db\Query;
-use craft\helpers\StringHelper;
 use craft\web\Controller;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\helpers\ConfigFileHelper;
@@ -385,7 +384,7 @@ class SenderIdsController extends Controller
         }
 
         $senderId->name = $request->getBodyParam('name');
-        $senderId->handle = $request->getBodyParam('handle') ?: StringHelper::toHandle($senderId->name);
+        $senderId->handle = $request->getBodyParam('handle');
         $senderId->senderId = $request->getBodyParam('senderId');
         $senderId->description = $request->getBodyParam('description');
         $senderId->enabled = (bool)$request->getBodyParam('enabled', true);

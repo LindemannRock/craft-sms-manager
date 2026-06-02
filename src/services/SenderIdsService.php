@@ -11,6 +11,7 @@ namespace lindemannrock\smsmanager\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\StringHelper;
+use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\SmsManager;
@@ -219,6 +220,11 @@ class SenderIdsService extends Component
         }
 
         $isNew = !$senderId->id;
+        $senderId->handle = SlugHandleHelper::normalizeSlug($senderId->handle, (string)$senderId->name);
+
+        if ($isNew) {
+            $senderId->handle = SlugHandleHelper::makeUnique(SenderIdRecord::tableName(), 'handle', $senderId->handle);
+        }
 
         if ($runValidation && !$senderId->validate()) {
             $this->logError('Sender ID validation failed', ['errors' => $senderId->getErrors()]);
