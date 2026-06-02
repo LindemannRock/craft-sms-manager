@@ -169,7 +169,7 @@ class Install extends Migration
         // Indexes
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['providerId'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['providerHandle'], false);
-        $this->createIndex(null, '{{%smsmanager_senderids}}', ['handle'], false);
+        $this->createIndex(null, '{{%smsmanager_senderids}}', ['handle'], true);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['enabled'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['isDev'], false);
         $this->createIndex(null, '{{%smsmanager_senderids}}', ['source'], false);
