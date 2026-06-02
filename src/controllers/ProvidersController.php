@@ -10,7 +10,6 @@ namespace lindemannrock\smsmanager\controllers;
 
 use Craft;
 use craft\db\Query;
-use craft\helpers\StringHelper;
 use craft\web\Controller;
 use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -332,7 +331,7 @@ class ProvidersController extends Controller
 
         // Set basic attributes
         $provider->name = $request->getBodyParam('name');
-        $provider->handle = $request->getBodyParam('handle') ?: StringHelper::toHandle($provider->name);
+        $provider->handle = $request->getBodyParam('handle');
         $provider->type = $request->getBodyParam('type');
         $provider->enabled = (bool)$request->getBodyParam('enabled', true);
 

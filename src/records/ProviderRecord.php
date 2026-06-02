@@ -8,6 +8,7 @@
 
 namespace lindemannrock\smsmanager\records;
 
+use Craft;
 use craft\db\ActiveRecord;
 use lindemannrock\smsmanager\helpers\ConfigFileHelper;
 use lindemannrock\smsmanager\traits\ConfigSourceTrait;
@@ -56,7 +57,7 @@ class ProviderRecord extends ActiveRecord
             [['name', 'handle', 'type'], 'string', 'max' => 255],
             [['settings'], 'string'],
             [['enabled'], 'boolean'],
-            [['handle'], 'unique', 'targetClass' => self::class, 'message' => 'This handle is already in use.'],
+            [['handle'], 'unique', 'targetClass' => self::class, 'message' => Craft::t('sms-manager', 'Handle must be unique.')],
         ];
     }
 

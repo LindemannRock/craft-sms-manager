@@ -12,6 +12,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\helpers\StringHelper;
+use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\providers\MppSmsProvider;
 use lindemannrock\smsmanager\providers\ProviderInterface;
@@ -269,6 +270,11 @@ class ProvidersService extends Component
         }
 
         $isNew = !$provider->id;
+        $provider->handle = SlugHandleHelper::normalizeSlug($provider->handle, (string)$provider->name);
+
+        if ($isNew) {
+            $provider->handle = SlugHandleHelper::makeUnique(ProviderRecord::tableName(), 'handle', $provider->handle);
+        }
 
         if ($runValidation && !$provider->validate()) {
             $this->logError('Provider validation failed', ['errors' => $provider->getErrors()]);
