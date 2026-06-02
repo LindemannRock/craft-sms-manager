@@ -269,6 +269,12 @@
     {% if not isNew %}
     <fieldset>
         <dl class="meta read-only">
+            {% if canEdit %}
+                <div class="data">
+                    <dt class="heading">{{ 'ID'|t('sms-manager') }}</dt>
+                    <dd class="value">{{ senderId.id }}</dd>
+                </div>
+            {% endif %}
 	            <div class="data">
 	                <dt class="heading">{{ 'Status'|t('sms-manager') }}</dt>
 	                <dd class="value">
@@ -287,49 +293,66 @@
                 <dt class="heading">{{ 'Sender ID'|t('sms-manager') }}</dt>
                 <dd class="value"><code>{{ senderId.senderId }}</code></dd>
             </div>
+            {% set provider = senderId.getProviderByHandle() %}
             <div class="data">
                 <dt class="heading">{{ 'Provider'|t('sms-manager') }}</dt>
                 <dd class="value">
-                    {% if senderId.providerHandle %}
+                    {% if provider %}
+                        {{ provider.name }}
+                    {% elseif senderId.providerHandle %}
                         <code>{{ senderId.providerHandle }}</code>
-                    {% elseif senderId.providerId %}
-                        {% for option in providerOptions %}
-                            {% if option.value == senderId.providerId %}
-                                {{ option.label }}
-                            {% endif %}
-                        {% endfor %}
                     {% else %}
                         <span class="light">—</span>
                     {% endif %}
                 </dd>
             </div>
+            {% if provider %}
+                <div class="data">
+                    <dt class="heading">{{ 'Type'|t('sms-manager') }}</dt>
+                    <dd class="value">
+                        {% include 'lindemannrock-base/_components/status-dot' with {
+                            value: provider.type,
+                            colorSet: 'smsProviderType',
+                        } only %}
+                        <span>{{ provider.type|upper }}</span>
+                    </dd>
+                </div>
+            {% endif %}
             <div class="data">
                 <dt class="heading">{{ 'Source'|t('sms-manager') }}</dt>
                 <dd class="value">
-                    {% if senderId.source == 'config' %}
-                        {{ 'Config File'|t('sms-manager') }}
-                    {% else %}
-                        {{ 'Database'|t('sms-manager') }}
-                    {% endif %}
+                    {% include 'lindemannrock-base/_components/status-dot' with {
+                        value: senderId.source,
+                        colorSet: 'configSource',
+                    } only %}
+                    <span>{{ senderId.source == 'config' ? 'Config File'|t('sms-manager') : 'Database'|t('sms-manager') }}</span>
                 </dd>
             </div>
             {% if isDefault %}
                 <div class="data">
                     <dt class="heading">{{ 'Default'|t('sms-manager') }}</dt>
-                    <dd class="value">{{ 'Yes'|t('sms-manager') }}</dd>
+                    <dd class="value">
+                        {% include 'lindemannrock-base/_components/status-dot' with {
+                            value: 'yes',
+                            colorSet: 'yesNo',
+                        } only %}
+                        <span>{{ 'Yes'|t('sms-manager') }}</span>
+                    </dd>
                 </div>
             {% endif %}
             {% if senderId.isDev %}
                 <div class="data">
                     <dt class="heading">{{ 'Development'|t('sms-manager') }}</dt>
-                    <dd class="value">{{ 'Yes'|t('sms-manager') }}</dd>
+                    <dd class="value">
+                        {% include 'lindemannrock-base/_components/status-dot' with {
+                            value: 'yes',
+                            colorSet: 'yesNo',
+                        } only %}
+                        <span>{{ 'Yes'|t('sms-manager') }}</span>
+                    </dd>
                 </div>
             {% endif %}
             {% if canEdit %}
-                <div class="data">
-                    <dt class="heading">{{ 'ID'|t('sms-manager') }}</dt>
-                    <dd class="value">{{ senderId.id }}</dd>
-                </div>
                 <div class="data">
                     <dt class="heading">{{ 'Created at'|t('sms-manager') }}</dt>
                     <dd class="value">{{ senderId.dateCreated|lrDatetime }}</dd>

@@ -281,9 +281,61 @@
         {% endif %}
     </div>
 
+    {% if providerMeta is defined and providerMeta %}
+        <fieldset>
+            <legend class="h6">{{ 'Provider Info'|t('sms-manager') }}</legend>
+            <div class="meta">
+                {% if providerMeta.website %}
+                    <div class="field">
+                        <div class="heading"><label>{{ 'Website'|t('sms-manager') }}</label></div>
+                        <div class="input"><a href="{{ providerMeta.website }}" target="_blank" rel="noopener">{{ providerMeta.website|replace({'https://www.': '', 'https://': ''}) }}</a></div>
+                    </div>
+                {% endif %}
+                {% if providerMeta.docsUrl %}
+                    <div class="field">
+                        <div class="heading"><label>{{ 'API Docs'|t('sms-manager') }}</label></div>
+                        <div class="input"><a href="{{ providerMeta.docsUrl }}" target="_blank" rel="noopener">{{ 'View Docs'|t('sms-manager') }}</a></div>
+                    </div>
+                {% endif %}
+                {% if providerMeta.dashboardUrl %}
+                    <div class="field">
+                        <div class="heading"><label>{{ 'Dashboard'|t('sms-manager') }}</label></div>
+                        <div class="input"><a href="{{ providerMeta.dashboardUrl }}" target="_blank" rel="noopener">{{ 'Open Dashboard'|t('sms-manager') }}</a></div>
+                    </div>
+                {% endif %}
+                <div class="field">
+                    <div class="heading"><label>{{ 'Unicode'|t('sms-manager') }}</label></div>
+                    <div class="input">
+                        {% include 'lindemannrock-base/_components/status-dot' with {
+                            value: providerMeta.supportsUnicode ? 'yes' : 'no',
+                            colorSet: 'yesNo',
+                        } only %}
+                        <span>{{ providerMeta.supportsUnicode ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="heading"><label>{{ 'Delivery Reports'|t('sms-manager') }}</label></div>
+                    <div class="input">
+                        {% include 'lindemannrock-base/_components/status-dot' with {
+                            value: providerMeta.supportsDeliveryReports ? 'yes' : 'no',
+                            colorSet: 'yesNo',
+                        } only %}
+                        <span>{{ providerMeta.supportsDeliveryReports ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}</span>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    {% endif %}
+
     {% if not isNew %}
     <fieldset>
         <dl class="meta read-only">
+            {% if canEdit %}
+                <div class="data">
+                    <dt class="heading">{{ 'ID'|t('sms-manager') }}</dt>
+                    <dd class="value">{{ provider.id }}</dd>
+                </div>
+            {% endif %}
 	            <div class="data">
 	                <dt class="heading">{{ 'Status'|t('sms-manager') }}</dt>
 	                <dd class="value">
@@ -300,31 +352,38 @@
             </div>
             <div class="data">
                 <dt class="heading">{{ 'Type'|t('sms-manager') }}</dt>
-                <dd class="value">{{ provider.type|upper }}</dd>
+                <dd class="value">
+                    {% include 'lindemannrock-base/_components/status-dot' with {
+                        value: provider.type,
+                        colorSet: 'smsProviderType',
+                    } only %}
+                    <span>{{ provider.type|upper }}</span>
+                </dd>
             </div>
             <div class="data">
                 <dt class="heading">{{ 'Source'|t('sms-manager') }}</dt>
                 <dd class="value">
-                    {% if provider.source == 'config' %}
-                        {{ 'Config File'|t('sms-manager') }}
-                    {% else %}
-                        {{ 'Database'|t('sms-manager') }}
-                    {% endif %}
+                    {% include 'lindemannrock-base/_components/status-dot' with {
+                        value: provider.source,
+                        colorSet: 'configSource',
+                    } only %}
+                    <span>{{ provider.source == 'config' ? 'Config File'|t('sms-manager') : 'Database'|t('sms-manager') }}</span>
                 </dd>
             </div>
             {% if isDefault %}
                 <div class="data">
                     <dt class="heading">{{ 'Default'|t('sms-manager') }}</dt>
-                    <dd class="value">{{ 'Yes'|t('sms-manager') }}</dd>
+                    <dd class="value">
+                        {% include 'lindemannrock-base/_components/status-dot' with {
+                            value: 'yes',
+                            colorSet: 'yesNo',
+                        } only %}
+                        <span>{{ 'Yes'|t('sms-manager') }}</span>
+                    </dd>
                 </div>
             {% endif %}
-            {% if not canEdit %}
-                {# Config providers don't have database IDs or timestamps #}
-            {% else %}
-                <div class="data">
-                    <dt class="heading">{{ 'ID'|t('sms-manager') }}</dt>
-                    <dd class="value">{{ provider.id }}</dd>
-                </div>
+            {% if canEdit %}
+                {# Config providers don't have database timestamps #}
                 <div class="data">
                     <dt class="heading">{{ 'Created at'|t('sms-manager') }}</dt>
                     <dd class="value">{{ provider.dateCreated|lrDatetime }}</dd>
@@ -338,51 +397,6 @@
     </fieldset>
     {% endif %}
 
-    {% if providerMeta is defined and providerMeta %}
-        <fieldset>
-            <legend class="h6">{{ 'Provider Info'|t('sms-manager') }}</legend>
-            <dl class="meta read-only">
-                {% if providerMeta.website %}
-                    <div class="data">
-                        <dt class="heading">{{ 'Website'|t('sms-manager') }}</dt>
-                        <dd class="value"><a href="{{ providerMeta.website }}" target="_blank" rel="noopener">{{ providerMeta.website|replace({'https://www.': '', 'https://': ''}) }}</a></dd>
-                    </div>
-                {% endif %}
-                {% if providerMeta.docsUrl %}
-                    <div class="data">
-                        <dt class="heading">{{ 'API Docs'|t('sms-manager') }}</dt>
-                        <dd class="value"><a href="{{ providerMeta.docsUrl }}" target="_blank" rel="noopener">{{ 'View Docs'|t('sms-manager') }} &rarr;</a></dd>
-                    </div>
-                {% endif %}
-                {% if providerMeta.dashboardUrl %}
-                    <div class="data">
-                        <dt class="heading">{{ 'Dashboard'|t('sms-manager') }}</dt>
-                        <dd class="value"><a href="{{ providerMeta.dashboardUrl }}" target="_blank" rel="noopener">{{ 'Open Dashboard'|t('sms-manager') }} &rarr;</a></dd>
-                    </div>
-                {% endif %}
-	                <div class="data">
-	                    <dt class="heading">{{ 'Unicode'|t('sms-manager') }}</dt>
-	                    <dd class="value">
-	                        {% include 'lindemannrock-base/_components/status-dot' with {
-	                            value: providerMeta.supportsUnicode ? 'enabled' : 'disabled',
-	                            colorSet: 'status',
-	                        } only %}
-	                        <span>{{ providerMeta.supportsUnicode ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}</span>
-	                    </dd>
-	                </div>
-	                <div class="data">
-	                    <dt class="heading">{{ 'Delivery Reports'|t('sms-manager') }}</dt>
-	                    <dd class="value">
-	                        {% include 'lindemannrock-base/_components/status-dot' with {
-	                            value: providerMeta.supportsDeliveryReports ? 'enabled' : 'disabled',
-	                            colorSet: 'status',
-	                        } only %}
-	                        <span>{{ providerMeta.supportsDeliveryReports ? 'Supported'|t('sms-manager') : 'Not Supported'|t('sms-manager') }}</span>
-	                    </dd>
-	                </div>
-            </dl>
-        </fieldset>
-    {% endif %}
 {% endblock %}
 
 {% if canEdit %}
