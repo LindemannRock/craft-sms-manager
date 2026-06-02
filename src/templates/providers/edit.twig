@@ -1,5 +1,6 @@
 {% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('lindemannrock\\base\\web\\assets\\components\\ComponentsAsset') %}
 
 {% set plugin = craft.app.plugins.getPlugin('sms-manager') %}
 {% set canEdit = provider ? provider.canEdit() : true %}
@@ -386,22 +387,8 @@
 
 {% if canEdit %}
 {% js %}
-// Auto-generate handle from name
-const nameField = document.getElementById('name');
-const handleField = document.getElementById('handle');
-let handleChanged = {{ (provider.handle ?? '') ? 'true' : 'false' }};
-
-handleField.addEventListener('input', function() {
-    handleChanged = true;
-});
-
-nameField.addEventListener('input', function() {
-    if (!handleChanged) {
-        handleField.value = this.value
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '');
-    }
+window.lrIdentifiers?.bindSlugHandle('#name', '#handle', {
+    isNew: {{ isNew ? 'true' : 'false' }},
 });
 
 // Provider type switching
