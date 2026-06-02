@@ -1,0 +1,76 @@
+name: Provider Request
+description: Request support for a new SMS gateway / provider.
+labels: 'provider request'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to request a new SMS gateway (e.g. Twilio, Unifonic, Vonage). We'll read the provider's documentation and handle the implementation — you just need to tell us which provider and where to find its docs.
+
+        For general ideas or enhancements, use **Feature Request** instead.
+
+        Before submitting, please check:
+
+          - I've searched [open and closed issues](https://github.com/LindemannRock/craft-sms-manager/issues?q=is%3Aissue+label%3A%22provider+request%22).
+
+  - type: input
+    id: provider-name
+    attributes:
+      label: Provider / gateway name
+      description: The official name of the SMS provider.
+      placeholder: e.g. Twilio, Unifonic, Vonage
+    validations:
+      required: true
+
+  - type: input
+    id: docs-url
+    attributes:
+      label: Website or API documentation link
+      description: A link to the provider's website or API docs. This is how we implement the integration.
+      placeholder: e.g. https://www.twilio.com/docs/sms
+    validations:
+      required: true
+
+  - type: input
+    id: countries
+    attributes:
+      label: Countries you need to send to
+      description: Which countries should this provider be able to deliver SMS to?
+      placeholder: e.g. Kuwait, Saudi Arabia, UAE
+    validations:
+      required: true
+
+  - type: dropdown
+    id: test-account
+    attributes:
+      label: Do you have a test account or API key?
+      description: Please don't paste any credentials here — if yes, we'll email you to collect them securely.
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: false
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: "SMS Manager version"
+      description: Check in Settings → Plugins.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: craft-major
+    attributes:
+      label: Craft CMS major version
+      options:
+        - "Craft 5"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Anything else you'd like to add?
+      description: Optional — anything else that helps us understand the request.
