@@ -941,11 +941,11 @@ class AnalyticsController extends Controller
         if (is_int($siteId)) {
             $site = Craft::$app->getSites()->getSiteById($siteId);
             if ($site) {
-                $filenameParts[] = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
+                $filenameParts[] = $site->handle;
             }
         }
         if ($language !== 'all') {
-            $filenameParts[] = strtolower(preg_replace('/[^a-z0-9]+/', '-', $language));
+            $filenameParts[] = $language;
         }
         $filenameParts[] = $dateRangeLabel;
 
