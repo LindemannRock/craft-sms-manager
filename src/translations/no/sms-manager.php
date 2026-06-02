@@ -47,6 +47,7 @@ return [
     'Interface' => 'Grensesnitt',
     'Name' => 'Navn',
     'Handle' => 'Identifikator',
+    'Handle must be unique.' => 'Handle må være unik.',
     'Description' => 'Beskrivelse',
     'Status' => 'Status',
     'Source' => 'Kilde',

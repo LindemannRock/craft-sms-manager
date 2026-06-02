@@ -47,6 +47,7 @@ return [
     'Interface' => 'Interface',
     'Name' => 'Naam',
     'Handle' => 'Kenmerk',
+    'Handle must be unique.' => 'De handle moet uniek zijn.',
     'Description' => 'Beschrijving',
     'Status' => 'Status',
     'Source' => 'Bron',

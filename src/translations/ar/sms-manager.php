@@ -47,6 +47,7 @@ return [
     'Interface' => 'الواجهة',
     'Name' => 'الاسم',
     'Handle' => 'المعرّف',
+    'Handle must be unique.' => 'يجب أن يكون المعرّف فريدًا.',
     'Description' => 'الوصف',
     'Status' => 'الحالة',
     'Source' => 'المصدر',

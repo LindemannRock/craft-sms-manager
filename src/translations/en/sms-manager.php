@@ -47,6 +47,7 @@ return [
     'Interface' => 'Interface',
     'Name' => 'Name',
     'Handle' => 'Handle',
+    'Handle must be unique.' => 'Handle must be unique.',
     'Description' => 'Description',
     'Status' => 'Status',
     'Source' => 'Source',

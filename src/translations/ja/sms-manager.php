@@ -47,6 +47,7 @@ return [
     'Interface' => 'インターフェース',
     'Name' => '名前',
     'Handle' => 'ハンドル',
+    'Handle must be unique.' => 'ハンドルは一意である必要があります。',
     'Description' => '説明',
     'Status' => 'ステータス',
     'Source' => 'ソース',

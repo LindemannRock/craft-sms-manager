@@ -47,6 +47,7 @@ return [
     'Interface' => 'Gränssnitt',
     'Name' => 'Namn',
     'Handle' => 'Identifierare',
+    'Handle must be unique.' => 'Handle måste vara unikt.',
     'Description' => 'Beskrivning',
     'Status' => 'Status',
     'Source' => 'Källa',

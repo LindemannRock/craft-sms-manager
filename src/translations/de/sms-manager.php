@@ -47,6 +47,7 @@ return [
     'Interface' => 'Oberfläche',
     'Name' => 'Name',
     'Handle' => 'Kennung',
+    'Handle must be unique.' => 'Der Handle muss eindeutig sein.',
     'Description' => 'Beschreibung',
     'Status' => 'Status',
     'Source' => 'Quelle',

@@ -47,6 +47,7 @@ return [
     'Interface' => 'Brugerflade',
     'Name' => 'Navn',
     'Handle' => 'Håndtag',
+    'Handle must be unique.' => 'Handle skal være unikt.',
     'Description' => 'Beskrivelse',
     'Status' => 'Status',
     'Source' => 'Kilde',

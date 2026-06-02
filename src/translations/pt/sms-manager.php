@@ -47,6 +47,7 @@ return [
     'Interface' => 'Interface',
     'Name' => 'Nome',
     'Handle' => 'Identificador',
+    'Handle must be unique.' => 'O identificador deve ser único.',
     'Description' => 'Descrição',
     'Status' => 'Estado',
     'Source' => 'Origem',
