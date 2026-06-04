@@ -20,6 +20,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 - **Multi-Provider Support**: Extensible provider system for different SMS gateways
   - **MPP-SMS**: Kuwait SMS provider with Arabic and English support
+  - **Twilio**: Global SMS provider with worldwide coverage, Unicode support, and delivery reports
   - Extensible architecture for adding custom providers
 - **Sender ID Management**: Configure multiple sender IDs per provider
   - Enable/disable sender IDs individually
