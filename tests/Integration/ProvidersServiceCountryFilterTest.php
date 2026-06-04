@@ -62,6 +62,43 @@ final class ProvidersServiceCountryFilterTest extends TestCase
         self::assertSame([], $this->providers->getAllowedCountries($provider->id));
     }
 
+    public function testGetAllowedCountriesNormalizesEmptyStringToArray(): void
+    {
+        // Regression: Craft's empty multi-select persists allowedCountries as ""
+        // (not []). The `: array` return type used to throw a TypeError when a
+        // consumer (campaign-manager's new-campaign page) iterated providers.
+        $provider = $this->seedProvider([
+            'settings' => json_encode(['allowedCountries' => '']),
+        ]);
+
+        self::assertSame([], $this->providers->getAllowedCountries($provider->id));
+    }
+
+    public function testIsCountryAllowedTreatsEmptyStringAsWildcard(): void
+    {
+        $provider = $this->seedProvider([
+            'settings' => json_encode(['allowedCountries' => '']),
+        ]);
+
+        self::assertTrue($this->providers->isCountryAllowed($provider->id, 'KW'));
+    }
+
+    public function testGetProvidersForCountryToleratesEmptyStringCountries(): void
+    {
+        // An empty-string allowedCountries must not crash the in_array() filter,
+        // and counts as "all countries" (wildcard) like an empty list does.
+        $provider = $this->seedProvider([
+            'settings' => json_encode(['allowedCountries' => '']),
+        ]);
+
+        $matchingIds = array_map(
+            static fn($p) => (int) $p->id,
+            $this->providers->getProvidersForCountry('KW'),
+        );
+
+        self::assertContains((int) $provider->id, $matchingIds);
+    }
+
     public function testIsCountryAllowedWildcardAdmitsEveryCountry(): void
     {
         $provider = $this->seedProvider([
