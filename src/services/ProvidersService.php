@@ -274,7 +274,7 @@ class ProvidersService extends Component
         $isNew = !$provider->id;
         $provider->handle = SlugHandleHelper::normalizeSlug($provider->handle, (string)$provider->name);
 
-        if ($isNew) {
+        if ($isNew && $provider->handle !== '') {
             $provider->handle = SlugHandleHelper::makeUnique(ProviderRecord::tableName(), 'handle', $provider->handle);
         }
 

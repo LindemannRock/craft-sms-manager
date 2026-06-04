@@ -222,7 +222,7 @@ class SenderIdsService extends Component
         $isNew = !$senderId->id;
         $senderId->handle = SlugHandleHelper::normalizeSlug($senderId->handle, (string)$senderId->name);
 
-        if ($isNew) {
+        if ($isNew && $senderId->handle !== '') {
             $senderId->handle = SlugHandleHelper::makeUnique(SenderIdRecord::tableName(), 'handle', $senderId->handle);
         }
 
