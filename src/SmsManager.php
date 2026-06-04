@@ -114,6 +114,7 @@ class SmsManager extends Plugin
                     ],
                     'smsProviderType' => [
                         'mpp-sms' => ColorHelper::getPaletteColor('purple'),
+                        'twilio' => ColorHelper::getPaletteColor('red'),
                     ],
                 ],
                 'installExperience' => [
