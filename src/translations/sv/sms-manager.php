@@ -125,6 +125,8 @@ return [
     'API Key is required.' => 'API-nyckel krävs.',
     'API URL must be a valid URL.' => 'API URL måste vara en giltig URL.',
     'API URL must use HTTPS.' => 'API URL måste använda HTTPS.',
+    'Account SID is required.' => 'Account SID krävs.',
+    'Auth Token is required.' => 'Auth Token krävs.',
     'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.' => 'Kan inte ta bort en konfigurationsbaserad leverantör. Ta bort den från config/sms-manager.php istället.',
     'Cannot delete the default provider. Set another provider as default first.' => 'Kan inte ta bort standardleverantören. Ange en annan leverantör som standard först.',
     'Cannot delete provider. It is in use by: {usages}' => 'Kan inte ta bort leverantören. Den används av: {usages}',
@@ -299,6 +301,13 @@ return [
     'Select which countries this provider can send SMS to. Leave empty to allow all countries.' => 'Välj till vilka länder den här leverantören kan skicka SMS. Lämna tomt för att tillåta alla länder.',
     'Select countries...' => 'Välj länder...',
     'MPP-SMS only supports Kuwait mobile numbers. Arabic messages are automatically encoded in UCS-2 format.' => 'MPP-SMS stöder endast kuwaitiska mobilnummer. Arabiska meddelanden kodas automatiskt i UCS-2-format.',
+
+    // Providers: Twilio settings
+    'Account SID' => 'Account SID',
+    'Your Twilio Account SID.' => 'Ditt Twilio Account SID.',
+    'Auth Token' => 'Auth Token',
+    'Your Twilio Auth Token.' => 'Ditt Twilio Auth Token.',
+    'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'Avsändaren hämtas från avsändar-ID-posten — ett Twilio-nummer i E.164-format, ett alfanumeriskt avsändar-ID eller ett Messaging Service SID. Mottagarnummer skickas i E.164-format.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nytt avsändar-ID',

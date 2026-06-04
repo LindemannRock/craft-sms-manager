@@ -126,14 +126,22 @@
                     } %}
                 </div>
 
+                {# Twilio Settings #}
+                <div id="settings-twilio" class="provider-type-settings {{ currentType != 'twilio' ? 'hidden' : '' }}">
+                    {% include 'sms-manager/providers/_settings/twilio' with {
+                        provider: provider,
+                        providerSettings: currentType == 'twilio' ? providerSettings : {}
+                    } %}
+                </div>
+
                 {# Generic/Fallback Settings (for future provider types) #}
-                <div id="settings-generic" class="provider-type-settings {{ currentType == 'mpp-sms' ? 'hidden' : '' }}">
+                <div id="settings-generic" class="provider-type-settings {{ currentType in ['mpp-sms', 'twilio'] ? 'hidden' : '' }}">
                     {{ forms.textField({
                         label: 'API Key'|t('sms-manager'),
                         instructions: 'The API key for this provider'|t('sms-manager'),
                         id: 'providerSettings-apiKey-generic',
                         name: 'providerSettings[apiKey]',
-                        value: currentType != 'mpp-sms' ? (providerSettings.apiKey ?? '') : '',
+                        value: currentType not in ['mpp-sms', 'twilio'] ? (providerSettings.apiKey ?? '') : '',
                         required: true,
                         class: 'code',
                     }) }}
@@ -281,7 +289,7 @@
         {% endif %}
     </div>
 
-    {% if providerMeta is defined and providerMeta %}
+    {% if not isNew and providerMeta is defined and providerMeta %}
         <fieldset>
             <legend class="h6">{{ 'Provider Info'|t('sms-manager') }}</legend>
             <div class="meta">

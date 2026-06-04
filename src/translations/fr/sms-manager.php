@@ -125,6 +125,8 @@ return [
     'API Key is required.' => 'La clé API est obligatoire.',
     'API URL must be a valid URL.' => 'L\'URL API doit être une URL valide.',
     'API URL must use HTTPS.' => 'L\'URL API doit utiliser HTTPS.',
+    'Account SID is required.' => 'L\'Account SID est obligatoire.',
+    'Auth Token is required.' => 'L\'Auth Token est obligatoire.',
     'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.' => 'Impossible de supprimer un fournisseur basé sur la configuration. Supprimez-le de config/sms-manager.php à la place.',
     'Cannot delete the default provider. Set another provider as default first.' => 'Impossible de supprimer le fournisseur par défaut. Définissez d\'abord un autre fournisseur comme défaut.',
     'Cannot delete provider. It is in use by: {usages}' => 'Impossible de supprimer le fournisseur. Il est utilisé par : {usages}',
@@ -299,6 +301,13 @@ return [
     'Select which countries this provider can send SMS to. Leave empty to allow all countries.' => 'Sélectionnez dans quels pays ce fournisseur peut envoyer des SMS. Laisser vide pour autoriser tous les pays.',
     'Select countries...' => 'Sélectionner des pays...',
     'MPP-SMS only supports Kuwait mobile numbers. Arabic messages are automatically encoded in UCS-2 format.' => 'MPP-SMS prend uniquement en charge les numéros mobiles koweïtiens. Les messages en arabe sont automatiquement encodés au format UCS-2.',
+
+    // Providers: Twilio settings
+    'Account SID' => 'Account SID',
+    'Your Twilio Account SID.' => 'Votre Account SID Twilio.',
+    'Auth Token' => 'Auth Token',
+    'Your Twilio Auth Token.' => 'Votre Auth Token Twilio.',
+    'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'L\'expéditeur provient de l\'enregistrement d\'identifiant d\'expéditeur — un numéro Twilio au format E.164, un identifiant d\'expéditeur alphanumérique ou un Messaging Service SID. Les numéros des destinataires sont envoyés au format E.164.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nouvel identifiant d\'expéditeur',

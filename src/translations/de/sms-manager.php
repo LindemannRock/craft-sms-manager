@@ -125,6 +125,8 @@ return [
     'API Key is required.' => 'API-Schlüssel ist erforderlich.',
     'API URL must be a valid URL.' => 'API-URL muss eine gültige URL sein.',
     'API URL must use HTTPS.' => 'API-URL muss HTTPS verwenden.',
+    'Account SID is required.' => 'Account SID ist erforderlich.',
+    'Auth Token is required.' => 'Auth Token ist erforderlich.',
     'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.' => 'Konfigurationsbasierter Anbieter kann nicht gelöscht werden. Entfernen Sie ihn stattdessen aus config/sms-manager.php.',
     'Cannot delete the default provider. Set another provider as default first.' => 'Standardanbieter kann nicht gelöscht werden. Legen Sie zuerst einen anderen Anbieter als Standard fest.',
     'Cannot delete provider. It is in use by: {usages}' => 'Anbieter kann nicht gelöscht werden. Er wird verwendet von: {usages}',
@@ -299,6 +301,13 @@ return [
     'Select which countries this provider can send SMS to. Leave empty to allow all countries.' => 'Wählen Sie aus, in welche Länder dieser Anbieter SMS senden kann. Leer lassen, um alle Länder zu erlauben.',
     'Select countries...' => 'Länder auswählen...',
     'MPP-SMS only supports Kuwait mobile numbers. Arabic messages are automatically encoded in UCS-2 format.' => 'MPP-SMS unterstützt nur kuwaitische Mobilnummern. Arabische Nachrichten werden automatisch im UCS-2-Format kodiert.',
+
+    // Providers: Twilio settings
+    'Account SID' => 'Account SID',
+    'Your Twilio Account SID.' => 'Ihr Twilio Account SID.',
+    'Auth Token' => 'Auth Token',
+    'Your Twilio Auth Token.' => 'Ihr Twilio Auth Token.',
+    'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'Der Absender stammt aus dem Absender-ID-Eintrag — eine Twilio-Nummer im E.164-Format, eine alphanumerische Absender-ID oder eine Messaging Service SID. Empfängernummern werden im E.164-Format übermittelt.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Neue Absender-ID',

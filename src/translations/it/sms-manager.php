@@ -125,6 +125,8 @@ return [
     'API Key is required.' => 'La chiave API è obbligatoria.',
     'API URL must be a valid URL.' => 'L\'API URL deve essere un URL valido.',
     'API URL must use HTTPS.' => 'L\'API URL deve utilizzare HTTPS.',
+    'Account SID is required.' => 'L\'Account SID è obbligatorio.',
+    'Auth Token is required.' => 'L\'Auth Token è obbligatorio.',
     'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.' => 'Impossibile eliminare un provider basato su configurazione. Rimuoverlo da config/sms-manager.php.',
     'Cannot delete the default provider. Set another provider as default first.' => 'Impossibile eliminare il provider predefinito. Impostare prima un altro provider come predefinito.',
     'Cannot delete provider. It is in use by: {usages}' => 'Impossibile eliminare il provider. È in uso da: {usages}',
@@ -299,6 +301,13 @@ return [
     'Select which countries this provider can send SMS to. Leave empty to allow all countries.' => 'Seleziona i paesi a cui questo provider può inviare SMS. Lascia vuoto per consentire tutti i paesi.',
     'Select countries...' => 'Seleziona paesi...',
     'MPP-SMS only supports Kuwait mobile numbers. Arabic messages are automatically encoded in UCS-2 format.' => 'MPP-SMS supporta solo numeri di cellulare kuwaitiani. I messaggi in arabo vengono automaticamente codificati in formato UCS-2.',
+
+    // Providers: Twilio settings
+    'Account SID' => 'Account SID',
+    'Your Twilio Account SID.' => 'Il tuo Account SID Twilio.',
+    'Auth Token' => 'Auth Token',
+    'Your Twilio Auth Token.' => 'Il tuo Auth Token Twilio.',
+    'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'Il mittente proviene dal record dell\'ID mittente — un numero Twilio in formato E.164, un ID mittente alfanumerico o un Messaging Service SID. I numeri dei destinatari vengono inviati in formato E.164.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nuovo ID mittente',

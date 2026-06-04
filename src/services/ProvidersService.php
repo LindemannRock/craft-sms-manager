@@ -16,6 +16,7 @@ use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\providers\MppSmsProvider;
 use lindemannrock\smsmanager\providers\ProviderInterface;
+use lindemannrock\smsmanager\providers\TwilioProvider;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\SmsManager;
 
@@ -53,6 +54,7 @@ class ProvidersService extends Component
     private function registerDefaultProviders(): void
     {
         $this->registerProviderType(MppSmsProvider::class);
+        $this->registerProviderType(TwilioProvider::class);
     }
 
     /**
@@ -316,6 +318,14 @@ class ProvidersService extends Component
             }
         }
 
+        // Normalize allowedCountries before persisting: Craft's empty multi-select
+        // posts "" rather than [], which would break the array contract on read.
+        $settingsArray = $provider->getSettingsArray();
+        if (array_key_exists('allowedCountries', $settingsArray)) {
+            $settingsArray['allowedCountries'] = $this->normalizeAllowedCountries($settingsArray['allowedCountries']);
+            $provider->setSettingsArray($settingsArray);
+        }
+
         // Set UID for new records
         if ($isNew && !$provider->uid) {
             $provider->uid = StringHelper::UUID();
@@ -437,7 +447,28 @@ class ProvidersService extends Component
     public function getAllowedCountries(int|string $providerIdOrHandle): array
     {
         $settings = $this->getProviderSettings($providerIdOrHandle);
-        return $settings['allowedCountries'] ?? [];
+        return $this->normalizeAllowedCountries($settings['allowedCountries'] ?? []);
+    }
+
+    /**
+     * Coerce a stored allowedCountries value to a clean list of country codes.
+     *
+     * Craft's multi-select renders a hidden empty-string fallback, so a provider
+     * saved with no countries selected persists `allowedCountries` as "" rather
+     * than []. Normalizing here keeps the strict array return types — and the
+     * `in_array()` calls in the country-filter helpers — from blowing up on
+     * malformed settings.
+     *
+     * @param mixed $value Raw stored value
+     * @return list<string>
+     */
+    private function normalizeAllowedCountries(mixed $value): array
+    {
+        if (is_array($value)) {
+            return array_values(array_filter($value, fn($v) => $v !== '' && $v !== null));
+        }
+
+        return is_string($value) && $value !== '' ? [$value] : [];
     }
 
     /**
@@ -475,7 +506,7 @@ class ProvidersService extends Component
 
         return array_filter($providers, function($provider) use ($countryCode) {
             $settings = $provider->getSettingsArray();
-            $allowedCountries = $settings['allowedCountries'] ?? [];
+            $allowedCountries = $this->normalizeAllowedCountries($settings['allowedCountries'] ?? []);
 
             // Empty or wildcard means all countries allowed
             if (empty($allowedCountries) || in_array('*', $allowedCountries, true)) {

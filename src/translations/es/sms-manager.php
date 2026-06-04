@@ -125,6 +125,8 @@ return [
     'API Key is required.' => 'La clave API es obligatoria.',
     'API URL must be a valid URL.' => 'La URL de la API debe ser una URL válida.',
     'API URL must use HTTPS.' => 'La URL de la API debe usar HTTPS.',
+    'Account SID is required.' => 'El Account SID es obligatorio.',
+    'Auth Token is required.' => 'El Auth Token es obligatorio.',
     'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.' => 'No se puede eliminar un proveedor basado en configuración. Elimínelo de config/sms-manager.php en su lugar.',
     'Cannot delete the default provider. Set another provider as default first.' => 'No se puede eliminar el proveedor predeterminado. Establezca otro proveedor como predeterminado primero.',
     'Cannot delete provider. It is in use by: {usages}' => 'No se puede eliminar el proveedor. Está en uso por: {usages}',
@@ -299,6 +301,13 @@ return [
     'Select which countries this provider can send SMS to. Leave empty to allow all countries.' => 'Seleccione a qué países puede enviar SMS este proveedor. Dejar vacío para permitir todos los países.',
     'Select countries...' => 'Seleccionar países...',
     'MPP-SMS only supports Kuwait mobile numbers. Arabic messages are automatically encoded in UCS-2 format.' => 'MPP-SMS solo admite números móviles de Kuwait. Los mensajes en árabe se codifican automáticamente en formato UCS-2.',
+
+    // Providers: Twilio settings
+    'Account SID' => 'Account SID',
+    'Your Twilio Account SID.' => 'Su Account SID de Twilio.',
+    'Auth Token' => 'Auth Token',
+    'Your Twilio Auth Token.' => 'Su Auth Token de Twilio.',
+    'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'El remitente proviene del registro de ID de remitente — un número de Twilio en formato E.164, un ID de remitente alfanumérico o un Messaging Service SID. Los números de destinatario se envían en formato E.164.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nuevo ID de remitente',

@@ -1,0 +1,50 @@
+{# Twilio Provider Settings #}
+{% import "_includes/forms" as forms %}
+
+{{ forms.autosuggestField({
+    label: 'Account SID'|t('sms-manager'),
+    instructions: 'Your Twilio Account SID.'|t('sms-manager'),
+    id: 'providerSettings-accountSid',
+    name: 'providerSettings[accountSid]',
+    value: providerSettings.accountSid ?? '',
+    required: true,
+    placeholder: '$TWILIO_ACCOUNT_SID',
+    class: 'code',
+    suggestEnvVars: true,
+    errors: provider ? provider.getErrors('providerSettings.accountSid') : [],
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Auth Token'|t('sms-manager'),
+    instructions: 'Your Twilio Auth Token.'|t('sms-manager'),
+    id: 'providerSettings-authToken',
+    name: 'providerSettings[authToken]',
+    value: providerSettings.authToken ?? '',
+    required: true,
+    placeholder: '$TWILIO_AUTH_TOKEN',
+    class: 'code',
+    suggestEnvVars: true,
+    errors: provider ? provider.getErrors('providerSettings.authToken') : [],
+}) }}
+
+<hr>
+
+<h3>{{ 'Country Restrictions'|t('sms-manager') }}</h3>
+
+{{ forms.selectizeField({
+    label: 'Allowed Countries'|t('sms-manager'),
+    instructions: 'Select which countries this provider can send SMS to. Leave empty to allow all countries.'|t('sms-manager'),
+    id: 'providerSettings-allowedCountries-twilio',
+    name: 'providerSettings[allowedCountries]',
+    values: providerSettings.allowedCountries ?? [],
+    options: countryOptions ?? [],
+    multi: true,
+    selectizeOptions: {
+        placeholder: 'Select countries...'|t('sms-manager'),
+    },
+}) }}
+
+{% include 'lindemannrock-base/_components/info-box' with {
+    message: '<strong>' ~ 'Note:'|t('sms-manager') ~ '</strong> ' ~ 'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.'|t('sms-manager'),
+    type: 'warning'
+} %}

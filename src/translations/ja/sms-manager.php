@@ -125,6 +125,8 @@ return [
     'API Key is required.' => 'API キーは必須です。',
     'API URL must be a valid URL.' => 'API URL は有効な URL である必要があります。',
     'API URL must use HTTPS.' => 'API URL は HTTPS を使用する必要があります。',
+    'Account SID is required.' => 'Account SID は必須です。',
+    'Auth Token is required.' => 'Auth Token は必須です。',
     'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.' => '設定ファイルベースのプロバイダーは削除できません。代わりに config/sms-manager.php から削除してください。',
     'Cannot delete the default provider. Set another provider as default first.' => 'デフォルトプロバイダーは削除できません。最初に別のプロバイダーをデフォルトに設定してください。',
     'Cannot delete provider. It is in use by: {usages}' => 'プロバイダーを削除できません。次の箇所で使用されています： {usages}',
@@ -299,6 +301,13 @@ return [
     'Select which countries this provider can send SMS to. Leave empty to allow all countries.' => 'このプロバイダーが SMS を送信できる国を選択してください。すべての国を許可する場合は空白のままにしてください。',
     'Select countries...' => '国を選択...',
     'MPP-SMS only supports Kuwait mobile numbers. Arabic messages are automatically encoded in UCS-2 format.' => 'MPP-SMS はクウェートの携帯電話番号のみをサポートしています。アラビア語のメッセージは自動的に UCS-2 形式でエンコードされます。',
+
+    // Providers: Twilio settings
+    'Account SID' => 'Account SID',
+    'Your Twilio Account SID.' => 'Twilio の Account SID です。',
+    'Auth Token' => 'Auth Token',
+    'Your Twilio Auth Token.' => 'Twilio の Auth Token です。',
+    'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => '送信者は送信者 ID レコードから取得されます — E.164 形式の Twilio 番号、英数字の送信者 ID、または Messaging Service SID です。受信者番号は E.164 形式で送信されます。',
 
     // Sender IDs: Index
     'New Sender ID' => '新規送信者 ID',
