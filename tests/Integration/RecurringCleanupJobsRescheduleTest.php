@@ -13,6 +13,7 @@ namespace lindemannrock\smsmanager\tests\Integration;
 use Craft;
 use lindemannrock\smsmanager\jobs\CleanupAnalyticsJob;
 use lindemannrock\smsmanager\jobs\CleanupLogsJob;
+use lindemannrock\smsmanager\SmsManager;
 use lindemannrock\smsmanager\tests\TestCase;
 use ReflectionMethod;
 
@@ -64,6 +65,38 @@ final class RecurringCleanupJobsRescheduleTest extends TestCase
         $this->invokePrivate($job, 'scheduleNextCleanup');
 
         $this->assertSame(2, $this->countQueueRows('CleanupLogsJob'));
+    }
+
+    public function testAnalyticsCleanupBootstrapDoesNotDuplicateExistingDelayedCleanupRow(): void
+    {
+        $settings = SmsManager::$plugin->getSettings();
+        $settings->enableAnalytics = true;
+        $settings->analyticsRetention = 30;
+
+        Craft::$app->getQueue()->delay(300)->push(new CleanupAnalyticsJob([
+            'reschedule' => true,
+        ]));
+        $this->assertSame(1, $this->countQueueRows('CleanupAnalyticsJob'));
+
+        $this->invokePrivate(SmsManager::$plugin, 'scheduleAnalyticsCleanup');
+
+        $this->assertSame(1, $this->countQueueRows('CleanupAnalyticsJob'));
+    }
+
+    public function testLogsCleanupBootstrapDoesNotDuplicateExistingDelayedCleanupRow(): void
+    {
+        $settings = SmsManager::$plugin->getSettings();
+        $settings->enableSmsLogs = true;
+        $settings->smsLogsRetention = 30;
+
+        Craft::$app->getQueue()->delay(300)->push(new CleanupLogsJob([
+            'reschedule' => true,
+        ]));
+        $this->assertSame(1, $this->countQueueRows('CleanupLogsJob'));
+
+        $this->invokePrivate(SmsManager::$plugin, 'scheduleLogsCleanup');
+
+        $this->assertSame(1, $this->countQueueRows('CleanupLogsJob'));
     }
 
     private function invokePrivate(object $object, string $method): void

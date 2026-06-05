@@ -443,31 +443,27 @@ class SmsManager extends Plugin
             return;
         }
 
-        $existingJob = (new \craft\db\Query())
-            ->from('{{%queue}}')
-            ->where(['like', 'job', 'smsmanager'])
-            ->andWhere(['like', 'job', 'CleanupAnalyticsJob'])
-            ->exists();
-
-        if (!$existingJob) {
-            $initialDelay = 5 * 60;
-            $initialRun = (clone DateFormatHelper::now())->modify("+{$initialDelay} seconds");
-
-            $job = new CleanupAnalyticsJob([
-                'reschedule' => true,
-                'nextRunTime' => DateFormatHelper::formatCompactDatetimeFromSettings(
-                    $initialRun,
-                    $settings,
-                    false,
-                    false,
-                ),
-            ]);
-
-            // Add to queue with a small initial delay
-            Craft::$app->queue->delay($initialDelay)->push($job);
-
-            $this->logInfo('Scheduled initial analytics cleanup job', ['interval' => '24 hours']);
+        if ($this->hasPendingCleanupJob('CleanupAnalyticsJob')) {
+            return;
         }
+
+        $initialDelay = 5 * 60;
+        $initialRun = (clone DateFormatHelper::now())->modify("+{$initialDelay} seconds");
+
+        $job = new CleanupAnalyticsJob([
+            'reschedule' => true,
+            'nextRunTime' => DateFormatHelper::formatCompactDatetimeFromSettings(
+                $initialRun,
+                $settings,
+                false,
+                false,
+            ),
+        ]);
+
+        // Add to queue with a small initial delay
+        Craft::$app->queue->delay($initialDelay)->push($job);
+
+        $this->logInfo('Scheduled initial analytics cleanup job', ['interval' => '24 hours']);
     }
 
     /**
@@ -481,30 +477,40 @@ class SmsManager extends Plugin
             return;
         }
 
-        $existingJob = (new \craft\db\Query())
+        if ($this->hasPendingCleanupJob('CleanupLogsJob')) {
+            return;
+        }
+
+        $initialDelay = 5 * 60;
+        $initialRun = (clone DateFormatHelper::now())->modify("+{$initialDelay} seconds");
+
+        $job = new CleanupLogsJob([
+            'reschedule' => true,
+            'nextRunTime' => DateFormatHelper::formatCompactDatetimeFromSettings(
+                $initialRun,
+                $settings,
+                false,
+                false,
+            ),
+        ]);
+
+        // Add to queue with a small initial delay
+        Craft::$app->queue->delay($initialDelay)->push($job);
+
+        $this->logInfo('Scheduled initial logs cleanup job', ['interval' => '24 hours']);
+    }
+
+    /**
+     * Check whether a cleanup job is already pending.
+     */
+    private function hasPendingCleanupJob(string $jobClass): bool
+    {
+        return (new \craft\db\Query())
             ->from('{{%queue}}')
             ->where(['like', 'job', 'smsmanager'])
-            ->andWhere(['like', 'job', 'CleanupLogsJob'])
+            ->andWhere(['like', 'job', $jobClass])
+            ->andWhere(['fail' => false])
+            ->andWhere(['timeUpdated' => null])
             ->exists();
-
-        if (!$existingJob) {
-            $initialDelay = 5 * 60;
-            $initialRun = (clone DateFormatHelper::now())->modify("+{$initialDelay} seconds");
-
-            $job = new CleanupLogsJob([
-                'reschedule' => true,
-                'nextRunTime' => DateFormatHelper::formatCompactDatetimeFromSettings(
-                    $initialRun,
-                    $settings,
-                    false,
-                    false,
-                ),
-            ]);
-
-            // Add to queue with a small initial delay
-            Craft::$app->queue->delay($initialDelay)->push($job);
-
-            $this->logInfo('Scheduled initial logs cleanup job', ['interval' => '24 hours']);
-        }
     }
 }
