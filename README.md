@@ -661,6 +661,12 @@ If a cleanup job is missing:
 - Check that `smsLogsRetention` is greater than `0` for logs cleanup.
 - Check that `enableAnalytics` or `enableSmsLogs` is enabled for the relevant cleanup job.
 
+### Settings Save Shows a Validation Error
+
+Numeric settings such as analytics limits, log limits, retention periods, and items per page must be whole numbers within the allowed range. If a value is invalid, SMS Manager keeps you on the same settings page and shows the field error inline.
+
+When a setting is overridden in `config/sms-manager.php`, the Control Panel field is skipped during save. Change the config file value instead.
+
 ### Provider Response Errors
 
 Common MPP-SMS errors:

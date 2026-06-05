@@ -11,6 +11,8 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\helpers\App;
 use craft\web\Controller;
+use lindemannrock\base\helpers\SettingsPostHelper;
+use lindemannrock\smsmanager\models\Settings;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -244,54 +246,22 @@ class SettingsController extends Controller
     {
         $this->requirePostRequest();
 
-        $settings = SmsManager::$plugin->getSettings();
+        $settings = Settings::loadFromDatabase();
         $postedSettings = Craft::$app->getRequest()->getBodyParam('settings', []);
         $section = $this->_validSettingsSection(
             Craft::$app->getRequest()->getBodyParam('section', 'general'),
         );
 
-        // Fields that should be cast to int (nullable)
-        $nullableIntFields = ['defaultProviderId', 'defaultSenderIdId'];
+        $result = SettingsPostHelper::apply(
+            model: $settings,
+            postedValues: is_array($postedSettings) ? $postedSettings : [],
+            allowedAttributes: $this->_validationAttributesForSection($section),
+            isOverridden: fn(string $attribute): bool => $settings->isOverriddenByConfig($attribute),
+        );
 
-        // Fields that should be cast to int (required)
-        $intFields = ['analyticsLimit', 'analyticsRetention', 'smsLogsLimit', 'smsLogsRetention', 'itemsPerPage', 'refreshIntervalSecs'];
+        $attributesToValidate = $result->attributesToValidate;
 
-        // Fields that should be cast to bool
-        $boolFields = ['enableAnalytics', 'autoTrimAnalytics', 'enableSmsLogs', 'autoTrimSmsLogs'];
-
-        // Update settings with posted values
-        foreach ($postedSettings as $key => $value) {
-            if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
-                // Multi-state selects (e.g. "Use global default" = '') need '' → null
-                // so nullable properties hold null, not a coerced false / 0 / ''.
-                if ($value === '') {
-                    $type = (new \ReflectionProperty($settings, $key))->getType();
-                    if ($type instanceof \ReflectionNamedType && $type->allowsNull()) {
-                        $settings->$key = null;
-                        continue;
-                    }
-                }
-                // Cast to appropriate type
-                if (in_array($key, $nullableIntFields, true)) {
-                    $settings->$key = $value !== '' && $value !== null ? (int)$value : null;
-                } elseif (in_array($key, $intFields, true)) {
-                    $settings->$key = (int)$value;
-                } elseif (in_array($key, $boolFields, true)) {
-                    $settings->$key = (bool)$value;
-                } else {
-                    $settings->$key = $value;
-                }
-            }
-        }
-
-        // Validate only fields belonging to the current section.
-        $attributesToValidate = $this->_validationAttributesForSection($section);
-        $attributesToValidate = array_values(array_filter(
-            $attributesToValidate,
-            fn(string $attribute): bool => !$settings->isOverriddenByConfig($attribute),
-        ));
-
-        if (!$settings->validate($attributesToValidate)) {
+        if ($result->hasErrors || !$settings->validate($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('sms-manager', 'Couldn\'t save settings.'));
 
             return $this->renderTemplate('sms-manager/settings/' . $section, [
