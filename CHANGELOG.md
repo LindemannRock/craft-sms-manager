@@ -1,5 +1,41 @@
 # Changelog
 
+## [5.13.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.12.0...v5.13.0) - 2026-06-07
+
+
+### Added
+
+* add additional options for default date range in config ([6c147d5](https://github.com/LindemannRock/craft-sms-manager/commit/6c147d52c9507ddbf159d084f16f0b9e291dfcb3))
+* add provider and sender ID metadata display in edit forms ([1100c38](https://github.com/LindemannRock/craft-sms-manager/commit/1100c3813bed094a1bfc2ce43061036ecb4bb29f))
+* add static analysis script for CI workflow ([4228f27](https://github.com/LindemannRock/craft-sms-manager/commit/4228f270b00e3c173bc428a9f8537c221bc0fe84))
+* add Twilio provider color to SMS provider type palette ([891424c](https://github.com/LindemannRock/craft-sms-manager/commit/891424c7fea5ef64993e6b899487e58515b17f92))
+* add Twilio provider implementation with settings and validation ([0b1ee1c](https://github.com/LindemannRock/craft-sms-manager/commit/0b1ee1c0fb170759c9da01a48de2303478bfc145))
+* **analytics:** add site distribution chart and update provider table ([d8f6f52](https://github.com/LindemannRock/craft-sms-manager/commit/d8f6f52a5a0036362d02432e83a43c4a18a86f1d))
+* **analytics:** add site filter and enhance data loading for charts ([b771739](https://github.com/LindemannRock/craft-sms-manager/commit/b771739e10a7f3aa602aea7d36edfd147bcd0b53))
+* **analytics:** add site filter to load chart data for sites ([5e9eb7f](https://github.com/LindemannRock/craft-sms-manager/commit/5e9eb7f3ba996cd490a9ba541266b9b57a3f640e))
+* **i18n:** add 'By Site' translation key across multiple locales ([5122365](https://github.com/LindemannRock/craft-sms-manager/commit/5122365c58160b679ba12ff47c292bb301da8896))
+* **i18n:** add new translation keys for edit, view, actions, save, and status ([684412f](https://github.com/LindemannRock/craft-sms-manager/commit/684412f15b5072e020e93f68b9ea6bdcf3f58cd1))
+* **i18n:** add new translations for analytics data export messages and site permission checks ([e84d67b](https://github.com/LindemannRock/craft-sms-manager/commit/e84d67bdfac2208f3261f165b5a2a459204f97a5))
+* **i18n:** add new validation and error messages for provider and sender ID ([5ecbbbb](https://github.com/LindemannRock/craft-sms-manager/commit/5ecbbbbab52df7fb4793954cc480eeed7a2d18a6))
+* **i18n:** add unique handle validation messages in multiple languages ([9f20b56](https://github.com/LindemannRock/craft-sms-manager/commit/9f20b56f96ab104359e44a050b0683ad7357f7d4))
+* **migrations:** add siteId to smsmanager_logs and smsmanager_analytics tables ([5e6a848](https://github.com/LindemannRock/craft-sms-manager/commit/5e6a848014ef6bb1d558308d5bc734139d7adb6b))
+* **tests:** add analytics test schema alignment for local databases ([ae4e0cf](https://github.com/LindemannRock/craft-sms-manager/commit/ae4e0cf339de2a960fb03675c2b85cf32c2edb8f))
+* **tests:** add siteId to SmsServiceSendHappyPathTest assertions ([57ce425](https://github.com/LindemannRock/craft-sms-manager/commit/57ce4256a27f5bc54e3c20ce8b0fabe681c71ade))
+* **tests:** add tests for empty string handling in allowed countries ([44f1cc7](https://github.com/LindemannRock/craft-sms-manager/commit/44f1cc75784364bc24c5b9441abe6f9d3146dda5))
+
+
+### Fixed
+
+* correct date formatting in SMS logs display ([ef89548](https://github.com/LindemannRock/craft-sms-manager/commit/ef8954876518401838e49982cabbd8b4a0ec3925))
+* **i18n:** correct confirmation messages for log deletion ([351466f](https://github.com/LindemannRock/craft-sms-manager/commit/351466f0e689436e76eb0649fb2762442b805c2b))
+* **i18n:** correct default provider and sender ID messages ([0ab4ae8](https://github.com/LindemannRock/craft-sms-manager/commit/0ab4ae87d05e70ebb0c6b974b706aa2697c53286))
+* **i18n:** correct error message for clearing SMS logs ([2c78d13](https://github.com/LindemannRock/craft-sms-manager/commit/2c78d13d7530c7d5dd197ed843f584b510b50cf0))
+* **i18n:** correct error message for provider not found ([903197a](https://github.com/LindemannRock/craft-sms-manager/commit/903197a9deaa92337ac8827a15cc848f3418a33d))
+* **i18n:** correct error message for sender ID not found ([92ff34b](https://github.com/LindemannRock/craft-sms-manager/commit/92ff34b1730b8f946f75f83e47bb57994a821bdd))
+* **i18n:** correct translation keys for SMS and sender ID actions ([916941f](https://github.com/LindemannRock/craft-sms-manager/commit/916941ff5adcbbba229ba57324326e21242e390f))
+* **i18n:** correct translations ([76db3ff](https://github.com/LindemannRock/craft-sms-manager/commit/76db3ff1c258033289c09d864c1059911c1e31cc))
+* update date labels to include "at" for clarity in logs and providers ([4931a83](https://github.com/LindemannRock/craft-sms-manager/commit/4931a8304d5d633fc7165b7c4729f34683ecb725))
+
 ## [5.12.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.11.0...v5.12.0) - 2026-05-22
 
 
