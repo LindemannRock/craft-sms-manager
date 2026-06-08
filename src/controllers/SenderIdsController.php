@@ -11,8 +11,8 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\db\Query;
 use craft\web\Controller;
+use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
-use lindemannrock\smsmanager\helpers\ConfigFileHelper;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\NotFoundHttpException;
@@ -28,6 +28,8 @@ use yii\web\Response;
 class SenderIdsController extends Controller
 {
     use LoggingTrait;
+
+    private const PLUGIN_HANDLE = 'sms-manager';
 
     /**
      * @inheritdoc
@@ -72,7 +74,7 @@ class SenderIdsController extends Controller
         $hasAnySenderIds = !empty($senderIds);
 
         // Detect handle collisions between config and database
-        $configHandles = ConfigFileHelper::getHandles('senderIds');
+        $configHandles = BaseConfigFileHelper::getHandles(self::PLUGIN_HANDLE, 'senderIds');
         $databaseHandles = (new Query())
             ->select(['handle'])
             ->from('{{%smsmanager_senderids}}')

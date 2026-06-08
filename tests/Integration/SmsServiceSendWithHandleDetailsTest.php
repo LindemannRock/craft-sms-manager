@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace lindemannrock\smsmanager\tests\Integration;
 
-use lindemannrock\smsmanager\helpers\ConfigFileHelper;
 use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\tests\Stubs\StubProvider;
 use lindemannrock\smsmanager\tests\TestCase;
@@ -33,13 +32,13 @@ final class SmsServiceSendWithHandleDetailsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        ConfigFileHelper::clearCache();
+        BaseConfigFileHelper::clearCache('sms-manager');
     }
 
     protected function tearDown(): void
     {
         $this->seedConfigCache([]);
-        ConfigFileHelper::clearCache();
+        BaseConfigFileHelper::clearCache('sms-manager');
         parent::tearDown();
     }
 

@@ -11,9 +11,9 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\db\Query;
 use craft\web\Controller;
+use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
-use lindemannrock\smsmanager\helpers\ConfigFileHelper;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\SmsManager;
 use yii\web\NotFoundHttpException;
@@ -29,6 +29,8 @@ use yii\web\Response;
 class ProvidersController extends Controller
 {
     use LoggingTrait;
+
+    private const PLUGIN_HANDLE = 'sms-manager';
 
     /**
      * @inheritdoc
@@ -64,7 +66,7 @@ class ProvidersController extends Controller
         $hasAnyProviders = !empty($providers);
 
         // Detect handle collisions between config and database
-        $configHandles = ConfigFileHelper::getHandles('providers');
+        $configHandles = BaseConfigFileHelper::getHandles(self::PLUGIN_HANDLE, 'providers');
         $databaseHandles = (new Query())
             ->select(['handle'])
             ->from('{{%smsmanager_providers}}')

@@ -10,7 +10,7 @@ namespace lindemannrock\smsmanager\records;
 
 use Craft;
 use craft\db\ActiveRecord;
-use lindemannrock\smsmanager\helpers\ConfigFileHelper;
+use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 use lindemannrock\smsmanager\traits\ConfigSourceTrait;
 
 /**
@@ -34,6 +34,8 @@ use lindemannrock\smsmanager\traits\ConfigSourceTrait;
 class ProviderRecord extends ActiveRecord
 {
     use ConfigSourceTrait;
+
+    private const PLUGIN_HANDLE = 'sms-manager';
 
     /**
      * @var string|null Raw config display for tooltips
@@ -108,7 +110,7 @@ class ProviderRecord extends ActiveRecord
     public static function findByHandleWithConfig(string $handle): ?self
     {
         // First, check config file
-        $providerConfig = ConfigFileHelper::getConfigByHandle('providers', $handle);
+        $providerConfig = BaseConfigFileHelper::getConfigByHandle(self::PLUGIN_HANDLE, 'providers', $handle);
 
         if ($providerConfig !== null) {
             return self::createFromConfig($handle, $providerConfig);
@@ -126,7 +128,7 @@ class ProviderRecord extends ActiveRecord
     public static function findAllWithConfig(): array
     {
         $providers = [];
-        $handlesFromConfig = ConfigFileHelper::getHandles('providers');
+        $handlesFromConfig = BaseConfigFileHelper::getHandles(self::PLUGIN_HANDLE, 'providers');
 
         // First, load providers from config file
         $configProviders = self::findAllFromConfig();
@@ -163,7 +165,7 @@ class ProviderRecord extends ActiveRecord
     public static function findAllFromConfig(): array
     {
         $providers = [];
-        $providerConfigs = ConfigFileHelper::getProviders();
+        $providerConfigs = BaseConfigFileHelper::getConfigSection(self::PLUGIN_HANDLE, 'providers');
 
         foreach ($providerConfigs as $handle => $providerConfig) {
             $providers[] = self::createFromConfig($handle, $providerConfig);

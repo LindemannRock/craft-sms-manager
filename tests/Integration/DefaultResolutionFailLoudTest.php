@@ -12,7 +12,7 @@ namespace lindemannrock\smsmanager\tests\Integration;
 
 use Craft;
 use craft\services\Config;
-use lindemannrock\smsmanager\helpers\ConfigFileHelper;
+use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 use lindemannrock\smsmanager\models\Settings;
 use lindemannrock\smsmanager\SmsManager;
 use lindemannrock\smsmanager\tests\Stubs\SmsManagerConfigStub;
@@ -59,7 +59,7 @@ final class DefaultResolutionFailLoudTest extends TestCase
         parent::setUp();
         $this->originalConfigService = Craft::$app->getConfig();
         Craft::$app->set('config', new SmsManagerConfigStub());
-        ConfigFileHelper::clearCache();
+        BaseConfigFileHelper::clearCache('sms-manager');
         $this->dropCachedSettings();
     }
 
@@ -68,7 +68,7 @@ final class DefaultResolutionFailLoudTest extends TestCase
         if ($this->originalConfigService !== null) {
             Craft::$app->set('config', $this->originalConfigService);
         }
-        ConfigFileHelper::clearCache();
+        BaseConfigFileHelper::clearCache('sms-manager');
         $this->dropCachedSettings();
         parent::tearDown();
     }

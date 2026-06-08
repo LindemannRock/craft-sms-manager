@@ -10,7 +10,7 @@ namespace lindemannrock\smsmanager\records;
 
 use Craft;
 use craft\db\ActiveRecord;
-use lindemannrock\smsmanager\helpers\ConfigFileHelper;
+use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 use lindemannrock\smsmanager\traits\ConfigSourceTrait;
 
 /**
@@ -37,6 +37,8 @@ use lindemannrock\smsmanager\traits\ConfigSourceTrait;
 class SenderIdRecord extends ActiveRecord
 {
     use ConfigSourceTrait;
+
+    private const PLUGIN_HANDLE = 'sms-manager';
 
     /**
      * @var string|null Raw config display for tooltips
@@ -103,7 +105,7 @@ class SenderIdRecord extends ActiveRecord
     public static function findByHandleWithConfig(string $handle): ?self
     {
         // First, check config file
-        $senderIdConfig = ConfigFileHelper::getConfigByHandle('senderIds', $handle);
+        $senderIdConfig = BaseConfigFileHelper::getConfigByHandle(self::PLUGIN_HANDLE, 'senderIds', $handle);
 
         if ($senderIdConfig !== null) {
             return self::createFromConfig($handle, $senderIdConfig);
@@ -121,7 +123,7 @@ class SenderIdRecord extends ActiveRecord
     public static function findAllWithConfig(): array
     {
         $senderIds = [];
-        $handlesFromConfig = ConfigFileHelper::getHandles('senderIds');
+        $handlesFromConfig = BaseConfigFileHelper::getHandles(self::PLUGIN_HANDLE, 'senderIds');
 
         // First, load sender IDs from config file
         $configSenderIds = self::findAllFromConfig();
@@ -181,7 +183,7 @@ class SenderIdRecord extends ActiveRecord
     public static function findAllFromConfig(): array
     {
         $senderIds = [];
-        $senderIdConfigs = ConfigFileHelper::getSenderIds();
+        $senderIdConfigs = BaseConfigFileHelper::getConfigSection(self::PLUGIN_HANDLE, 'senderIds');
 
         foreach ($senderIdConfigs as $handle => $senderIdConfig) {
             $senderIds[] = self::createFromConfig($handle, $senderIdConfig);
