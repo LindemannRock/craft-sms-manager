@@ -201,7 +201,7 @@ return [
     'Language' => 'Sprache',
     'Select the message language (affects character encoding)' => 'Nachrichtensprache auswählen (beeinflusst die Zeichenkodierung)',
     'characters' => 'Zeichen',
-    'SMS part(s)' => 'SMS-Teil(e)',
+    'SMS part(s)' => 'SMS-Teile',
     'Send Test SMS' => 'Test-SMS senden',
     'Using Development API Key' => 'Entwicklungs-API-Schlüssel wird verwendet',
     'Using Main API Key' => 'Haupt-API-Schlüssel wird verwendet',
@@ -413,7 +413,7 @@ return [
     'Logs deleted successfully.' => 'Protokolle erfolgreich gelöscht.',
     'Failed to delete log.' => 'Protokoll konnte nicht gelöscht werden.',
     'Are you sure you want to delete this log?' => 'Möchten Sie dieses Protokoll wirklich löschen?',
-    'Are you sure you want to delete {count} log(s)?' => 'Möchten Sie {count} Protokoll(e) wirklich löschen?',
+    'Are you sure you want to delete {count} log(s)?' => 'Möchten Sie {count} Protokolle wirklich löschen?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'SMS-Anbieter und Absender-IDs verwalten sowie Analysedaten löschen.',

@@ -160,7 +160,7 @@ return [
     'Analytics Settings' => 'Analysinställningar',
     'Enable Analytics' => 'Aktivera analys',
     'Track SMS sending statistics and trends' => 'Spåra statistik och trender för SMS-sändning',
-    'When enabled, {pluginName} will track SMS sending statistics including success rates, language distribution, and provider usage.' => 'När aktiverat spårar {pluginName} SMS-sändningsstatistik inklusive framgångsgrader, språkfördelning och leverantörsanvändning.',
+    'When enabled, {pluginName} will track SMS sending statistics including success rates, language distribution, and provider usage.' => 'När aktiverat spårar {pluginName} SMS-sändningsstatistik inklusive framgångsfrekvens, språkfördelning och leverantörsanvändning.',
     'Data Retention' => 'Datalagring',
     'Analytics Retention (Days)' => 'Analyslagring (dagar)',
     'Number of days to retain analytics (0 = keep forever)' => 'Antal dagar att behålla analys (0 = behåll alltid)',

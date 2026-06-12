@@ -37,8 +37,8 @@ return [
     'View logs' => 'Vis logfiler',
     'View system logs' => 'Vis systemlogfiler',
     'Download system logs' => 'Download systemlogfiler',
-    'View SMS logs' => 'Se SMS-logs',
-    'Export SMS logs' => 'Eksportér SMS-logs',
+    'View SMS logs' => 'Vis SMS-logs',
+    'Export SMS logs' => 'Eksporter SMS-logs',
     'Delete SMS logs' => 'Slet SMS-logs',
     'Manage settings' => 'Administrer indstillinger',
 
@@ -284,7 +284,7 @@ return [
     'Provider Info' => 'Udbyderoplysninger',
     'Website' => 'Websted',
     'API Docs' => 'API-dokumentation',
-    'View Docs' => 'Se dokumentation',
+    'View Docs' => 'Vis dokumentation',
     'Open Dashboard' => 'Åbn oversigt',
     'Unicode' => 'Unicode',
     'Supported' => 'Understøttet',
@@ -444,7 +444,7 @@ return [
     'Failed to clear SMS logs' => 'Kunne ikke rydde SMS-logs',
     // Dashboard
     'Quick Actions' => 'Hurtige handlinger',
-    'View SMS Logs' => 'Se SMS-logs',
+    'View SMS Logs' => 'Vis SMS-logs',
     'View Analytics' => 'Vis analyser',
     'SMS Today' => 'SMS i dag',
     'yesterday' => 'i går',
@@ -456,7 +456,7 @@ return [
     'Recent SMS' => 'Seneste SMS',
     'Latest {count}' => 'Seneste {count}',
     'Sent' => 'Sendt',
-    'View all SMS logs' => 'Se alle SMS-logs',
+    'View all SMS logs' => 'Vis alle SMS-logs',
     'No SMS logs yet' => 'Ingen SMS-logs endnu',
 
     // Config overrides

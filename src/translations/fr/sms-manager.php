@@ -118,7 +118,7 @@ return [
     'Sender ID handle required' => 'Handle de l\'identifiant d\'expéditeur requis',
     'Sender ID not found' => 'Identifiant d\'expéditeur introuvable',
     'User does not have permission to access this area.' => 'L\'utilisateur n\'a pas la permission d\'accéder à cette zone.',
-    'User does not have permission to view analytics for this site.' => 'L\'utilisateur n\'a pas la permission de consulter les analytiques de ce site.',
+    'User does not have permission to view analytics for this site.' => 'L\'utilisateur n\'a pas la permission d\'afficher les analytiques de ce site.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{erreur trouvée} other{erreurs trouvées}}',
