@@ -14,6 +14,7 @@ use craft\helpers\App;
 use craft\helpers\StringHelper;
 use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\events\RegisterProvidersEvent;
 use lindemannrock\smsmanager\providers\MppSmsProvider;
 use lindemannrock\smsmanager\providers\ProviderInterface;
 use lindemannrock\smsmanager\providers\TwilioProvider;
@@ -34,9 +35,33 @@ class ProvidersService extends Component
     use LoggingTrait;
 
     /**
-     * @var array<string, class-string<ProviderInterface>> Registered provider types
+     * @event RegisterProvidersEvent The event fired when collecting provider
+     * types. The two built-in providers are seeded into the event first, so a
+     * listener can add its own provider type (or reshape the built-ins) before
+     * the registry is finalized:
+     *
+     * ```php
+     * use lindemannrock\smsmanager\events\RegisterProvidersEvent;
+     * use lindemannrock\smsmanager\services\ProvidersService;
+     * use yii\base\Event;
+     *
+     * Event::on(
+     *     ProvidersService::class,
+     *     ProvidersService::EVENT_REGISTER_PROVIDERS,
+     *     function (RegisterProvidersEvent $event) {
+     *         $event->register(MyProvider::class);
+     *     }
+     * );
+     * ```
+     *
+     * @since 5.14.0
      */
-    private array $providerTypes = [];
+    public const EVENT_REGISTER_PROVIDERS = 'registerProviders';
+
+    /**
+     * @var array<string, class-string<ProviderInterface>>|null Resolved provider types, keyed by handle (null until first resolved)
+     */
+    private ?array $providerTypes = null;
 
     /**
      * @inheritdoc
@@ -45,20 +70,14 @@ class ProvidersService extends Component
     {
         parent::init();
         $this->setLoggingHandle(SmsManager::$plugin->id);
-        $this->registerDefaultProviders();
     }
 
     /**
-     * Register default provider types
-     */
-    private function registerDefaultProviders(): void
-    {
-        $this->registerProviderType(MppSmsProvider::class);
-        $this->registerProviderType(TwilioProvider::class);
-    }
-
-    /**
-     * Register a provider type
+     * Register a provider type imperatively.
+     *
+     * Prefer the {@see EVENT_REGISTER_PROVIDERS} event — it has no dependency
+     * on plugin load order. This method is kept for back-compat and ensures
+     * the registry is resolved before appending.
      *
      * @param class-string<ProviderInterface> $class Provider class
      */
@@ -68,16 +87,42 @@ class ProvidersService extends Component
             throw new \InvalidArgumentException("Provider class must implement ProviderInterface");
         }
 
+        // Resolve the lazy registry, then append.
+        $this->getProviderTypes();
         $this->providerTypes[$class::handle()] = $class;
     }
 
     /**
-     * Get all registered provider types
+     * Get all registered provider types, keyed by handle.
      *
+     * Seeds the two built-in providers, then fires {@see EVENT_REGISTER_PROVIDERS}
+     * so other plugins/modules can register their own. The result is memoized.
+     *
+     * @param bool $useCache Whether to return the memoized result (set false to force a rebuild)
      * @return array<string, class-string<ProviderInterface>>
      */
-    public function getProviderTypes(): array
+    public function getProviderTypes(bool $useCache = true): array
     {
+        if ($useCache && $this->providerTypes !== null) {
+            return $this->providerTypes;
+        }
+
+        $event = new RegisterProvidersEvent([
+            'types' => [
+                MppSmsProvider::class,
+                TwilioProvider::class,
+            ],
+        ]);
+        $this->trigger(self::EVENT_REGISTER_PROVIDERS, $event);
+
+        $this->providerTypes = [];
+        foreach ($event->types as $class) {
+            if (!is_subclass_of($class, ProviderInterface::class)) {
+                throw new \InvalidArgumentException("Provider class must implement ProviderInterface");
+            }
+            $this->providerTypes[$class::handle()] = $class;
+        }
+
         return $this->providerTypes;
     }
 
@@ -89,7 +134,7 @@ class ProvidersService extends Component
     public function getProviderTypeOptions(): array
     {
         $options = [];
-        foreach ($this->providerTypes as $handle => $class) {
+        foreach ($this->getProviderTypes() as $handle => $class) {
             $options[] = [
                 'label' => $class::displayName(),
                 'value' => $handle,
@@ -108,11 +153,12 @@ class ProvidersService extends Component
      */
     public function getProviderTypeMetadata(string $type): ?array
     {
-        if (!isset($this->providerTypes[$type])) {
+        $types = $this->getProviderTypes();
+        if (!isset($types[$type])) {
             return null;
         }
 
-        $class = $this->providerTypes[$type];
+        $class = $types[$type];
 
         return [
             'shortName' => $class::shortName(),
@@ -133,11 +179,12 @@ class ProvidersService extends Component
      */
     public function createProviderByType(string $type): ?ProviderInterface
     {
-        if (!isset($this->providerTypes[$type])) {
+        $types = $this->getProviderTypes();
+        if (!isset($types[$type])) {
             return null;
         }
 
-        $class = $this->providerTypes[$type];
+        $class = $types[$type];
         return new $class();
     }
 
