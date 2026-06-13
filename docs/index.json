@@ -1,0 +1,7 @@
+{
+    "plugin": {
+        "name": "SMS Manager",
+        "handle": "sms-manager",
+        "description": "SMS gateway and management for Craft CMS with multi-provider support, analytics, and delivery logs."
+    }
+}

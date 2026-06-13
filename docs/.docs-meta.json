@@ -1,0 +1,28 @@
+{
+    "generated": [
+        "developers/twig-globals.md",
+        "developers/shared-features.md"
+    ],
+    "manual": [
+        "get-started/requirements.md",
+        "get-started/installation.md",
+        "get-started/quickstart.md",
+        "get-started/configuration.md",
+        "feature-tour/overview.md",
+        "feature-tour/providers.md",
+        "feature-tour/provider-mpp-sms.md",
+        "feature-tour/provider-twilio.md",
+        "feature-tour/sender-ids.md",
+        "feature-tour/test-sms.md",
+        "feature-tour/sms-logs.md",
+        "feature-tour/analytics.md",
+        "developers/sending-sms.md",
+        "developers/permissions.md",
+        "developers/events.md",
+        "developers/integrations.md",
+        "developers/custom-providers.md",
+        "resources/troubleshooting.md",
+        "resources/translations.md"
+    ],
+    "lastGenerated": "2026-06-12T16:58:29+03:00"
+}

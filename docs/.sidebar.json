@@ -1,0 +1,50 @@
+[
+    {
+        "title": "Get Started",
+        "collapsable": false,
+        "children": [
+            "get-started/requirements",
+            "get-started/installation",
+            "get-started/quickstart",
+            "get-started/configuration"
+        ]
+    },
+    {
+        "title": "Feature Tour",
+        "collapsable": true,
+        "open": true,
+        "children": [
+            "feature-tour/overview",
+            "feature-tour/providers",
+            "feature-tour/provider-mpp-sms",
+            "feature-tour/provider-twilio",
+            "feature-tour/sender-ids",
+            "feature-tour/test-sms",
+            "feature-tour/sms-logs",
+            "feature-tour/analytics"
+        ]
+    },
+    {
+        "title": "Developers",
+        "collapsable": true,
+        "open": false,
+        "children": [
+            "developers/sending-sms",
+            "developers/permissions",
+            "developers/events",
+            "developers/integrations",
+            "developers/custom-providers",
+            "developers/twig-globals",
+            "developers/shared-features"
+        ]
+    },
+    {
+        "title": "Resources",
+        "collapsable": true,
+        "open": false,
+        "children": [
+            "resources/troubleshooting",
+            "resources/translations"
+        ]
+    }
+]

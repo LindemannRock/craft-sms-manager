@@ -1,0 +1,9 @@
+{
+    "name": "SMS Manager",
+    "handle": "sms-manager",
+    "description": "SMS gateway and management for Craft CMS with multi-provider support",
+    "version": "5.13.0",
+    "developer": "LindemannRock",
+    "developerUrl": "https://lindemannrock.com",
+    "documentationUrl": "https://lindemannrock.com/craft-plugins/sms-manager/docs"
+}
