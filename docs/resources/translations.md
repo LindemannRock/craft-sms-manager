@@ -21,12 +21,6 @@ SMS Manager includes full translations for 12 languages out of the box.
 
 Translations are automatically applied based on the user's preferred language in Craft's Control Panel settings.
 
-## Language notes
-
-- **Arabic**: Uses Modern Standard Arabic (MSA) with RTL support. Craft handles the RTL layout automatically.
-- **Japanese**: Uses polite form (です/ます) with katakana for adopted technical terms.
-- **All languages**: Acronyms and brand names (SMS, API, URL, MPP-SMS, Twilio, etc.) remain in Latin script as is standard in software localization.
-
 ## Overriding translations
 
 You can override any translation string by creating a static translation file in your project:
