@@ -343,7 +343,7 @@ class ProvidersController extends Controller
 
         $providerInstance = SmsManager::$plugin->providers->createProviderByType($type);
         if ($providerInstance === null) {
-            throw new BadRequestHttpException('Invalid provider type.');
+            throw new BadRequestHttpException(Craft::t('sms-manager', 'Invalid provider type.'));
         }
 
         $providerRecord = $providerId
