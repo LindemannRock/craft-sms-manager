@@ -1,3 +1,5 @@
+![SMS Manager](docs/images/hero.webp)
+
 # SMS Manager for Craft CMS
 
 [![Latest Version](https://img.shields.io/packagist/v/lindemannrock/craft-sms-manager.svg)](https://packagist.org/packages/lindemannrock/craft-sms-manager)
