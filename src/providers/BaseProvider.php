@@ -9,6 +9,7 @@
 namespace lindemannrock\smsmanager\providers;
 
 use Craft;
+use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\SmsManager;
 
@@ -445,6 +446,13 @@ abstract class BaseProvider implements ProviderInterface
      */
     protected function renderSettingsTemplate(string $template, array $variables = []): string
     {
+        // allowedCountries is a shared, every-provider concern, so the country
+        // list is provided to every settings template by default (explicit
+        // variables still win). Keeps each provider's getSettingsHtml() lean.
+        $variables += [
+            'countryOptions' => GeoHelper::getCountryDialCodeOptions(true),
+        ];
+
         return Craft::$app->getView()->renderTemplate($template, $variables);
     }
 }

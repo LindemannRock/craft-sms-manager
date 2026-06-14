@@ -34,6 +34,11 @@ final class ProviderSettingsHtmlTest extends TestCase
     {
         $html = (new MppSmsProvider())->getSettingsHtml();
 
-        self::assertStringContainsString('providerSettings[apiKey]', $html);
+        // MPP's own API key field rendered (proves the template path resolves)...
+        self::assertStringContainsString('providerSettings-apiKey', $html);
+        // ...and the shared allowedCountries select rendered, which means the
+        // countryOptions default injected by BaseProvider::renderSettingsTemplate()
+        // reached the template.
+        self::assertStringContainsString('providerSettings[allowedCountries]', $html);
     }
 }
