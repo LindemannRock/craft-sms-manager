@@ -121,11 +121,12 @@ class MppSmsProvider extends BaseProvider
      */
     public function getSettingsHtml(?ProviderRecord $provider = null): string
     {
-        $settings = $provider ? json_decode($provider->settings, true) : [];
+        $settings = $provider ? (json_decode((string)$provider->settings, true) ?: []) : [];
 
-        return $this->renderSettingsTemplate('sms-manager/providers/_mpp-sms-settings', [
+        return $this->renderSettingsTemplate('sms-manager/providers/_settings/mpp-sms', [
             'provider' => $provider,
-            'settings' => $settings,
+            'providerSettings' => $settings,
+            'isNew' => $provider === null,
         ]);
     }
 
