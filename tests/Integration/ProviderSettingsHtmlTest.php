@@ -13,6 +13,7 @@ namespace lindemannrock\smsmanager\tests\Integration;
 use Craft;
 use craft\web\View;
 use lindemannrock\smsmanager\providers\MppSmsProvider;
+use lindemannrock\smsmanager\tests\Stubs\StubBareProvider;
 use lindemannrock\smsmanager\tests\TestCase;
 
 /**
@@ -40,5 +41,16 @@ final class ProviderSettingsHtmlTest extends TestCase
         // countryOptions default injected by BaseProvider::renderSettingsTemplate()
         // reached the template.
         self::assertStringContainsString('providerSettings[allowedCountries]', $html);
+    }
+
+    public function testProviderWithoutOverrideGetsGenericDefaultForm(): void
+    {
+        $html = (new StubBareProvider())->getSettingsHtml();
+
+        // The BaseProvider default renders the generic API Key / URL / username / password form.
+        self::assertStringContainsString('providerSettings[apiKey]', $html);
+        self::assertStringContainsString('providerSettings[apiUrl]', $html);
+        self::assertStringContainsString('providerSettings[username]', $html);
+        self::assertStringContainsString('providerSettings[password]', $html);
     }
 }

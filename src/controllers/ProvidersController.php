@@ -16,6 +16,7 @@ use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\SmsManager;
+use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -255,11 +256,15 @@ class ProvidersController extends Controller
         $settings = SmsManager::$plugin->getSettings();
         $providerCount = ProviderRecord::find()->count();
 
+        $providerInstance = SmsManager::$plugin->providers->createProviderByType($provider->type);
+        $settingsHtml = $providerInstance ? $providerInstance->getSettingsHtml($provider) : '';
+
         return $this->renderTemplate('sms-manager/providers/edit', [
             'provider' => $provider,
             'providerSettings' => $providerSettings,
             'providerTypes' => $providerTypes,
             'countryOptions' => $countryOptions,
+            'settingsHtml' => $settingsHtml,
             'isNew' => false,
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
@@ -298,16 +303,60 @@ class ProvidersController extends Controller
 
         $providerType = $provider ? $provider->type : 'mpp-sms';
 
+        // Render the current type's own settings form; the type dropdown swaps it
+        // via the render-settings action. Each provider owns its fields.
+        $providerInstance = SmsManager::$plugin->providers->createProviderByType($providerType);
+        $settingsHtml = $providerInstance ? $providerInstance->getSettingsHtml($provider) : '';
+
         return $this->renderTemplate('sms-manager/providers/edit', [
             'provider' => $provider,
             'providerSettings' => $providerSettings,
             'providerTypes' => $providerTypes,
             'countryOptions' => $countryOptions,
+            'settingsHtml' => $settingsHtml,
             'isNew' => $provider === null,
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
             'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($providerType),
+        ]);
+    }
+
+    /**
+     * Render a provider type's settings form.
+     *
+     * Called over AJAX when the provider-type dropdown changes on the edit page,
+     * so each provider renders its own getSettingsHtml() (mirrors Craft core's
+     * fields/render-settings). Read-only — renders, no persistence.
+     *
+     * @since 5.14.0
+     */
+    public function actionRenderSettings(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+        $this->requirePermission('smsManager:manageProviders');
+
+        $request = Craft::$app->getRequest();
+        $type = $request->getRequiredBodyParam('type');
+        $providerId = $request->getBodyParam('providerId');
+
+        $providerInstance = SmsManager::$plugin->providers->createProviderByType($type);
+        if ($providerInstance === null) {
+            throw new BadRequestHttpException('Invalid provider type.');
+        }
+
+        $providerRecord = $providerId
+            ? SmsManager::$plugin->providers->getProviderById((int)$providerId)
+            : null;
+
+        $view = Craft::$app->getView();
+        $settingsHtml = $providerInstance->getSettingsHtml($providerRecord);
+
+        return $this->asJson([
+            'settingsHtml' => $settingsHtml,
+            'headHtml' => $view->getHeadHtml(),
+            'bodyHtml' => $view->getBodyHtml(),
         ]);
     }
 
@@ -361,11 +410,16 @@ class ProvidersController extends Controller
         $providerCount = ProviderRecord::find()->count();
         $settings = SmsManager::$plugin->getSettings();
 
+        // Re-render the submitted type's settings form so input + inline errors survive.
+        $providerInstance = SmsManager::$plugin->providers->createProviderByType($provider->type);
+        $settingsHtml = $providerInstance ? $providerInstance->getSettingsHtml($provider) : '';
+
         return $this->renderTemplate('sms-manager/providers/edit', [
             'provider' => $provider,
             'providerSettings' => $providerSettings,
             'providerTypes' => $providerTypes,
             'countryOptions' => $countryOptions,
+            'settingsHtml' => $settingsHtml,
             'isNew' => !$providerId,
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,

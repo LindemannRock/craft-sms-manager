@@ -11,6 +11,7 @@ namespace lindemannrock\smsmanager\providers;
 use Craft;
 use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\SmsManager;
 
 /**
@@ -25,6 +26,24 @@ use lindemannrock\smsmanager\SmsManager;
 abstract class BaseProvider implements ProviderInterface
 {
     use LoggingTrait;
+
+    /**
+     * @inheritdoc
+     *
+     * Renders a generic API Key / URL / username / password form by default, so
+     * a provider that doesn't need custom fields works without overriding this.
+     * Providers override to render their own settings template.
+     */
+    public function getSettingsHtml(?ProviderRecord $provider = null): string
+    {
+        $settings = $provider ? (json_decode((string)$provider->settings, true) ?: []) : [];
+
+        return $this->renderSettingsTemplate('sms-manager/providers/_settings/_generic', [
+            'provider' => $provider,
+            'providerSettings' => $settings,
+            'isNew' => $provider === null,
+        ]);
+    }
 
     /**
      * @inheritdoc

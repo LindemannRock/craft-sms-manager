@@ -114,63 +114,9 @@
 
             <h2>{{ 'Provider Settings'|t('sms-manager') }}</h2>
 
-            {# Provider-specific settings - loaded based on type #}
-            {% set currentType = provider.type ?? 'mpp-sms' %}
-
+            {# Each provider renders its own getSettingsHtml(); the type dropdown swaps it via the render-settings action. #}
             <div id="provider-settings">
-                {# MPP-SMS Settings #}
-                <div id="settings-mpp-sms" class="provider-type-settings {{ currentType != 'mpp-sms' ? 'hidden' : '' }}">
-                    {% include 'sms-manager/providers/_settings/mpp-sms' with {
-                        provider: provider,
-                        providerSettings: currentType == 'mpp-sms' ? providerSettings : {}
-                    } %}
-                </div>
-
-                {# Twilio Settings #}
-                <div id="settings-twilio" class="provider-type-settings {{ currentType != 'twilio' ? 'hidden' : '' }}">
-                    {% include 'sms-manager/providers/_settings/twilio' with {
-                        provider: provider,
-                        providerSettings: currentType == 'twilio' ? providerSettings : {}
-                    } %}
-                </div>
-
-                {# Generic/Fallback Settings (for future provider types) #}
-                <div id="settings-generic" class="provider-type-settings {{ currentType in ['mpp-sms', 'twilio'] ? 'hidden' : '' }}">
-                    {{ forms.textField({
-                        label: 'API Key'|t('sms-manager'),
-                        instructions: 'The API key for this provider'|t('sms-manager'),
-                        id: 'providerSettings-apiKey-generic',
-                        name: 'providerSettings[apiKey]',
-                        value: currentType not in ['mpp-sms', 'twilio'] ? (providerSettings.apiKey ?? '') : '',
-                        required: true,
-                        class: 'code',
-                    }) }}
-
-                    {{ forms.textField({
-                        label: 'API URL'|t('sms-manager'),
-                        instructions: 'The API endpoint URL'|t('sms-manager'),
-                        id: 'providerSettings-apiUrl-generic',
-                        name: 'providerSettings[apiUrl]',
-                        value: currentType != 'mpp-sms' ? (providerSettings.apiUrl ?? '') : '',
-                        class: 'code',
-                    }) }}
-
-                    {{ forms.textField({
-                        label: 'Username'|t('sms-manager'),
-                        instructions: 'API username (if required)'|t('sms-manager'),
-                        id: 'providerSettings-username-generic',
-                        name: 'providerSettings[username]',
-                        value: currentType != 'mpp-sms' ? (providerSettings.username ?? '') : '',
-                    }) }}
-
-                    {{ forms.passwordField({
-                        label: 'Password'|t('sms-manager'),
-                        instructions: 'API password (if required)'|t('sms-manager'),
-                        id: 'providerSettings-password-generic',
-                        name: 'providerSettings[password]',
-                        value: currentType != 'mpp-sms' ? (providerSettings.password ?? '') : '',
-                    }) }}
-                </div>
+                {{ settingsHtml|raw }}
             </div>
         </div>
     {% else %}
@@ -413,43 +359,29 @@ window.lrIdentifiers?.bindSlugHandle('#name', '#handle', {
     isNew: {{ isNew ? 'true' : 'false' }},
 });
 
-// Provider type switching
+// Provider type switching — fetch the selected type's own settings form
+// (mirrors Craft core's fields/render-settings). The current type is already
+// server-rendered into #provider-settings on load.
 const typeSelect = document.getElementById('type');
-const providerSettingsContainers = document.querySelectorAll('.provider-type-settings');
+const settingsContainer = document.getElementById('provider-settings');
+const editProviderId = {{ (provider.id ?? null)|json_encode|raw }};
 
-function switchProviderSettings(type) {
-    providerSettingsContainers.forEach(container => {
-        container.classList.add('hidden');
-        // Disable inputs in hidden containers to prevent submission
-        container.querySelectorAll('input, select, textarea').forEach(input => {
-            input.disabled = true;
-        });
-    });
-
-    // Show and enable the selected type's settings
-    let targetId = 'settings-' + type;
-    let targetContainer = document.getElementById(targetId);
-
-    // Fall back to generic if no specific settings exist
-    if (!targetContainer) {
-        targetContainer = document.getElementById('settings-generic');
-    }
-
-    if (targetContainer) {
-        targetContainer.classList.remove('hidden');
-        targetContainer.querySelectorAll('input, select, textarea').forEach(input => {
-            input.disabled = false;
-        });
-    }
-}
-
-if (typeSelect) {
+if (typeSelect && settingsContainer) {
     typeSelect.addEventListener('change', function() {
-        switchProviderSettings(this.value);
-    });
+        settingsContainer.innerHTML = '<div class="zilch"><div class="spinner"></div></div>';
 
-    // Initialize on page load
-    switchProviderSettings(typeSelect.value);
+        Craft.sendActionRequest('POST', 'sms-manager/providers/render-settings', {
+            data: { type: this.value, providerId: editProviderId },
+        }).then((response) => {
+            settingsContainer.innerHTML = response.data.settingsHtml || '';
+            Craft.appendHeadHtml(response.data.headHtml);
+            Craft.appendBodyHtml(response.data.bodyHtml);
+            Craft.initUiElements(settingsContainer);
+        }).catch((e) => {
+            Craft.cp.displayError(e?.response?.data?.message);
+            settingsContainer.innerHTML = '';
+        });
+    });
 }
 
 // Set platform-specific keyboard shortcut

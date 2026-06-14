@@ -1,0 +1,37 @@
+{# Generic provider settings — default form for providers that don't supply their own getSettingsHtml() #}
+{% import "_includes/forms" as forms %}
+
+{{ forms.textField({
+    label: 'API Key'|t('sms-manager'),
+    instructions: 'The API key for this provider'|t('sms-manager'),
+    id: 'providerSettings-apiKey',
+    name: 'providerSettings[apiKey]',
+    value: providerSettings.apiKey ?? '',
+    required: true,
+    class: 'code',
+}) }}
+
+{{ forms.textField({
+    label: 'API URL'|t('sms-manager'),
+    instructions: 'The API endpoint URL'|t('sms-manager'),
+    id: 'providerSettings-apiUrl',
+    name: 'providerSettings[apiUrl]',
+    value: providerSettings.apiUrl ?? '',
+    class: 'code',
+}) }}
+
+{{ forms.textField({
+    label: 'Username'|t('sms-manager'),
+    instructions: 'API username (if required)'|t('sms-manager'),
+    id: 'providerSettings-username',
+    name: 'providerSettings[username]',
+    value: providerSettings.username ?? '',
+}) }}
+
+{{ forms.passwordField({
+    label: 'Password'|t('sms-manager'),
+    instructions: 'API password (if required)'|t('sms-manager'),
+    id: 'providerSettings-password',
+    name: 'providerSettings[password]',
+    value: providerSettings.password ?? '',
+}) }}
