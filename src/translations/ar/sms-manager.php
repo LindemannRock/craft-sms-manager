@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'تعذّر حذف مزود الخدمة.',
     'Default provider updated.' => 'تم تحديث مزود الخدمة الافتراضي.',
     'Failed to update default provider.' => 'فشل تحديث مزود الخدمة الافتراضي.',
+    'Invalid provider type.' => 'نوع مزود الخدمة غير صالح.',
     'Sender ID saved.' => 'تم حفظ معرّف المُرسِل.',
     'Could not save sender ID.' => 'تعذّر حفظ معرّف المُرسِل.',
     'Sender ID deleted.' => 'تم حذف معرّف المُرسِل.',

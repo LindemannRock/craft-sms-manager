@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Kon provider niet verwijderen.',
     'Default provider updated.' => 'Standaardprovider bijgewerkt.',
     'Failed to update default provider.' => 'Kon standaardprovider niet bijwerken.',
+    'Invalid provider type.' => 'Ongeldig providertype.',
     'Sender ID saved.' => 'Afzender-ID opgeslagen.',
     'Could not save sender ID.' => 'Kon afzender-ID niet opslaan.',
     'Sender ID deleted.' => 'Afzender-ID verwijderd.',

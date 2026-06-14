@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Kunne ikke slette leverandøren.',
     'Default provider updated.' => 'Standardleverandør oppdatert.',
     'Failed to update default provider.' => 'Kunne ikke oppdatere standardleverandøren.',
+    'Invalid provider type.' => 'Ugyldig leverandørtype.',
     'Sender ID saved.' => 'Avsender-ID lagret.',
     'Could not save sender ID.' => 'Kunne ikke lagre avsender-ID-en.',
     'Sender ID deleted.' => 'Avsender-ID slettet.',

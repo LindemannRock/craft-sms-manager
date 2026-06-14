@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Anbieter konnte nicht gelöscht werden.',
     'Default provider updated.' => 'Standardanbieter aktualisiert.',
     'Failed to update default provider.' => 'Standardanbieter konnte nicht aktualisiert werden.',
+    'Invalid provider type.' => 'Ungültiger Anbietertyp.',
     'Sender ID saved.' => 'Absender-ID gespeichert.',
     'Could not save sender ID.' => 'Absender-ID konnte nicht gespeichert werden.',
     'Sender ID deleted.' => 'Absender-ID gelöscht.',

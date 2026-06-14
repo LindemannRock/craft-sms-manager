@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Could not delete provider.',
     'Default provider updated.' => 'Default provider updated.',
     'Failed to update default provider.' => 'Failed to update default provider.',
+    'Invalid provider type.' => 'Invalid provider type.',
     'Sender ID saved.' => 'Sender ID saved.',
     'Could not save sender ID.' => 'Could not save sender ID.',
     'Sender ID deleted.' => 'Sender ID deleted.',

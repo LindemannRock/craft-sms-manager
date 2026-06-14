@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Impossible de supprimer le fournisseur.',
     'Default provider updated.' => 'Fournisseur par défaut mis à jour.',
     'Failed to update default provider.' => 'Impossible de mettre à jour le fournisseur par défaut.',
+    'Invalid provider type.' => 'Type de fournisseur non valide.',
     'Sender ID saved.' => 'Identifiant d\'expéditeur enregistré.',
     'Could not save sender ID.' => 'Impossible d\'enregistrer l\'identifiant d\'expéditeur.',
     'Sender ID deleted.' => 'Identifiant d\'expéditeur supprimé.',

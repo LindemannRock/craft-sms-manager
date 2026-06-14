@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Não foi possível eliminar o fornecedor.',
     'Default provider updated.' => 'Fornecedor padrão atualizado.',
     'Failed to update default provider.' => 'Não foi possível atualizar o fornecedor padrão.',
+    'Invalid provider type.' => 'Tipo de fornecedor inválido.',
     'Sender ID saved.' => 'ID de remetente guardado.',
     'Could not save sender ID.' => 'Não foi possível guardar o ID de remetente.',
     'Sender ID deleted.' => 'ID de remetente eliminado.',

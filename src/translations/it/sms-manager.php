@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Impossibile eliminare il provider.',
     'Default provider updated.' => 'Provider predefinito aggiornato.',
     'Failed to update default provider.' => 'Impossibile aggiornare il provider predefinito.',
+    'Invalid provider type.' => 'Tipo di provider non valido.',
     'Sender ID saved.' => 'ID mittente salvato.',
     'Could not save sender ID.' => 'Impossibile salvare l\'ID mittente.',
     'Sender ID deleted.' => 'ID mittente eliminato.',

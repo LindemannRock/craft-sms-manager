@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'プロバイダーを削除できませんでした。',
     'Default provider updated.' => 'デフォルトプロバイダーを更新しました。',
     'Failed to update default provider.' => 'デフォルトプロバイダーの更新に失敗しました。',
+    'Invalid provider type.' => '無効なプロバイダータイプです。',
     'Sender ID saved.' => '送信者 ID を保存しました。',
     'Could not save sender ID.' => '送信者 ID を保存できませんでした。',
     'Sender ID deleted.' => '送信者 ID を削除しました。',

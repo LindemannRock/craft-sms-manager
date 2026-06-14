@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Udbyderen kunne ikke slettes.',
     'Default provider updated.' => 'Standardudbyder opdateret.',
     'Failed to update default provider.' => 'Standardudbyderen kunne ikke opdateres.',
+    'Invalid provider type.' => 'Ugyldig udbydertype.',
     'Sender ID saved.' => 'Afsender-ID gemt.',
     'Could not save sender ID.' => 'Afsender-ID\'et kunne ikke gemmes.',
     'Sender ID deleted.' => 'Afsender-ID slettet.',

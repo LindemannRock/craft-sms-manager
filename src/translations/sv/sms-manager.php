@@ -96,6 +96,7 @@ return [
     'Could not delete provider.' => 'Kunde inte ta bort leverantören.',
     'Default provider updated.' => 'Standardleverantör uppdaterad.',
     'Failed to update default provider.' => 'Misslyckades med att uppdatera standardleverantören.',
+    'Invalid provider type.' => 'Ogiltig leverantörstyp.',
     'Sender ID saved.' => 'Avsändar-ID sparat.',
     'Could not save sender ID.' => 'Kunde inte spara avsändar-ID:t.',
     'Sender ID deleted.' => 'Avsändar-ID borttaget.',
