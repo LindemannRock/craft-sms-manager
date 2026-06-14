@@ -7,6 +7,8 @@ body:
       value: |
         Use this template to request a new SMS gateway (e.g. Twilio, Unifonic, Vonage). We'll read the provider's documentation and handle the implementation — you just need to tell us which provider and where to find its docs.
 
+        **Prefer to build it yourself?** SMS Manager supports custom providers — you can add any gateway from your own plugin or module without waiting on us. See [Custom providers](https://github.com/LindemannRock/craft-sms-manager/blob/main/docs/developers/custom-providers.md).
+
         For general ideas or enhancements, use **Feature Request** instead.
 
         Before submitting, please check:
