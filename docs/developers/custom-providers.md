@@ -63,14 +63,14 @@ class MyProvider extends BaseProvider
 
 ## The interface
 
-These are the methods you can implement. `BaseProvider` provides defaults for everything except `handle()`, `displayName()`, `description()`, `getSettingsHtml()`, `validateSettings()`, and `send()`.
+These are the methods you can implement. `BaseProvider` provides defaults for everything except `handle()`, `displayName()`, `description()`, `validateSettings()`, and `send()`.
 
 | Method | Default | Description |
 |--------|---------|-------------|
 | `handle()` | — | Unique type handle (e.g. `'my-provider'`) |
 | `displayName()` | — | Full name shown in the CP |
 | `description()` | — | Short description |
-| `getSettingsHtml(?ProviderRecord)` | — | HTML for the provider's settings form |
+| `getSettingsHtml(?ProviderRecord)` | generic API Key / URL / username / password form @since(5.14.0) | HTML for the provider's settings form, rendered on the provider edit page. Override to supply your own fields; the default works if those four are all you need |
 | `validateSettings(array)` | — | Return an array of field → error (empty if valid) |
 | `send(string, string, string, string, array)` | — | Send a message; return the result shape below |
 | `shortName()` @since(5.10.0) | `displayName()` | Abbreviated name for badges/compact UI |
@@ -84,6 +84,10 @@ These are the methods you can implement. `BaseProvider` provides defaults for ev
 | `testConnection(array)` | returns `true` | Credentials check without sending |
 
 `shortName()`, `website()`, `docsUrl()`, and `dashboardUrl()` are static.
+
+### How the settings form is rendered
+
+On the provider edit page, SMS Manager renders your provider's `getSettingsHtml()` directly, and re-fetches it when the **Provider type** dropdown changes — so each provider owns its own settings UI. Use the `forms.*` macros (or `craft\helpers\Cp`) in your settings template, name your fields `providerSettings[yourKey]`, and read them back from the `$settings` array in `validateSettings()` and `send()`. Any field keys you post are persisted as-is, so you're not limited to a fixed set.
 
 ### The `send()` result shape
 
