@@ -89,6 +89,18 @@ These are the methods you can implement. `BaseProvider` provides defaults for ev
 
 On the provider edit page, SMS Manager renders your provider's `getSettingsHtml()` directly, and re-fetches it when the **Provider type** dropdown changes — so each provider owns its own settings UI. Use the `forms.*` macros (or `craft\helpers\Cp`) in your settings template, name your fields `providerSettings[yourKey]`, and read them back from the `$settings` array in `validateSettings()` and `send()`. Any field keys you post are persisted as-is, so you're not limited to a fixed set.
 
+Every settings template also receives a `countryOptions` variable — the dial-code country list — so you can offer the same **Allowed Countries** field the built-in providers use without building the list yourself:
+
+```twig
+{{ forms.selectizeField({
+    label: 'Allowed Countries'|t('your-plugin'),
+    name: 'providerSettings[allowedCountries]',
+    values: providerSettings.allowedCountries ?? [],
+    options: countryOptions,
+    multi: true,
+}) }}
+```
+
 ### The `send()` result shape
 
 `send()` must return an array with these keys:
