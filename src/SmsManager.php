@@ -23,6 +23,8 @@ use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\PluginHelper;
+use lindemannrock\base\helpers\RecurringQueueHelper;
+use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\jobs\CleanupAnalyticsJob;
@@ -443,27 +445,28 @@ class SmsManager extends Plugin
             return;
         }
 
-        if ($this->hasPendingCleanupJob('CleanupAnalyticsJob')) {
+        $nextRun = ScheduleHelper::calculateNext('daily');
+        if ($nextRun === null) {
             return;
         }
 
-        $initialDelay = 5 * 60;
-        $initialRun = (clone DateFormatHelper::now())->modify("+{$initialDelay} seconds");
+        $delay = max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
+        $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
+            $nextRun,
+            $settings,
+            false,
+            false,
+        );
 
-        $job = new CleanupAnalyticsJob([
-            'reschedule' => true,
-            'nextRunTime' => DateFormatHelper::formatCompactDatetimeFromSettings(
-                $initialRun,
-                $settings,
-                false,
-                false,
-            ),
-        ]);
-
-        // Add to queue with a small initial delay
-        Craft::$app->queue->delay($initialDelay)->push($job);
-
-        $this->logInfo('Scheduled initial analytics cleanup job', ['interval' => '24 hours']);
+        RecurringQueueHelper::ensurePending(
+            pluginToken: 'smsmanager',
+            jobClass: CleanupAnalyticsJob::class,
+            delay: $delay,
+            jobFactory: fn() => new CleanupAnalyticsJob([
+                'reschedule' => true,
+                'nextRunTime' => $nextRunTime,
+            ]),
+        );
     }
 
     /**
@@ -477,40 +480,27 @@ class SmsManager extends Plugin
             return;
         }
 
-        if ($this->hasPendingCleanupJob('CleanupLogsJob')) {
+        $nextRun = ScheduleHelper::calculateNext('daily');
+        if ($nextRun === null) {
             return;
         }
 
-        $initialDelay = 5 * 60;
-        $initialRun = (clone DateFormatHelper::now())->modify("+{$initialDelay} seconds");
+        $delay = max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
+        $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
+            $nextRun,
+            $settings,
+            false,
+            false,
+        );
 
-        $job = new CleanupLogsJob([
-            'reschedule' => true,
-            'nextRunTime' => DateFormatHelper::formatCompactDatetimeFromSettings(
-                $initialRun,
-                $settings,
-                false,
-                false,
-            ),
-        ]);
-
-        // Add to queue with a small initial delay
-        Craft::$app->queue->delay($initialDelay)->push($job);
-
-        $this->logInfo('Scheduled initial logs cleanup job', ['interval' => '24 hours']);
-    }
-
-    /**
-     * Check whether a cleanup job is already pending.
-     */
-    private function hasPendingCleanupJob(string $jobClass): bool
-    {
-        return (new \craft\db\Query())
-            ->from('{{%queue}}')
-            ->where(['like', 'job', 'smsmanager'])
-            ->andWhere(['like', 'job', $jobClass])
-            ->andWhere(['fail' => false])
-            ->andWhere(['timeUpdated' => null])
-            ->exists();
+        RecurringQueueHelper::ensurePending(
+            pluginToken: 'smsmanager',
+            jobClass: CleanupLogsJob::class,
+            delay: $delay,
+            jobFactory: fn() => new CleanupLogsJob([
+                'reschedule' => true,
+                'nextRunTime' => $nextRunTime,
+            ]),
+        );
     }
 }
