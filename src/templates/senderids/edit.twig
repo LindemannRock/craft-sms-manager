@@ -286,6 +286,16 @@
 	                </dd>
 	            </div>
             <div class="data">
+                <dt class="heading">{{ 'Source'|t('sms-manager') }}</dt>
+                <dd class="value">
+                    {% include 'lindemannrock-base/_components/status-dot' with {
+                        value: senderId.source,
+                        colorSet: 'configSource',
+                    } only %}
+                    <span>{{ senderId.source == 'config' ? 'Config File'|t('sms-manager') : 'Database'|t('sms-manager') }}</span>
+                </dd>
+            </div>
+            <div class="data">
                 <dt class="heading">{{ 'Handle'|t('sms-manager') }}</dt>
                 <dd class="value"><code>{{ senderId.handle }}</code></dd>
             </div>
@@ -318,16 +328,6 @@
                     </dd>
                 </div>
             {% endif %}
-            <div class="data">
-                <dt class="heading">{{ 'Source'|t('sms-manager') }}</dt>
-                <dd class="value">
-                    {% include 'lindemannrock-base/_components/status-dot' with {
-                        value: senderId.source,
-                        colorSet: 'configSource',
-                    } only %}
-                    <span>{{ senderId.source == 'config' ? 'Config File'|t('sms-manager') : 'Database'|t('sms-manager') }}</span>
-                </dd>
-            </div>
             {% if isDefault %}
                 <div class="data">
                     <dt class="heading">{{ 'Default'|t('sms-manager') }}</dt>
