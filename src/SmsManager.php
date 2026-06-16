@@ -454,8 +454,9 @@ class SmsManager extends Plugin
         $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
             $nextRun,
             $settings,
+            null,
             false,
-            false,
+            pluginHandle: 'sms-manager',
         );
 
         RecurringQueueHelper::ensurePending(
@@ -489,8 +490,9 @@ class SmsManager extends Plugin
         $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
             $nextRun,
             $settings,
+            null,
             false,
-            false,
+            pluginHandle: 'sms-manager',
         );
 
         RecurringQueueHelper::ensurePending(

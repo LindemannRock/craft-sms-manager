@@ -205,8 +205,9 @@ final class RecurringCleanupJobsRescheduleTest extends TestCase
         return DateFormatHelper::formatCompactDatetimeFromSettings(
             $nextRun,
             SmsManager::$plugin->getSettings(),
+            null,
             false,
-            false,
+            pluginHandle: 'sms-manager',
         );
     }
 

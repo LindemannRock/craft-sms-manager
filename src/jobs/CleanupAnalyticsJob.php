@@ -110,8 +110,9 @@ class CleanupAnalyticsJob extends BaseJob implements RetryableJobInterface
                 $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
                     $nextRun,
                     $settings,
+                    null,
                     false,
-                    false,
+                    pluginHandle: 'sms-manager',
                 );
             }
         }
@@ -220,8 +221,9 @@ class CleanupAnalyticsJob extends BaseJob implements RetryableJobInterface
             $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
                 $nextRun,
                 $settings,
+                null,
                 false,
-                false,
+                pluginHandle: 'sms-manager',
             );
 
             $job = new self([
