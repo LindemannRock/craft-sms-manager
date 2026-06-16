@@ -54,10 +54,11 @@
                 {
                     param: 'status',
                     current: statusFilter,
+                    colorSet: 'status',
                     options: [
                         {value: 'all', label: 'All'|t('sms-manager'), status: 'all'},
-                        {value: 'enabled', label: 'Enabled'|t('sms-manager'), status: 'green'},
-                        {value: 'disabled', label: 'Disabled'|t('sms-manager'), status: 'disabled'},
+                        {value: 'enabled', label: 'Enabled'|t('sms-manager'), colorKey: 'enabled'},
+                        {value: 'disabled', label: 'Disabled'|t('sms-manager'), colorKey: 'disabled'},
                     ],
                 },
                 {
