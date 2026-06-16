@@ -44,6 +44,10 @@ SMS Manager schedules daily cleanup jobs for analytics and SMS logs. If one isn'
 - Check `smsLogsRetention` is greater than `0` for logs cleanup.
 - Check `enableAnalytics` / `enableSmsLogs` is on for the relevant job.
 
+During bootstrap, SMS Manager collapses duplicate pending cleanup rows automatically and keeps one row for the next daily cleanup run. If duplicates keep returning after a deployment, confirm all web workers are running the same plugin version and old queue workers have been restarted.
+
+Craft stores queue job descriptions when rows are queued, so date/time format changes apply to newly queued rows. Existing delayed rows keep their old label until they run or are requeued. Queue labels stay compact: numeric months render numerically, while short and long month settings both render as short month names.
+
 ## Saving settings shows a validation error
 
 Numeric settings (analytics limit, logs limit, retention periods, items per page) must be whole numbers within their allowed range. An invalid value keeps you on the same page with the error shown inline.
