@@ -447,6 +447,7 @@ return [
     'Quick Actions' => 'Quick Actions',
     'View SMS Logs' => 'View SMS Logs',
     'View Analytics' => 'View Analytics',
+    'View all analytics' => 'View all analytics',
     'SMS Today' => 'SMS Today',
     'yesterday' => 'yesterday',
     'Success Rate' => 'Success Rate',

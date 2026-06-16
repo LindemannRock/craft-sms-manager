@@ -447,6 +447,7 @@ return [
     'Quick Actions' => 'إجراءات سريعة',
     'View SMS Logs' => 'عرض سجلات SMS',
     'View Analytics' => 'عرض التحليلات',
+    'View all analytics' => 'عرض جميع التحليلات',
     'SMS Today' => 'SMS اليوم',
     'yesterday' => 'أمس',
     'Success Rate' => 'معدل النجاح',

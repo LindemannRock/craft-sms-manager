@@ -447,6 +447,7 @@ return [
     'Quick Actions' => 'Schnellaktionen',
     'View SMS Logs' => 'SMS-Protokolle anzeigen',
     'View Analytics' => 'Analytics anzeigen',
+    'View all analytics' => 'Alle Analytics anzeigen',
     'SMS Today' => 'SMS heute',
     'yesterday' => 'gestern',
     'Success Rate' => 'Erfolgsrate',

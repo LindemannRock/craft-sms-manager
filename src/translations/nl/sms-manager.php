@@ -447,6 +447,7 @@ return [
     'Quick Actions' => 'Snelle acties',
     'View SMS Logs' => 'SMS-logboeken bekijken',
     'View Analytics' => 'Analyses bekijken',
+    'View all analytics' => 'Alle analyses bekijken',
     'SMS Today' => 'SMS vandaag',
     'yesterday' => 'gisteren',
     'Success Rate' => 'Slagingspercentage',

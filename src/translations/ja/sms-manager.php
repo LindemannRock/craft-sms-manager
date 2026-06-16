@@ -447,6 +447,7 @@ return [
     'Quick Actions' => 'クイックアクション',
     'View SMS Logs' => 'SMS ログを表示する',
     'View Analytics' => 'アナリティクスを表示する',
+    'View all analytics' => 'すべてのアナリティクスを表示',
     'SMS Today' => '本日の SMS',
     'yesterday' => '昨日',
     'Success Rate' => '成功率',
