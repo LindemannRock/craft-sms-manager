@@ -16,6 +16,7 @@ use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\services\Dashboard;
 use craft\services\UserPermissions;
 use craft\services\Utilities;
 use craft\web\UrlManager;
@@ -35,6 +36,8 @@ use lindemannrock\smsmanager\services\ProvidersService;
 use lindemannrock\smsmanager\services\SenderIdsService;
 use lindemannrock\smsmanager\services\SmsService;
 use lindemannrock\smsmanager\utilities\SmsManagerUtility;
+use lindemannrock\smsmanager\widgets\AnalyticsSummaryWidget;
+use lindemannrock\smsmanager\widgets\RecentSmsWidget;
 use yii\base\Event;
 
 /**
@@ -167,6 +170,16 @@ class SmsManager extends Plugin
             Utilities::EVENT_REGISTER_UTILITIES,
             function(RegisterComponentTypesEvent $event) {
                 $event->types[] = SmsManagerUtility::class;
+            }
+        );
+
+        // Register dashboard widgets
+        Event::on(
+            Dashboard::class,
+            Dashboard::EVENT_REGISTER_WIDGET_TYPES,
+            function(RegisterComponentTypesEvent $event) {
+                $event->types[] = AnalyticsSummaryWidget::class;
+                $event->types[] = RecentSmsWidget::class;
             }
         );
 

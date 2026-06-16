@@ -1,0 +1,40 @@
+{% set rows = [] %}
+
+{% for log in logs %}
+    {% set messagePreview = log.message|slice(0, 80) ~ (log.message|length > 80 ? '...' : '') %}
+
+    {% set detail %}
+        {% if log.senderIdName %}
+            <span>{{ log.senderIdName }}</span>
+        {% endif %}
+        <span class="lr-dashboard-widget-list__detail-message" dir="auto">{{ messagePreview }}</span>
+    {% endset %}
+
+    {% set value %}
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: log.status|capitalize,
+            value: log.status,
+            colorSet: 'smsStatus',
+        } only %}
+    {% endset %}
+
+    {% set rows = rows|merge([{
+        primaryHtml: '<a href="' ~ cpUrl('sms-manager/logs/sms') ~ '" class="lr-dashboard-widget-list__primary lr-dashboard-widget-list__primary--default" dir="ltr">' ~ log.recipient|e ~ '</a>',
+        primaryUrl: cpUrl('sms-manager/logs/sms'),
+        detailHtml: detail,
+        valueHtml: value,
+    }]) %}
+{% endfor %}
+
+{% include 'lindemannrock-base/_components/dashboard-widget-list' with {
+    primaryHeader: "Recipient"|t('sms-manager'),
+    valueHeader: "Status"|t('sms-manager'),
+    rows: rows,
+    empty: {
+        title: "No SMS logs yet"|t('sms-manager'),
+    },
+    footer: {
+        url: cpUrl('sms-manager/logs/sms'),
+        label: "View all SMS logs"|t('sms-manager'),
+    },
+} only %}

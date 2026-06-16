@@ -1,0 +1,53 @@
+{% if totalMessages > 0 %}
+    {% include 'lindemannrock-base/_components/chart-container' with {
+        id: chartId,
+        type: 'doughnut',
+        height: 250,
+        center: true,
+        class: 'lr-dashboard-widget-chart',
+        percentageTooltip: true,
+        data: {
+            labels: [
+                'Sent'|t('sms-manager'),
+                'Failed'|t('sms-manager'),
+            ],
+            datasets: [
+                {
+                    data: [sentMessages, failedMessages],
+                    backgroundColor: ['#10b981', '#ef4444'],
+                    borderWidth: 0,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12,
+                        },
+                    },
+                },
+            },
+        },
+    } only %}
+
+    {% include 'lindemannrock-base/_components/dashboard-widget-stats' with {
+        stats: [
+            {value: totalMessages, label: "Total Messages"|t('sms-manager')},
+            {value: successRate, suffix: '%', label: "Success Rate"|t('sms-manager')},
+        ],
+        footer: {
+            url: cpUrl('sms-manager/analytics'),
+            label: "View Analytics"|t('sms-manager'),
+        },
+    } only %}
+{% else %}
+    {% include 'lindemannrock-base/_components/dashboard-widget-empty' with {
+        title: "No SMS logs yet"|t('sms-manager'),
+    } only %}
+{% endif %}

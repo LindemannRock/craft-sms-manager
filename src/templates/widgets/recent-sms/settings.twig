@@ -1,0 +1,31 @@
+{% import '_includes/forms.twig' as forms %}
+
+{{ forms.selectField({
+    label: 'Messages'|t('sms-manager'),
+    id: 'limit',
+    name: 'limit',
+    value: widget.limit,
+    options: [
+        {label: '3', value: 3},
+        {label: '5', value: 5},
+        {label: '10', value: 10},
+        {label: '15', value: 15},
+        {label: '20', value: 20},
+    ],
+}) }}
+
+{{ forms.selectField({
+    label: 'Site'|t('sms-manager'),
+    id: 'siteId',
+    name: 'siteId',
+    value: widget.siteId,
+    options: siteOptions,
+}) }}
+
+{{ forms.selectField({
+    label: 'Language'|t('sms-manager'),
+    id: 'language',
+    name: 'language',
+    value: widget.language,
+    options: languageOptions,
+}) }}

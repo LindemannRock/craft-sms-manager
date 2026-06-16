@@ -43,6 +43,8 @@ Opening **SMS Manager** lands on the dashboard — an at-a-glance view of messag
 
 The dashboard requires the **View SMS logs** permission and SMS logs to be enabled. If a user can't see it, they land on the first section they do have access to.
 
+SMS Manager also provides optional Craft dashboard widgets for the main Craft dashboard. Add the analytics summary widget to monitor sent versus failed messages, total messages, and success rate for the selected date range. Add the recent SMS widget to keep the latest delivery statuses visible without opening SMS Manager. Both widgets can be filtered by site and language, and the recent-message preview supports Arabic and other right-to-left message content.
+
 ## CP utilities
 
 SMS Manager adds maintenance actions under **Utilities → SMS Manager**: **Clear all analytics** and **Clear all SMS logs**. Both ask for confirmation and respect the relevant permissions. Day-to-day, you rarely need these — retention trimming runs automatically (see [Configuration](../get-started/configuration.md)).

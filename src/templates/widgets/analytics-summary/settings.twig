@@ -1,0 +1,25 @@
+{% import '_includes/forms.twig' as forms %}
+
+{{ forms.selectField({
+    label: 'Date Range'|t('sms-manager'),
+    id: 'dateRange',
+    name: 'dateRange',
+    value: widget.dateRange,
+    options: lrDateRangeOptions('assoc'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Site'|t('sms-manager'),
+    id: 'siteId',
+    name: 'siteId',
+    value: widget.siteId,
+    options: siteOptions,
+}) }}
+
+{{ forms.selectField({
+    label: 'Language'|t('sms-manager'),
+    id: 'language',
+    name: 'language',
+    value: widget.language,
+    options: languageOptions,
+}) }}

@@ -27,6 +27,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 - **SMS logs** — full delivery history with provider responses and errors; export to CSV, JSON, or Excel
 - **Test SMS** — send a one-off message from the Control Panel to verify a setup
 - **Dashboard** — at-a-glance messaging activity and provider status
+- **Craft dashboard widgets** — optional SMS activity and recent-message widgets for the Craft dashboard
 - **PHP send API** — one entry point for sending, with source-plugin attribution
 - **Granular permissions** — providers, sender IDs, analytics, logs, and settings
 - **12-language translations** and structured logging via Logging Library
