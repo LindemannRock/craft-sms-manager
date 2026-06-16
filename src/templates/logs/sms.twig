@@ -164,9 +164,13 @@
 
 {% block bulkActions %}
     {% if canDelete %}
-        <button type="button" class="btn secondary" id="lr-delete-btn">
-            {{ 'Delete'|t('sms-manager') }} (<span id="lr-selected-count">0</span>)
-        </button>
+        {% include 'lindemannrock-base/_components/bulk-actions-menu' with {
+            label: 'Actions'|t('sms-manager'),
+            countId: 'lr-bulk-actions-count',
+            items: [
+                {id: 'lr-delete-btn', label: 'Delete'|t('sms-manager'), class: 'error'},
+            ],
+        } only %}
     {% endif %}
 {% endblock %}
 
@@ -395,10 +399,6 @@
 
         document.addEventListener('lr:selectionChanged', function(e) {
             selectedIds = new Set(e.detail.selectedIds);
-            const countSpan = document.getElementById('lr-selected-count');
-            if (countSpan) {
-                countSpan.textContent = selectedIds.size;
-            }
         });
 
         // ---------------------------------------------------------------------
