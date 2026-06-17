@@ -384,14 +384,36 @@
             }
         });
 
+        function bindExpandableRows(container) {
+            (container || document).querySelectorAll('.lr-clickable-row').forEach(function(row) {
+                if (row.dataset.smsExpandableBound === '1') return;
+                row.dataset.smsExpandableBound = '1';
+
+                row.addEventListener('click', function(e) {
+                    if (e.target.closest('.checkbox') || e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                        return;
+                    }
+
+                    const entryId = this.dataset.entryId;
+                    const contextRow = document.querySelector('.lr-context-row[data-entry-id="' + entryId + '"]');
+                    if (contextRow) {
+                        const isVisible = contextRow.style.display !== 'none';
+                        contextRow.style.display = isVisible ? 'none' : 'table-row';
+                        this.classList.toggle('lr-row-expanded', !isVisible);
+                    }
+                });
+            });
+        }
+
         // Handle AJAX refresh rendering (when auto-refresh is enabled)
         document.addEventListener('lr:refresh', function(e) {
-            const data = e.detail;
-            if (!data.logs) return;
+            const data = e.detail || {};
+            const tbody = document.getElementById('lr-table-body');
+            if (!tbody || typeof data.rowsHtml !== 'string') return;
 
-            // For now, just reload the page on refresh
-            // Future: implement proper client-side row rendering
-            window.location.reload();
+            tbody.innerHTML = data.rowsHtml;
+
+            bindExpandableRows(tbody);
         });
 
         // Selection state

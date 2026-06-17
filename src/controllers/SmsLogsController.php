@@ -543,14 +543,41 @@ class SmsLogsController extends Controller
         }
         unset($log);
 
+        $settings = SmsManager::$plugin->getSettings();
+        $canDelete = Craft::$app->getUser()->checkPermission('smsManager:deleteSmsLogs');
+        $rowsHtml = '';
+        foreach ($logs as $log) {
+            $rowsHtml .= Craft::$app->getView()->renderTemplate('sms-manager/logs/_sms-row', [
+                'item' => $log,
+                'checkboxesEnabled' => $canDelete,
+                'rowActionsEnabled' => true,
+            ]);
+        }
+
+        if ($rowsHtml === '') {
+            $rowsHtml = Craft::$app->getView()->renderTemplate('sms-manager/logs/_empty-row', [
+                'colspan' => 8 + ($canDelete ? 1 : 0) + 1,
+            ]);
+        }
+
         return $this->asJson([
             'success' => true,
             'logs' => $logs,
+            'rowsHtml' => $rowsHtml,
             'totalCount' => (int) $totalCount,
             'totalPages' => $totalPages,
             'page' => $params['page'],
             'limit' => $params['limit'],
             'offset' => $params['offset'],
+            'pagination' => [
+                'page' => $params['page'],
+                'limit' => $params['limit'],
+                'totalCount' => (int) $totalCount,
+                'totalPages' => $totalPages,
+            ],
+            'refresh' => [
+                'enabled' => $settings->refreshIntervalSecs > 0,
+            ],
             'sentCount' => (int) $sentCount,
             'failedCount' => (int) $failedCount,
             'pendingCount' => (int) $pendingCount,

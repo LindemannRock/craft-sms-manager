@@ -1,0 +1,127 @@
+<tr class="lr-data-row lr-clickable-row" data-id="{{ item.id }}" data-entry-id="{{ item.id }}" data-selectable="true">
+    {% if checkboxesEnabled %}
+        <td class="lr-checkbox-cell">
+            <div class="checkbox" title="{{ 'Select'|t('lindemannrock-base') }}" tabindex="0" aria-checked="false" role="checkbox"></div>
+        </td>
+    {% endif %}
+
+    <td class="light" data-column="dateCreated">{{ item.dateCreated|lrDatetime }}</td>
+    <td data-column="recipient"><code>{{ item.recipient }}</code></td>
+    <td data-column="message" class="message-cell" title="{{ item.message }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        {{ item.message|slice(0, 50) }}{% if item.message|length > 50 %}...{% endif %}
+    </td>
+    <td data-column="language">
+        {% set langLabel = item.language %}
+        {% for site in craft.app.sites.getAllSites() %}
+            {% set langCode = site.language|split('-')|first %}
+            {% if langCode == item.language %}
+                {% set langLabel = site.language ~ ' (' ~ site.name ~ ')' %}
+            {% endif %}
+        {% endfor %}
+        <span class="light">{{ langLabel }}</span>
+    </td>
+    <td data-column="status">
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: item.status|capitalize,
+            value: item.status,
+            colorSet: 'smsStatus',
+        } only %}
+    </td>
+    <td data-column="providerName"><span class="light">{{ item.providerName }}</span></td>
+    <td data-column="senderIdValue"><span class="light">{{ item.senderIdValue }}</span></td>
+    <td data-column="sourcePlugin">
+        {% if item.sourcePlugin %}
+            <span class="light">{{ item.sourcePlugin }}</span>
+        {% else %}
+            <span class="light">{{ 'Direct'|t('sms-manager') }}</span>
+        {% endif %}
+    </td>
+
+    {% if rowActionsEnabled %}
+        {% include 'lindemannrock-base/_components/row-actions' with {
+            item: item,
+            actions: {
+                type: 'menu',
+                icon: 'settings',
+                title: 'Actions'|t('sms-manager'),
+                permission: 'smsManager:deleteSmsLogs',
+                items: [
+                    {
+                        label: 'Delete'|t('sms-manager'),
+                        class: 'error',
+                        permission: 'smsManager:deleteSmsLogs',
+                        jsAction: 'delete',
+                    },
+                ],
+            },
+        } only %}
+    {% endif %}
+</tr>
+
+{% set isRtl = item.language|slice(0, 2) == 'ar' %}
+
+<tr class="lr-context-row{% if item.status == 'failed' %} error{% endif %}" data-entry-id="{{ item.id }}" style="display: none;">
+    <td colspan="{{ 8 + (checkboxesEnabled ? 1 : 0) + (rowActionsEnabled ? 1 : 0) }}">
+        <div class="lr-context-content">
+            <style>
+                .context-label {
+                    font-size: 11px;
+                    color: #606d7b;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    margin-bottom: 4px;
+                }
+                .context-value {
+                    font-family: Monaco, 'Courier New', monospace;
+                    font-size: 12px;
+                    background: #ffffff;
+                    border: 1px solid #e1e8ed;
+                    border-radius: 4px;
+                    padding: 8px 12px;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                }
+                .context-grid {
+                    display: grid;
+                    gap: 12px;
+                }
+                .lr-context-row.error .lr-context-content {
+                    border-left-color: #ef4444;
+                }
+            </style>
+
+            <div class="context-grid">
+                <div>
+                    <div class="context-label">{{ 'Full Message'|t('sms-manager') }}</div>
+                    <div class="context-value"{{ isRtl ? ' dir="rtl"' : '' }}>{{ item.message }}</div>
+                </div>
+
+                {% if item.errorMessage %}
+                    <div>
+                        <div class="context-label" style="color: #dc2626;">{{ 'Error'|t('sms-manager') }}</div>
+                        <div class="context-value" style="border-color: #fecaca; background: #fef2f2;">{{ item.errorMessage }}</div>
+                    </div>
+                {% endif %}
+
+                {% if item.providerResponse %}
+                    <div>
+                        <div class="context-label">{{ 'Provider Response'|t('sms-manager') }}</div>
+                        <div class="context-value">{{ item.providerResponse }}</div>
+                    </div>
+                {% endif %}
+
+                <div>
+                    <div class="context-label">{{ 'Sender ID'|t('sms-manager') }}</div>
+                    <div class="context-value">{{ item.senderIdValue ?? 'Unknown'|t('sms-manager') }}</div>
+                </div>
+
+                {% if item.providerMessageId %}
+                    <div>
+                        <div class="context-label">{{ 'Message ID'|t('sms-manager') }}</div>
+                        <div class="context-value">{{ item.providerMessageId }}</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </td>
+</tr>
