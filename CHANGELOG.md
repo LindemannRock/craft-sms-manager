@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.14.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.13.0...v5.14.0) (2026-06-18)
+## [5.14.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.13.0...v5.14.0) - 2026-06-18
 
 
 ### Added
