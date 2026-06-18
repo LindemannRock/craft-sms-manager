@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.14.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.13.0...v5.14.0) (2026-06-18)
+
+
+### Added
+
+* add RegisterProvidersEvent and update ProvidersService for provider registration ([50b9ade](https://github.com/LindemannRock/craft-sms-manager/commit/50b9adec4f0c753aab9cce30a0a25c86dfa37737))
+* **geo:** inject countryOptions into settings templates for providers ([37b44b2](https://github.com/LindemannRock/craft-sms-manager/commit/37b44b2cdd3d37bd12f9f767d2075d5082083864))
+* **i18n:** add "View all analytics" translation key across locales ([d466e2c](https://github.com/LindemannRock/craft-sms-manager/commit/d466e2cbeb87fccb792e0348064043dd26f6b7c5))
+* **i18n:** add invalid provider type message translations ([a77f0e3](https://github.com/LindemannRock/craft-sms-manager/commit/a77f0e3d2aa46e836cb8dac92e58a46b4efdd5fd))
+* **provider:** add dynamic settings rendering for provider types ([33c9300](https://github.com/LindemannRock/craft-sms-manager/commit/33c93000769ecce41f8638e3fb1060cd6bcf984c))
+* **provider:** update settings handling in MppSmsProvider ([46f7e04](https://github.com/LindemannRock/craft-sms-manager/commit/46f7e04d2e092972eac959cf90cfce80de6eb3b6))
+* **widgets:** add analytics summary and recent SMS widgets ([cbb9fbf](https://github.com/LindemannRock/craft-sms-manager/commit/cbb9fbf1643a948a674ca0db3df74a16efcda61e))
+
+
+### Fixed
+
+* align source metadata order in view sidebars ([5606813](https://github.com/LindemannRock/craft-sms-manager/commit/56068138f7fc1a63e27b47c49ab61c6aca3b31c6))
+* correct error message for invalid provider type ([287dcf5](https://github.com/LindemannRock/craft-sms-manager/commit/287dcf5c56be3b537e6c23181c86f7af7d903d2f))
+* **i18n:** correct Portuguese translations for default provider and sender ID ([44ed99e](https://github.com/LindemannRock/craft-sms-manager/commit/44ed99ea9bf63cdb0333192fd57e3b76a9fd3057))
+* **i18n:** correct translations across multiple locales ([075d558](https://github.com/LindemannRock/craft-sms-manager/commit/075d55818fee8328007c83934e9805f34bc2bf2f))
+* **i18n:** remove language notes for Arabic and Japanese translations ([9bba7de](https://github.com/LindemannRock/craft-sms-manager/commit/9bba7dee577b393d5cc277cea1b5f60c49ceecb7))
+* render SMS log refreshes inline ([fdc1d5c](https://github.com/LindemannRock/craft-sms-manager/commit/fdc1d5cad73cad294d04cc9d78bf6d56ec359e99))
+
 ## [5.13.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.12.0...v5.13.0) - 2026-06-07
 
 
