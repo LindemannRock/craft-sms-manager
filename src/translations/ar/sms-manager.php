@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'تعذر تعطيل مزودي الخدمة',
     'Deleted {count} providers' => 'تم حذف {count} مزودين',
     'Failed to delete providers' => 'تعذر حذف مزودي الخدمة',
-    'Delete {count} provider(s)? This cannot be undone.' => 'هل تريد حذف {count} مزود(ين)؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Delete {count} provider? This cannot be undone.' => 'هل تريد حذف {count} مزود؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Delete {count} providers? This cannot be undone.' => 'هل تريد حذف {count} مزودين؟ لا يمكن التراجع عن هذا الإجراء.',
 
     // Providers: Edit
     'The name of this provider' => 'اسم مزود الخدمة هذا',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'تعذر تعطيل معرّفات المُرسِل',
     'Deleted {count} sender IDs' => 'تم حذف {count} معرّفات مُرسِل',
     'Failed to delete sender IDs' => 'تعذر حذف معرّفات المُرسِل',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'هل تريد حذف {count} معرّف(ات) مُرسِل؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Delete {count} sender ID? This cannot be undone.' => 'حذف {count} ID مرسل؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Delete {count} sender IDs? This cannot be undone.' => 'حذف {count} معرفات مرسل؟ لا يمكن التراجع عن هذا الإجراء.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'مزود الخدمة الذي ينتمي إليه معرّف المُرسِل هذا',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'تم حذف السجلات بنجاح.',
     'Failed to delete log.' => 'تعذر حذف السجل.',
     'Are you sure you want to delete this log?' => 'هل أنت متأكد من حذف هذا السجل؟',
-    'Are you sure you want to delete {count} log(s)?' => 'هل أنت متأكد من حذف {count} سجل(ات)؟',
+    'Are you sure you want to delete {count} log?' => 'هل أنت متأكد من حذف {count} سجل؟',
+    'Are you sure you want to delete {count} logs?' => 'هل أنت متأكد من حذف {count} سجلات؟',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'إدارة مزودي SMS ومعرّفات المُرسِل ومسح بيانات التحليلات.',

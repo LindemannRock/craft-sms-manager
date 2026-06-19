@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Kunne ikke deaktivere leverandører',
     'Deleted {count} providers' => '{count} leverandører slettet',
     'Failed to delete providers' => 'Kunne ikke slette leverandører',
-    'Delete {count} provider(s)? This cannot be undone.' => 'Slett {count} leverandør(er)? Dette kan ikke angres.',
+    'Delete {count} provider? This cannot be undone.' => 'Slett {count} leverandør? Dette kan ikke angres.',
+    'Delete {count} providers? This cannot be undone.' => 'Slett {count} leverandører? Dette kan ikke angres.',
 
     // Providers: Edit
     'The name of this provider' => 'Navnet på denne leverandøren',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Kunne ikke deaktivere avsender-ID-er',
     'Deleted {count} sender IDs' => '{count} avsender-ID-er slettet',
     'Failed to delete sender IDs' => 'Kunne ikke slette avsender-ID-er',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'Slett {count} avsender-ID? Dette kan ikke angres.',
+    'Delete {count} sender ID? This cannot be undone.' => 'Slett {count} avsender-ID? Dette kan ikke angres.',
+    'Delete {count} sender IDs? This cannot be undone.' => 'Slett {count} avsender-ID-er? Dette kan ikke angres.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'Leverandøren denne avsender-ID-en tilhører',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Logger slettet.',
     'Failed to delete log.' => 'Kunne ikke slette logg.',
     'Are you sure you want to delete this log?' => 'Er du sikker på at du vil slette denne loggen?',
-    'Are you sure you want to delete {count} log(s)?' => 'Er du sikker på at du vil slette {count} logg(er)?',
+    'Are you sure you want to delete {count} log?' => 'Er du sikker på at du vil slette {count} logg?',
+    'Are you sure you want to delete {count} logs?' => 'Er du sikker på at du vil slette {count} logger?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Administrer SMS-leverandører, avsender-ID-er og tøm analysedata.',

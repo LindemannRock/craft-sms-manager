@@ -359,7 +359,8 @@
             bulkDisableFailed: {{ 'Failed to disable providers'|t('sms-manager')|json_encode|raw }},
             bulkDeletedTemplate: {{ 'Deleted {count} providers'|t('sms-manager')|json_encode|raw }},
             bulkDeleteFailed: {{ 'Failed to delete providers'|t('sms-manager')|json_encode|raw }},
-            bulkDeleteConfirmTemplate: {{ 'Delete {count} provider(s)? This cannot be undone.'|t('sms-manager')|json_encode|raw }},
+            bulkDeleteConfirmSingular: {{ 'Delete {count} provider? This cannot be undone.'|t('sms-manager')|json_encode|raw }},
+            bulkDeleteConfirmPlural: {{ 'Delete {count} providers? This cannot be undone.'|t('sms-manager')|json_encode|raw }},
         };
 
         // Highlight rows with handle collisions between config and database.
@@ -468,7 +469,8 @@
         document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function() {
             const ids = selectedIds();
             if (!ids.length) return;
-            if (!confirm(T.bulkDeleteConfirmTemplate.replace('{count}', ids.length))) return;
+            const confirmTemplate = ids.length === 1 ? T.bulkDeleteConfirmSingular : T.bulkDeleteConfirmPlural;
+            if (!confirm(confirmTemplate.replace('{count}', ids.length))) return;
             runBulkStatus('sms-manager/providers/bulk-delete', T.bulkDeletedTemplate, T.bulkDeleteFailed);
         });
     })();

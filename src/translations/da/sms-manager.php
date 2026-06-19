@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Kunne ikke deaktivere udbydere',
     'Deleted {count} providers' => '{count} udbydere slettet',
     'Failed to delete providers' => 'Kunne ikke slette udbydere',
-    'Delete {count} provider(s)? This cannot be undone.' => 'Slet {count} udbyder(e)? Dette kan ikke fortrydes.',
+    'Delete {count} provider? This cannot be undone.' => 'Slet {count} udbyder? Dette kan ikke fortrydes.',
+    'Delete {count} providers? This cannot be undone.' => 'Slet {count} udbydere? Dette kan ikke fortrydes.',
 
     // Providers: Edit
     'The name of this provider' => 'Navnet på denne udbyder',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Kunne ikke deaktivere afsender-IDs',
     'Deleted {count} sender IDs' => '{count} afsender-IDs slettet',
     'Failed to delete sender IDs' => 'Kunne ikke slette afsender-IDs',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'Slet {count} afsender-ID? Dette kan ikke fortrydes.',
+    'Delete {count} sender ID? This cannot be undone.' => 'Slet {count} afsender-ID? Dette kan ikke fortrydes.',
+    'Delete {count} sender IDs? This cannot be undone.' => 'Slet {count} afsender-ID\'er? Dette kan ikke fortrydes.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'Den udbyder, dette afsender-ID tilhører',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Logge slettet.',
     'Failed to delete log.' => 'Kunne ikke slette log.',
     'Are you sure you want to delete this log?' => 'Er du sikker på, at du vil slette denne log?',
-    'Are you sure you want to delete {count} log(s)?' => 'Er du sikker på, at du vil slette {count} log(ge)?',
+    'Are you sure you want to delete {count} log?' => 'Er du sikker på, at du vil slette {count} log?',
+    'Are you sure you want to delete {count} logs?' => 'Er du sikker på, at du vil slette {count} logs?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Administrer SMS-udbydere, afsender-ID\'er og ryd analysedata.',

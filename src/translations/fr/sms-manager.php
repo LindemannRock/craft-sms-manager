@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Impossible de désactiver les fournisseurs',
     'Deleted {count} providers' => '{count} fournisseurs supprimés',
     'Failed to delete providers' => 'Impossible de supprimer les fournisseurs',
-    'Delete {count} provider(s)? This cannot be undone.' => 'Supprimer {count} fournisseur(s) ? Cette action est irréversible.',
+    'Delete {count} provider? This cannot be undone.' => 'Supprimer {count} fournisseur ? Cette action est irréversible.',
+    'Delete {count} providers? This cannot be undone.' => 'Supprimer {count} fournisseurs ? Cette action est irréversible.',
 
     // Providers: Edit
     'The name of this provider' => 'Le nom de ce fournisseur',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Impossible de désactiver les identifiants d\'expéditeur',
     'Deleted {count} sender IDs' => '{count} identifiants d\'expéditeur supprimés',
     'Failed to delete sender IDs' => 'Impossible de supprimer les identifiants d\'expéditeur',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'Supprimer {count} identifiant(s) d\'expéditeur ? Cette action est irréversible.',
+    'Delete {count} sender ID? This cannot be undone.' => 'Supprimer {count} ID d\'expéditeur ? Cette action est irréversible.',
+    'Delete {count} sender IDs? This cannot be undone.' => 'Supprimer {count} ID d\'expéditeur ? Cette action est irréversible.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'Le fournisseur auquel appartient cet identifiant d\'expéditeur',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Journaux supprimés avec succès.',
     'Failed to delete log.' => 'Impossible de supprimer le journal.',
     'Are you sure you want to delete this log?' => 'Voulez-vous vraiment supprimer ce journal ?',
-    'Are you sure you want to delete {count} log(s)?' => 'Voulez-vous vraiment supprimer {count} journal(aux) ?',
+    'Are you sure you want to delete {count} log?' => 'Voulez-vous vraiment supprimer {count} journal ?',
+    'Are you sure you want to delete {count} logs?' => 'Voulez-vous vraiment supprimer {count} journaux ?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Gérez les fournisseurs SMS, les identifiants d\'expéditeur et effacez les données analytiques.',

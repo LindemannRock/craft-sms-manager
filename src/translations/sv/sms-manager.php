@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Det gick inte att inaktivera leverantörer',
     'Deleted {count} providers' => '{count} leverantörer borttagna',
     'Failed to delete providers' => 'Det gick inte att ta bort leverantörer',
-    'Delete {count} provider(s)? This cannot be undone.' => 'Ta bort {count} leverantör(er)? Detta kan inte ångras.',
+    'Delete {count} provider? This cannot be undone.' => 'Ta bort {count} leverantör? Detta kan inte ångras.',
+    'Delete {count} providers? This cannot be undone.' => 'Ta bort {count} leverantörer? Detta kan inte ångras.',
 
     // Providers: Edit
     'The name of this provider' => 'Namnet på den här leverantören',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Det gick inte att inaktivera avsändar-ID:n',
     'Deleted {count} sender IDs' => '{count} avsändar-ID:n borttagna',
     'Failed to delete sender IDs' => 'Det gick inte att ta bort avsändar-ID:n',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'Ta bort {count} avsändar-ID? Detta kan inte ångras.',
+    'Delete {count} sender ID? This cannot be undone.' => 'Ta bort {count} avsändar-ID? Detta kan inte ångras.',
+    'Delete {count} sender IDs? This cannot be undone.' => 'Ta bort {count} avsändar-ID:n? Detta kan inte ångras.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'Leverantören som det här avsändar-ID:t tillhör',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Loggarna togs bort.',
     'Failed to delete log.' => 'Det gick inte att ta bort loggen.',
     'Are you sure you want to delete this log?' => 'Är du säker på att du vill ta bort den här loggen?',
-    'Are you sure you want to delete {count} log(s)?' => 'Är du säker på att du vill ta bort {count} logg(ar)?',
+    'Are you sure you want to delete {count} log?' => 'Är du säker på att du vill ta bort {count} logg?',
+    'Are you sure you want to delete {count} logs?' => 'Är du säker på att du vill ta bort {count} loggar?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Hantera SMS-leverantörer, avsändar-ID:n och rensa analysdata.',

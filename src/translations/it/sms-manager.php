@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Impossibile disabilitare i provider',
     'Deleted {count} providers' => '{count} provider eliminati',
     'Failed to delete providers' => 'Impossibile eliminare i provider',
-    'Delete {count} provider(s)? This cannot be undone.' => 'Eliminare {count} provider? Questa azione non può essere annullata.',
+    'Delete {count} provider? This cannot be undone.' => 'Eliminare {count} provider? Questa azione non può essere annullata.',
+    'Delete {count} providers? This cannot be undone.' => 'Eliminare {count} provider? Questa azione non può essere annullata.',
 
     // Providers: Edit
     'The name of this provider' => 'Il nome di questo provider',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Impossibile disabilitare gli ID mittente',
     'Deleted {count} sender IDs' => '{count} ID mittente eliminati',
     'Failed to delete sender IDs' => 'Impossibile eliminare gli ID mittente',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'Eliminare {count} ID mittente? Questa azione non può essere annullata.',
+    'Delete {count} sender ID? This cannot be undone.' => 'Eliminare {count} ID mittente? Questa azione non può essere annullata.',
+    'Delete {count} sender IDs? This cannot be undone.' => 'Eliminare {count} ID mittente? Questa azione non può essere annullata.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'Il provider a cui appartiene questo ID mittente',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Log eliminati con successo.',
     'Failed to delete log.' => 'Impossibile eliminare il log.',
     'Are you sure you want to delete this log?' => 'Eliminare questo log?',
-    'Are you sure you want to delete {count} log(s)?' => 'Eliminare {count} log/i?',
+    'Are you sure you want to delete {count} log?' => 'Eliminare {count} log?',
+    'Are you sure you want to delete {count} logs?' => 'Eliminare {count} log?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Gestisci i provider SMS, gli ID mittente e cancella i dati di analisi.',

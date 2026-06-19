@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Failed to disable providers',
     'Deleted {count} providers' => 'Deleted {count} providers',
     'Failed to delete providers' => 'Failed to delete providers',
-    'Delete {count} provider(s)? This cannot be undone.' => 'Delete {count} provider(s)? This cannot be undone.',
+    'Delete {count} provider? This cannot be undone.' => 'Delete {count} provider? This cannot be undone.',
+    'Delete {count} providers? This cannot be undone.' => 'Delete {count} providers? This cannot be undone.',
 
     // Providers: Edit
     'The name of this provider' => 'The name of this provider',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Failed to disable sender IDs',
     'Deleted {count} sender IDs' => 'Deleted {count} sender IDs',
     'Failed to delete sender IDs' => 'Failed to delete sender IDs',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'Delete {count} sender ID(s)? This cannot be undone.',
+    'Delete {count} sender ID? This cannot be undone.' => 'Delete {count} sender ID? This cannot be undone.',
+    'Delete {count} sender IDs? This cannot be undone.' => 'Delete {count} sender IDs? This cannot be undone.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'The provider this sender ID belongs to',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Logs deleted successfully.',
     'Failed to delete log.' => 'Failed to delete log.',
     'Are you sure you want to delete this log?' => 'Are you sure you want to delete this log?',
-    'Are you sure you want to delete {count} log(s)?' => 'Are you sure you want to delete {count} log(s)?',
+    'Are you sure you want to delete {count} log?' => 'Are you sure you want to delete {count} log?',
+    'Are you sure you want to delete {count} logs?' => 'Are you sure you want to delete {count} logs?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Manage SMS providers, sender IDs, and clear analytics data.',

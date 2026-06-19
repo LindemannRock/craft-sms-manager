@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Não foi possível desativar os fornecedores',
     'Deleted {count} providers' => '{count} fornecedores eliminados',
     'Failed to delete providers' => 'Não foi possível eliminar os fornecedores',
-    'Delete {count} provider(s)? This cannot be undone.' => 'Eliminar {count} fornecedor(es)? Esta ação não pode ser anulada.',
+    'Delete {count} provider? This cannot be undone.' => 'Eliminar {count} fornecedor? Esta ação não pode ser anulada.',
+    'Delete {count} providers? This cannot be undone.' => 'Eliminar {count} fornecedores? Esta ação não pode ser anulada.',
 
     // Providers: Edit
     'The name of this provider' => 'O nome deste fornecedor',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Não foi possível desativar os IDs de remetente',
     'Deleted {count} sender IDs' => '{count} IDs de remetente eliminados',
     'Failed to delete sender IDs' => 'Não foi possível eliminar os IDs de remetente',
-    'Delete {count} sender ID(s)? This cannot be undone.' => 'Eliminar {count} ID(s) de remetente? Esta ação não pode ser anulada.',
+    'Delete {count} sender ID? This cannot be undone.' => 'Eliminar {count} ID de remetente? Esta ação não pode ser anulada.',
+    'Delete {count} sender IDs? This cannot be undone.' => 'Eliminar {count} IDs de remetente? Esta ação não pode ser anulada.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'O fornecedor ao qual este ID de remetente pertence',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Registos eliminados com sucesso.',
     'Failed to delete log.' => 'Não foi possível eliminar o registo.',
     'Are you sure you want to delete this log?' => 'Eliminar este registo?',
-    'Are you sure you want to delete {count} log(s)?' => 'Eliminar {count} registo(s)?',
+    'Are you sure you want to delete {count} log?' => 'Eliminar {count} registo?',
+    'Are you sure you want to delete {count} logs?' => 'Eliminar {count} registos?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Gira fornecedores SMS, IDs de remetente e limpe dados de análise.',

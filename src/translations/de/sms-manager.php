@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Anbieter konnten nicht deaktiviert werden',
     'Deleted {count} providers' => '{count} Anbieter gelöscht',
     'Failed to delete providers' => 'Anbieter konnten nicht gelöscht werden',
-    'Delete {count} provider(s)? This cannot be undone.' => '{count} Anbieter löschen? Dies kann nicht rückgängig gemacht werden.',
+    'Delete {count} provider? This cannot be undone.' => '{count} Anbieter löschen? Dies kann nicht rückgängig gemacht werden.',
+    'Delete {count} providers? This cannot be undone.' => '{count} Anbieter löschen? Dies kann nicht rückgängig gemacht werden.',
 
     // Providers: Edit
     'The name of this provider' => 'Der Name dieses Anbieters',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Absender-IDs konnten nicht deaktiviert werden',
     'Deleted {count} sender IDs' => '{count} Absender-IDs gelöscht',
     'Failed to delete sender IDs' => 'Absender-IDs konnten nicht gelöscht werden',
-    'Delete {count} sender ID(s)? This cannot be undone.' => '{count} Absender-ID(s) löschen? Dies kann nicht rückgängig gemacht werden.',
+    'Delete {count} sender ID? This cannot be undone.' => '{count} Absender-ID löschen? Dies kann nicht rückgängig gemacht werden.',
+    'Delete {count} sender IDs? This cannot be undone.' => '{count} Absender-IDs löschen? Dies kann nicht rückgängig gemacht werden.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'Der Anbieter, zu dem diese Absender-ID gehört',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Protokolle erfolgreich gelöscht.',
     'Failed to delete log.' => 'Protokoll konnte nicht gelöscht werden.',
     'Are you sure you want to delete this log?' => 'Möchten Sie dieses Protokoll wirklich löschen?',
-    'Are you sure you want to delete {count} log(s)?' => 'Möchten Sie {count} Protokolle wirklich löschen?',
+    'Are you sure you want to delete {count} log?' => 'Möchten Sie {count} Protokoll wirklich löschen?',
+    'Are you sure you want to delete {count} logs?' => 'Möchten Sie {count} Protokolle wirklich löschen?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'SMS-Anbieter und Absender-IDs verwalten sowie Analysedaten löschen.',

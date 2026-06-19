@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'No se pudieron desactivar los proveedores',
     'Deleted {count} providers' => '{count} proveedores eliminados',
     'Failed to delete providers' => 'No se pudieron eliminar los proveedores',
-    'Delete {count} provider(s)? This cannot be undone.' => '¿Eliminar {count} proveedor(es)? Esta acción no se puede deshacer.',
+    'Delete {count} provider? This cannot be undone.' => '¿Eliminar {count} proveedor? Esta acción no se puede deshacer.',
+    'Delete {count} providers? This cannot be undone.' => '¿Eliminar {count} proveedores? Esta acción no se puede deshacer.',
 
     // Providers: Edit
     'The name of this provider' => 'El nombre de este proveedor',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'No se pudieron desactivar los IDs de remitente',
     'Deleted {count} sender IDs' => '{count} IDs de remitente eliminados',
     'Failed to delete sender IDs' => 'No se pudieron eliminar los IDs de remitente',
-    'Delete {count} sender ID(s)? This cannot be undone.' => '¿Eliminar {count} ID(s) de remitente? Esta acción no se puede deshacer.',
+    'Delete {count} sender ID? This cannot be undone.' => '¿Eliminar {count} ID de remitente? Esta acción no se puede deshacer.',
+    'Delete {count} sender IDs? This cannot be undone.' => '¿Eliminar {count} IDs de remitente? Esta acción no se puede deshacer.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'El proveedor al que pertenece este ID de remitente',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Registros eliminados correctamente.',
     'Failed to delete log.' => 'No se pudo eliminar el registro.',
     'Are you sure you want to delete this log?' => '¿Está seguro de que desea eliminar este registro?',
-    'Are you sure you want to delete {count} log(s)?' => '¿Está seguro de que desea eliminar {count} registro(s)?',
+    'Are you sure you want to delete {count} log?' => '¿Está seguro de que desea eliminar {count} registro?',
+    'Are you sure you want to delete {count} logs?' => '¿Está seguro de que desea eliminar {count} registros?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Gestione proveedores SMS, IDs de remitente y borre datos de analíticas.',

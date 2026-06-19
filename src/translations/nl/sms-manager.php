@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'Kon providers niet uitschakelen',
     'Deleted {count} providers' => '{count} providers verwijderd',
     'Failed to delete providers' => 'Kon providers niet verwijderen',
-    'Delete {count} provider(s)? This cannot be undone.' => '{count} provider(s) verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} provider? This cannot be undone.' => '{count} provider verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} providers? This cannot be undone.' => '{count} providers verwijderen? Dit kan niet ongedaan worden gemaakt.',
 
     // Providers: Edit
     'The name of this provider' => 'De naam van deze provider',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => 'Kon afzender-IDs niet uitschakelen',
     'Deleted {count} sender IDs' => '{count} afzender-IDs verwijderd',
     'Failed to delete sender IDs' => 'Kon afzender-IDs niet verwijderen',
-    'Delete {count} sender ID(s)? This cannot be undone.' => '{count} afzender-ID(s) verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} sender ID? This cannot be undone.' => '{count} sender-ID verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} sender IDs? This cannot be undone.' => '{count} sender-ID\'s verwijderen? Dit kan niet ongedaan worden gemaakt.',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'De provider waartoe deze afzender-ID behoort',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'Logboeken succesvol verwijderd.',
     'Failed to delete log.' => 'Kon logboek niet verwijderen.',
     'Are you sure you want to delete this log?' => 'Weet u zeker dat u dit logboek wilt verwijderen?',
-    'Are you sure you want to delete {count} log(s)?' => 'Weet u zeker dat u {count} logboek(en) wilt verwijderen?',
+    'Are you sure you want to delete {count} log?' => 'Weet u zeker dat u {count} logboek wilt verwijderen?',
+    'Are you sure you want to delete {count} logs?' => 'Weet u zeker dat u {count} logboeken wilt verwijderen?',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'SMS-providers en afzender-ID\'s beheren en analysegegevens wissen.',

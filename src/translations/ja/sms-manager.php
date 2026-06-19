@@ -130,17 +130,17 @@ return [
     'Auth Token is required.' => 'Auth Token は必須です。',
     'Cannot delete config-based provider. Remove it from config/sms-manager.php instead.' => '設定ファイルベースのプロバイダーは削除できません。代わりに config/sms-manager.php から削除してください。',
     'Cannot delete the default provider. Set another provider as default first.' => 'デフォルトプロバイダーは削除できません。最初に別のプロバイダーをデフォルトに設定してください。',
-    'Cannot delete provider. It is in use by: {usages}' => 'プロバイダーを削除できません。次の箇所で使用されています： {usages}',
+    'Cannot delete provider. It is in use by: {usages}' => 'プロバイダーを削除できません。次の箇所で使用されています: {usages}',
     'Cannot modify config-based provider.' => '設定ファイルベースのプロバイダーは変更できません。',
     'Cannot modify config-based provider "{name}".' => '設定ファイルベースのプロバイダー "{name}" は変更できません。',
     'Cannot disable default provider "{name}".' => 'デフォルトプロバイダー "{name}" は無効にできません。',
     'Cannot delete config-based sender ID. Remove it from config/sms-manager.php instead.' => '設定ファイルベースの送信者 ID は削除できません。代わりに config/sms-manager.php から削除してください。',
     'Cannot delete the default sender ID. Set another sender ID as default first.' => 'デフォルト送信者 ID は削除できません。最初に別の送信者 ID をデフォルトに設定してください。',
-    'Cannot delete sender ID. It is in use by: {usages}' => '送信者 ID を削除できません。次の箇所で使用されています： {usages}',
+    'Cannot delete sender ID. It is in use by: {usages}' => '送信者 ID を削除できません。次の箇所で使用されています: {usages}',
     'Cannot modify config-based sender ID.' => '設定ファイルベースの送信者 ID は変更できません。',
     'Cannot modify config-based sender ID "{name}".' => '設定ファイルベースの送信者 ID "{name}" は変更できません。',
     'Cannot disable default sender ID "{name}".' => 'デフォルト送信者 ID "{name}" は無効にできません。',
-    'This provider only supports: {countries}' => 'このプロバイダーは次の国のみサポートしています： {countries}',
+    'This provider only supports: {countries}' => 'このプロバイダーは次の国のみサポートしています: {countries}',
 
     // Settings: General
     'General Settings' => '一般設定',
@@ -196,7 +196,7 @@ return [
     'Select the sender ID to use' => '使用する送信者 ID を選択してください',
     'Recipient Phone Number' => '受信者の電話番号',
     'Enter phone number. Paste with country code to auto-detect.' => '電話番号を入力してください。国番号付きで貼り付けると自動検出されます。',
-    'e.g., 94400999' => '例： 94400999',
+    'e.g., 94400999' => '例: 94400999',
     'Message' => 'メッセージ',
     'Enter the message to send. Keep it short for testing.' => '送信するメッセージを入力してください。テスト用に短くしてください。',
     'Language' => '言語',
@@ -260,7 +260,8 @@ return [
     'Failed to disable providers' => 'プロバイダーを無効化できませんでした',
     'Deleted {count} providers' => '{count} 件のプロバイダーを削除しました',
     'Failed to delete providers' => 'プロバイダーを削除できませんでした',
-    'Delete {count} provider(s)? This cannot be undone.' => '{count} 件のプロバイダーを削除しますか？ この操作は取り消せません。',
+    'Delete {count} provider? This cannot be undone.' => '{count} 件のプロバイダーを削除しますか？この操作は取り消せません。',
+    'Delete {count} providers? This cannot be undone.' => '{count} 件のプロバイダーを削除しますか？この操作は取り消せません。',
 
     // Providers: Edit
     'The name of this provider' => 'このプロバイダーの名前',
@@ -332,7 +333,8 @@ return [
     'Failed to disable sender IDs' => '送信者 ID を無効化できませんでした',
     'Deleted {count} sender IDs' => '{count} 件の送信者 ID を削除しました',
     'Failed to delete sender IDs' => '送信者 ID を削除できませんでした',
-    'Delete {count} sender ID(s)? This cannot be undone.' => '{count} 件の送信者 ID を削除しますか？ この操作は取り消せません。',
+    'Delete {count} sender ID? This cannot be undone.' => '{count} 件の送信者 ID を削除しますか？この操作は取り消せません。',
+    'Delete {count} sender IDs? This cannot be undone.' => '{count} 件の送信者 ID を削除しますか？この操作は取り消せません。',
 
     // Sender IDs: Edit
     'The provider this sender ID belongs to' => 'この送信者 ID が属するプロバイダー',
@@ -414,7 +416,8 @@ return [
     'Logs deleted successfully.' => 'ログを正常に削除しました。',
     'Failed to delete log.' => 'ログを削除できませんでした。',
     'Are you sure you want to delete this log?' => 'このログを削除してもよろしいですか？',
-    'Are you sure you want to delete {count} log(s)?' => '{count} 件のログを削除してもよろしいですか？',
+    'Are you sure you want to delete {count} log?' => '{count} 件のログを削除してもよろしいですか？',
+    'Are you sure you want to delete {count} logs?' => '{count} 件のログを削除してもよろしいですか？',
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'SMS プロバイダーと送信者 ID を管理し、アナリティクスデータを削除します。',
