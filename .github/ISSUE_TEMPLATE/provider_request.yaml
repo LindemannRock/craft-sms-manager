@@ -1,6 +1,6 @@
 name: Provider Request
 description: Request support for a new SMS gateway / provider.
-labels: 'provider request'
+labels: ['type: feature', 'area: integrations', 'status: needs triage']
 body:
   - type: markdown
     attributes:
@@ -13,7 +13,7 @@ body:
 
         Before submitting, please check:
 
-          - I've searched [open and closed issues](https://github.com/LindemannRock/craft-sms-manager/issues?q=is%3Aissue+label%3A%22provider+request%22).
+          - I've searched [open and closed issues](https://github.com/LindemannRock/craft-sms-manager/issues?q=is%3Aissue+label%3A%22area%3A+integrations%22).
 
   - type: input
     id: provider-name
@@ -58,18 +58,17 @@ body:
     id: plugin-version
     attributes:
       label: "SMS Manager version"
-      description: Check in Settings → Plugins.
+      description: "**Do not write \"latest\"** — check Craft's System Report or Settings → Plugins."
+      placeholder: e.g. 5.2.0
     validations:
       required: true
 
-  - type: dropdown
-    id: craft-major
+  - type: input
+    id: craft-version
     attributes:
-      label: Craft CMS major version
-      options:
-        - "Craft 5"
-    validations:
-      required: true
+      label: Craft CMS exact version
+      description: "**Do not write \"latest\"** — check Craft's System Report."
+      placeholder: e.g. 5.6.1
 
   - type: textarea
     id: additional-context
