@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.14.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.14.0...v5.14.1) (2026-06-20)
+
+
+### Fixed
+
+* **i18n:** correct translations across multiple locales ([2fd64fc](https://github.com/LindemannRock/craft-sms-manager/commit/2fd64fc1a0d3b737c24b787e83848237987ccdb1))
+
 ## [5.14.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.13.0...v5.14.0) - 2026-06-18
 
 
