@@ -74,6 +74,7 @@ return [
     'Updated at' => 'Mis à jour à',
     'Configuration' => 'Configuration',
     'Config File' => 'Fichier de configuration',
+    'Config' => 'Config',
     'Database' => 'Base de données',
     'Production' => 'Production',
     'Development' => 'Développement',

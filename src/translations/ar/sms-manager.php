@@ -74,6 +74,7 @@ return [
     'Updated at' => 'تم التحديث في',
     'Configuration' => 'التكوين',
     'Config File' => 'ملف التكوين',
+    'Config' => 'التكوين',
     'Database' => 'قاعدة البيانات',
     'Production' => 'الإنتاج',
     'Development' => 'التطوير',

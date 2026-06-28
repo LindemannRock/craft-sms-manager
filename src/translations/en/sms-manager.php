@@ -74,6 +74,7 @@ return [
     'Updated at' => 'Updated at',
     'Configuration' => 'Configuration',
     'Config File' => 'Config File',
+    'Config' => 'Config',
     'Database' => 'Database',
     'Production' => 'Production',
     'Development' => 'Development',

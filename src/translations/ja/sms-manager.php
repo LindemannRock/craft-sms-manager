@@ -74,6 +74,7 @@ return [
     'Updated at' => '更新日時',
     'Configuration' => '設定',
     'Config File' => '設定ファイル',
+    'Config' => '設定',
     'Database' => 'データベース',
     'Production' => '本番',
     'Development' => '開発',

@@ -132,7 +132,7 @@
                         </td>
                         <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
                             {% include 'lindemannrock-base/_components/badge' with {
-                                label: log.status|capitalize,
+                                label: log.status == 'sent' ? 'Sent'|t('sms-manager') : (log.status == 'failed' ? 'Failed'|t('sms-manager') : (log.status == 'pending' ? 'Pending'|t('sms-manager') : log.status|capitalize)),
                                 value: log.status,
                                 colorSet: 'smsStatus',
                             } only %}

@@ -22,7 +22,7 @@
     </td>
     <td data-column="status">
         {% include 'lindemannrock-base/_components/badge' with {
-            label: item.status|capitalize,
+            label: item.status == 'sent' ? 'Sent'|t('sms-manager') : (item.status == 'failed' ? 'Failed'|t('sms-manager') : (item.status == 'pending' ? 'Pending'|t('sms-manager') : item.status|capitalize)),
             value: item.status,
             colorSet: 'smsStatus',
         } only %}
