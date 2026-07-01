@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.15.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.14.1...v5.15.0) (2026-07-01)
+
+
+### Added
+
+* add URL and preserveParams to SMS Logs page configuration ([3f7b7c1](https://github.com/LindemannRock/craft-sms-manager/commit/3f7b7c1804f19543aafbcb5672e519c6ce182f34))
+* **i18n:** add "Manage Settings" translation across multiple locales ([1a41b92](https://github.com/LindemannRock/craft-sms-manager/commit/1a41b922b46eb0fee8f9f341422a5db91aa627f4))
+* **i18n:** update SMS status labels for better clarity ([f82abf6](https://github.com/LindemannRock/craft-sms-manager/commit/f82abf698b6a91fc8e80280862751f2a3d700748))
+
 ## [5.14.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.14.0...v5.14.1) - 2026-06-20
 
 
