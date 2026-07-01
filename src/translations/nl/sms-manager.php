@@ -422,6 +422,7 @@ return [
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'SMS-providers en afzender-ID\'s beheren en analysegegevens wissen.',
+    'Manage Settings' => 'Instellingen beheren',
     'SMS Providers' => 'SMS-providers',
     'Active' => 'Actief',
     'None Active' => 'Geen actief',

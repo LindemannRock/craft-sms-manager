@@ -422,6 +422,7 @@ return [
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'SMS プロバイダーと送信者 ID を管理し、アナリティクスデータを削除します。',
+    'Manage Settings' => '設定を管理する',
     'SMS Providers' => 'SMS プロバイダー',
     'Active' => 'アクティブ',
     'None Active' => 'アクティブなし',

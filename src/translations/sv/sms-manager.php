@@ -422,6 +422,7 @@ return [
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'Hantera SMS-leverantörer, avsändar-ID:n och rensa analysdata.',
+    'Manage Settings' => 'Hantera inställningar',
     'SMS Providers' => 'SMS-leverantörer',
     'Active' => 'Aktiv',
     'None Active' => 'Ingen aktiv',

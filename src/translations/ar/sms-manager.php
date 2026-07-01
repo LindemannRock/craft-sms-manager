@@ -422,6 +422,7 @@ return [
 
     // Utilities
     'Manage SMS providers, sender IDs, and clear analytics data.' => 'إدارة مزودي SMS ومعرّفات المُرسِل ومسح بيانات التحليلات.',
+    'Manage Settings' => 'إدارة الإعدادات',
     'SMS Providers' => 'مزودو SMS',
     'Active' => 'نشط',
     'None Active' => 'لا يوجد نشط',
