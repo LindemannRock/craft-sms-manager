@@ -60,6 +60,7 @@
     page: {
         title: 'SMS Logs'|t('sms-manager'),
         subnav: 'logs',
+        url: url('sms-manager/logs/sms'),
         crumbs: [
             { label: smsHelper.fullName, url: url('sms-manager') },
             { label: 'Logs'|t('sms-manager'), url: url('sms-manager/logs') },
@@ -70,6 +71,9 @@
         items: sidebarItems,
         selected: 'sms',
     },
+    preserveParams: craft.app.request.getQueryParam('site') ? {
+        site: craft.app.request.getQueryParam('site'),
+    } : {},
     filters: [
         {
             type: 'status',
