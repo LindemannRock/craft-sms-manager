@@ -8,10 +8,12 @@
 analytics
 controllers
 cp
+dashboard
 deps
 i18n
 integrations
 jobs
+logs
 migrations
 models
 permissions
