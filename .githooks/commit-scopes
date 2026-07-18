@@ -5,6 +5,7 @@
 # sub-area of the plugin — never category words (robustness, security),
 # synonyms, plural/singular variants of an existing entry, or the plugin
 # NAME (the hook bans name-variant scopes automatically).
+analytics
 controllers
 cp
 deps
