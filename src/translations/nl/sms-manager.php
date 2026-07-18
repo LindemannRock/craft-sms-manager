@@ -123,7 +123,6 @@ return [
     'User does not have permission to view analytics for this site.' => 'De gebruiker heeft geen toestemming om analyses voor deze site te bekijken.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fout} other{fouten}} gevonden',
     'API Key is required.' => 'API-sleutel is verplicht.',
     'API URL must be a valid URL.' => 'API URL moet een geldige URL zijn.',
     'API URL must use HTTPS.' => 'API URL moet HTTPS gebruiken.',

@@ -31,7 +31,6 @@
     {% set errorSummary = include('lindemannrock-base/_partials/error-summary', {
         errors: senderId.getErrors(),
         linkMode: 'data-key',
-        translationCategory: 'sms-manager'
     })|trim %}
 {% endif %}
 

@@ -123,7 +123,6 @@ return [
     'User does not have permission to view analytics for this site.' => 'El usuario no tiene permiso para ver las analíticas de este sitio.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{error encontrado} other{errores encontrados}}',
     'API Key is required.' => 'La clave API es obligatoria.',
     'API URL must be a valid URL.' => 'La URL de la API debe ser una URL válida.',
     'API URL must use HTTPS.' => 'La URL de la API debe usar HTTPS.',

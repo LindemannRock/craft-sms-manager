@@ -123,7 +123,6 @@ return [
     'User does not have permission to view analytics for this site.' => 'ユーザーにこのサイトのアナリティクスを表示する権限がありません。',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} 件の{count, plural, =1{エラー} other{エラー}}が見つかりました',
     'API Key is required.' => 'API キーは必須です。',
     'API URL must be a valid URL.' => 'API URL は有効な URL である必要があります。',
     'API URL must use HTTPS.' => 'API URL は HTTPS を使用する必要があります。',

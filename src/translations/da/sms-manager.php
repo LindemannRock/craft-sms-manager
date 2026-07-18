@@ -123,7 +123,6 @@ return [
     'User does not have permission to view analytics for this site.' => 'Brugeren har ikke tilladelse til at se analyser for dette websted.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fejl} other{fejl}} fundet',
     'API Key is required.' => 'API-nøgle er påkrævet.',
     'API URL must be a valid URL.' => 'API URL skal være en gyldig URL.',
     'API URL must use HTTPS.' => 'API URL skal bruge HTTPS.',
