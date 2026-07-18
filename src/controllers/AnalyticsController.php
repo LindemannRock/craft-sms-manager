@@ -102,13 +102,13 @@ class AnalyticsController extends Controller
         // Get summary stats
         $summaryStats = (clone $query)
             ->select([
-                'SUM(totalSent) as sent',
-                'SUM(totalDelivered) as delivered',
-                'SUM(totalFailed) as failed',
-                'SUM(totalPending) as pending',
-                'SUM(englishCount) as english',
-                'SUM(arabicCount) as arabic',
-                'SUM(otherCount) as other',
+                'SUM([[totalSent]]) as sent',
+                'SUM([[totalDelivered]]) as delivered',
+                'SUM([[totalFailed]]) as failed',
+                'SUM([[totalPending]]) as pending',
+                'SUM([[englishCount]]) as english',
+                'SUM([[arabicCount]]) as arabic',
+                'SUM([[otherCount]]) as other',
             ])
             ->one();
 
@@ -117,8 +117,8 @@ class AnalyticsController extends Controller
             ->select([
                 'providerId',
                 'siteId',
-                'SUM(totalSent) as sent',
-                'SUM(totalFailed) as failed',
+                'SUM([[totalSent]]) as sent',
+                'SUM([[totalFailed]]) as failed',
             ])
             ->groupBy(['providerId', 'siteId'])
             ->all();
@@ -236,8 +236,8 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->select([
                 'date' => $localDate,
-                'SUM(totalSent) as sent',
-                'SUM(totalFailed) as failed',
+                'SUM([[totalSent]]) as sent',
+                'SUM([[totalFailed]]) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
             ->groupBy([$localDate])
@@ -313,8 +313,8 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->select([
                 'providerId',
-                'SUM(totalSent) as sent',
-                'SUM(totalFailed) as failed',
+                'SUM([[totalSent]]) as sent',
+                'SUM([[totalFailed]]) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['providerId'])
@@ -348,8 +348,8 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->select([
                 'senderIdId',
-                'SUM(totalSent) as sent',
-                'SUM(totalFailed) as failed',
+                'SUM([[totalSent]]) as sent',
+                'SUM([[totalFailed]]) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['senderIdId']);
@@ -386,8 +386,8 @@ class AnalyticsController extends Controller
             ->select([
                 'senderIdId',
                 'siteId',
-                'SUM(totalSent) as sent',
-                'SUM(totalFailed) as failed',
+                'SUM([[totalSent]]) as sent',
+                'SUM([[totalFailed]]) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['senderIdId', 'siteId']);
@@ -420,8 +420,8 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->select([
                 'siteId',
-                'SUM(totalSent) as sent',
-                'SUM(totalFailed) as failed',
+                'SUM([[totalSent]]) as sent',
+                'SUM([[totalFailed]]) as failed',
             ])
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['siteId']);
@@ -455,7 +455,7 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->select([
                 'language',
-                'SUM(totalSent + totalFailed + totalDelivered + totalPending) as count',
+                'SUM([[totalSent]] + [[totalFailed]] + [[totalDelivered]] + [[totalPending]]) as count',
             ])
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['language'])
@@ -514,9 +514,9 @@ class AnalyticsController extends Controller
     {
         $query = (new Query())
             ->select([
-                'SUM(englishCount) as gsm7',
-                'SUM(arabicCount) as ucs2',
-                'SUM(otherCount) as mixed',
+                'SUM([[englishCount]]) as gsm7',
+                'SUM([[arabicCount]]) as ucs2',
+                'SUM([[otherCount]]) as mixed',
             ])
             ->from(AnalyticsRecord::tableName());
 
@@ -548,9 +548,9 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->select([
                 'date' => $localDate,
-                'SUM(englishCount) as gsm7',
-                'SUM(arabicCount) as ucs2',
-                'SUM(otherCount) as mixed',
+                'SUM([[englishCount]]) as gsm7',
+                'SUM([[arabicCount]]) as ucs2',
+                'SUM([[otherCount]]) as mixed',
             ])
             ->from(AnalyticsRecord::tableName())
             ->groupBy([$localDate])
