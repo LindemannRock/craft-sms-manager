@@ -348,7 +348,9 @@ class SmsService extends Component
             'providerHandle' => $provider->handle,
             'senderIdHandle' => $senderId->handle,
             'siteId' => $siteId,
-            'recipient' => $to,
+            // Truncated to the column width: MySQL silently truncated over-length
+            // values here; PostgreSQL would hard-fail the whole send instead.
+            'recipient' => mb_substr($to, 0, 64),
             'message' => $message,
             'language' => $language,
             'messageLength' => mb_strlen($message),

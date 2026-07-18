@@ -56,7 +56,10 @@ class ProviderRecord extends ActiveRecord
     {
         return [
             [['name', 'handle', 'type'], 'required'],
-            [['name', 'handle', 'type'], 'string', 'max' => 255],
+            [['name'], 'string', 'max' => 255],
+            // Match the 64-char columns — MySQL would silently truncate an
+            // over-length value; PostgreSQL hard-errors on the same input.
+            [['handle', 'type'], 'string', 'max' => 64],
             [['settings'], 'string'],
             [['enabled'], 'boolean'],
             [['handle'], 'unique', 'targetClass' => self::class, 'message' => Craft::t('sms-manager', 'Handle must be unique.')],
@@ -116,8 +119,9 @@ class ProviderRecord extends ActiveRecord
             return self::createFromConfig($handle, $providerConfig);
         }
 
-        // Then, check database
-        return self::findOne(['handle' => $handle]);
+        // Then, check database. Stored handles are lowercase-normalized; lowercase
+        // the probe so the lookup stays case-insensitive on PostgreSQL too.
+        return self::findOne(['handle' => strtolower(trim($handle))]);
     }
 
     /**

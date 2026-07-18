@@ -60,7 +60,10 @@ class SenderIdRecord extends ActiveRecord
     {
         return [
             [['name', 'handle', 'senderId', 'providerHandle'], 'required'],
-            [['name', 'handle', 'senderId', 'providerHandle'], 'string', 'max' => 255],
+            [['name'], 'string', 'max' => 255],
+            // Match the 64-char columns — MySQL would silently truncate an
+            // over-length value; PostgreSQL hard-errors on the same input.
+            [['handle', 'senderId', 'providerHandle'], 'string', 'max' => 64],
             [['description'], 'string'],
             [['enabled', 'isDev'], 'boolean'],
             [['providerId'], 'integer'],
@@ -111,8 +114,9 @@ class SenderIdRecord extends ActiveRecord
             return self::createFromConfig($handle, $senderIdConfig);
         }
 
-        // Then, check database
-        return self::findOne(['handle' => $handle]);
+        // Then, check database. Stored handles are lowercase-normalized; lowercase
+        // the probe so the lookup stays case-insensitive on PostgreSQL too.
+        return self::findOne(['handle' => strtolower(trim($handle))]);
     }
 
     /**
