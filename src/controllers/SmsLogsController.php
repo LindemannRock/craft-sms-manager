@@ -14,6 +14,7 @@ use craft\web\Controller;
 use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
+use lindemannrock\base\helpers\DbHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -269,14 +270,23 @@ class SmsLogsController extends Controller
         if ($params['search'] !== '') {
             $query->andWhere([
                 'or',
-                ['like', 'recipient', $params['search']],
-                ['like', 'message', $params['search']],
-                ['like', 'providerMessageId', $params['search']],
+                ['like', 'LOWER([[recipient]])', mb_strtolower($params['search'])],
+                ['like', 'LOWER([[message]])', mb_strtolower($params['search'])],
+                ['like', 'LOWER([[providerMessageId]])', mb_strtolower($params['search'])],
             ]);
         }
 
         // Apply sorting — sort column comes from the validated allowlist.
-        $query->orderBy([$params['sort'] => $params['sortDir']]);
+        if ($params['sort'] === 'providerId') {
+            // Nullable column (config-only providers): NULLs pinned last on both
+            // engines, both directions — MySQL and PostgreSQL default NULL
+            // ordering are opposites.
+            $query->orderBy(new \yii\db\Expression(
+                DbHelper::orderByNullsLast('providerId', $params['sortDir'] === SORT_DESC ? 'DESC' : 'ASC')
+            ));
+        } else {
+            $query->orderBy([$params['sort'] => $params['sortDir']]);
+        }
 
         return $query;
     }
