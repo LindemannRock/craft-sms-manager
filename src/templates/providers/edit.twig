@@ -30,7 +30,6 @@
 {% if provider and provider.hasErrors() %}
     {% set errorSummary = include('lindemannrock-base/_partials/error-summary', {
         errors: provider.getErrors(),
-        linkMode: 'data-key',
     })|trim %}
 {% endif %}
 
