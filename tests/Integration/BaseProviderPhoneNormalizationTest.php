@@ -13,6 +13,7 @@ namespace lindemannrock\smsmanager\tests\Integration;
 use lindemannrock\smsmanager\providers\BaseProvider;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\tests\TestCase;
+use ReflectionMethod;
 
 /**
  * Phone-number normalization pinned by {@see BaseProvider::normalizeAndValidatePhone}.
@@ -43,7 +44,7 @@ final class BaseProviderPhoneNormalizationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->provider = new class () extends BaseProvider {
+        $this->provider = new class() extends BaseProvider {
             public static function handle(): string
             {
                 return '__sm_test_phone';
@@ -76,21 +77,12 @@ final class BaseProviderPhoneNormalizationTest extends TestCase
             {
                 return ['success' => false, 'messageId' => null, 'response' => null, 'error' => null];
             }
-
-            /**
-             * @param list<string> $countries
-             * @return array{number: string, valid: bool, error: string|null, fixed: bool}
-             */
-            public function exposeNormalize(string $number, array $countries): array
-            {
-                return $this->normalizeAndValidatePhone($number, $countries);
-            }
         };
     }
 
     public function testFixesDuplicateKuwaitCountryCode(): void
     {
-        $result = $this->provider->exposeNormalize('96596594400999', ['KW']);
+        $result = $this->normalize('96596594400999', ['KW']);
 
         self::assertTrue($result['valid'], 'Number with stripped duplicate dial code should be valid');
         self::assertTrue($result['fixed'], 'Duplicate-dial-code fix must set fixed=true so callers can log it');
@@ -100,11 +92,22 @@ final class BaseProviderPhoneNormalizationTest extends TestCase
 
     public function testAddsMissingCountryCodeForLocalNumber(): void
     {
-        $result = $this->provider->exposeNormalize('94400999', ['KW']);
+        $result = $this->normalize('94400999', ['KW']);
 
         self::assertTrue($result['valid']);
         self::assertTrue($result['fixed'], 'Missing-dial-code fix must set fixed=true');
         self::assertSame('96594400999', $result['number']);
         self::assertNull($result['error']);
+    }
+
+    /**
+     * @param list<string> $countries
+     * @return array{number: string, valid: bool, error: string|null, fixed: bool}
+     */
+    private function normalize(string $number, array $countries): array
+    {
+        $method = new ReflectionMethod(BaseProvider::class, 'normalizeAndValidatePhone');
+        /** @var array{number: string, valid: bool, error: string|null, fixed: bool} */
+        return $method->invoke($this->provider, $number, $countries);
     }
 }

@@ -16,7 +16,9 @@ use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\models\Settings;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
+use lindemannrock\smsmanager\services\RecurringCleanupScheduler;
 use lindemannrock\smsmanager\SmsManager;
 use yii\queue\RetryableJobInterface;
 
@@ -45,6 +47,12 @@ class CleanupAnalyticsJob extends BaseJob implements RetryableJobInterface
     public ?string $nextRunTime = null;
 
     /**
+     * @var string|null Stable recurring-family owner
+     * @since 5.16.0
+     */
+    public ?string $recurringOwner = null;
+
+    /**
      * @inheritdoc
      */
     public function canRetry($attempt, $error): bool
@@ -66,31 +74,40 @@ class CleanupAnalyticsJob extends BaseJob implements RetryableJobInterface
      */
     public function execute($queue): void
     {
-        $settings = SmsManager::$plugin->getSettings();
+        $scheduler = SmsManager::$plugin->recurringCleanup;
+
+        if ($this->reschedule && ($this->recurringOwner === null || $this->recurringOwner === RecurringCleanupScheduler::ANALYTICS_OWNER)) {
+            $scheduler->runAnalyticsOccurrence(fn(Settings $settings) => $this->runCleanup($settings));
+            return;
+        }
+
+        $settings = $scheduler->loadEffectiveSettings();
 
         // Only run if retention is enabled
         if ($settings->analyticsRetention <= 0) {
             return;
         }
 
+        $this->runCleanup($settings);
+    }
+
+    /** Run date retention followed by the optional count trim. */
+    private function runCleanup(Settings $settings): void
+    {
+
         // Clean up old analytics by date
-        $deleted = $this->cleanupOldAnalytics();
+        $deleted = $this->cleanupOldAnalytics($settings);
 
         // Also trim by count if auto-trim is enabled
         $trimmed = 0;
         if ($settings->autoTrimAnalytics) {
-            $trimmed = $this->trimAnalytics();
+            $trimmed = $this->trimAnalytics($settings);
         }
 
         $this->logInfo('Analytics cleanup completed', [
             'deleted' => $deleted,
             'trimmed' => $trimmed,
         ]);
-
-        // Reschedule if needed
-        if ($this->reschedule) {
-            $this->scheduleNextCleanup();
-        }
     }
 
     /**
@@ -127,9 +144,8 @@ class CleanupAnalyticsJob extends BaseJob implements RetryableJobInterface
     /**
      * Clean up analytics older than retention period
      */
-    private function cleanupOldAnalytics(): int
+    private function cleanupOldAnalytics(Settings $settings): int
     {
-        $settings = SmsManager::$plugin->getSettings();
         $retention = $settings->analyticsRetention;
 
         if ($retention <= 0) {
@@ -158,9 +174,8 @@ class CleanupAnalyticsJob extends BaseJob implements RetryableJobInterface
     /**
      * Trim analytics to stay within limit
      */
-    private function trimAnalytics(): int
+    private function trimAnalytics(Settings $settings): int
     {
-        $settings = SmsManager::$plugin->getSettings();
         $limit = $settings->analyticsLimit;
 
         // Get current count
@@ -199,65 +214,10 @@ class CleanupAnalyticsJob extends BaseJob implements RetryableJobInterface
     }
 
     /**
-     * Schedule the next cleanup (runs every 24 hours)
-     */
-    private function scheduleNextCleanup(): void
-    {
-        $settings = SmsManager::$plugin->getSettings();
-
-        // Only reschedule if analytics is enabled and retention is set
-        if (!$settings->enableAnalytics || $settings->analyticsRetention <= 0) {
-            return;
-        }
-
-        $nextRun = $this->calculateNextRun();
-        if ($nextRun === null) {
-            return;
-        }
-
-        $delay = $this->calculateNextRunDelay($nextRun);
-
-        if ($delay > 0) {
-            $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
-                $nextRun,
-                $settings,
-                null,
-                false,
-                pluginHandle: 'sms-manager',
-            );
-
-            $job = new self([
-                'reschedule' => true,
-                'nextRunTime' => $nextRunTime,
-            ]);
-
-            Craft::$app->getQueue()->delay($delay)->push($job);
-
-            $this->logDebug('Scheduled next analytics cleanup', [
-                'delay' => $delay,
-                'nextRun' => $nextRunTime,
-            ]);
-        }
-    }
-
-    /**
      * Calculate the next cleanup run.
      */
     private function calculateNextRun(): ?\DateTime
     {
         return ScheduleHelper::calculateNext('daily');
-    }
-
-    /**
-     * Calculate the delay in seconds for the next cleanup.
-     */
-    private function calculateNextRunDelay(?\DateTime $nextRun = null): int
-    {
-        $nextRun ??= $this->calculateNextRun();
-        if ($nextRun === null) {
-            return 0;
-        }
-
-        return max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
     }
 }

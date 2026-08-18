@@ -14,6 +14,7 @@ use lindemannrock\smsmanager\events\RegisterProvidersEvent;
 use lindemannrock\smsmanager\services\ProvidersService;
 use lindemannrock\smsmanager\tests\Stubs\StubProvider;
 use lindemannrock\smsmanager\tests\TestCase;
+use ReflectionMethod;
 
 /**
  * Registration contract for {@see ProvidersService}: provider types are
@@ -50,7 +51,7 @@ final class ProvidersServiceRegistrationTest extends TestCase
         $service = new ProvidersService();
         $service->on(
             ProvidersService::EVENT_REGISTER_PROVIDERS,
-            static function (RegisterProvidersEvent $event): void {
+            static function(RegisterProvidersEvent $event): void {
                 $event->register(StubProvider::class);
             }
         );
@@ -75,6 +76,6 @@ final class ProvidersServiceRegistrationTest extends TestCase
         $this->swapPluginComponent('sms-manager', 'providers', $service);
 
         $this->expectException(\InvalidArgumentException::class);
-        $service->registerProviderType(\stdClass::class);
+        (new ReflectionMethod($service, 'registerProviderType'))->invoke($service, \stdClass::class);
     }
 }

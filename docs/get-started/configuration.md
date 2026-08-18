@@ -35,18 +35,24 @@ The `defaultProviderId` and `defaultSenderIdId` settings still exist for backwar
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `enableAnalytics` | `bool` | `true` | Record per-message analytics |
-| `analyticsLimit` | `int` | `1000` | Maximum analytics records to retain (1–100000) |
+| `analyticsLimit` | `int` | `1000` | Maximum analytics records to retain when count trimming is enabled (1–100000) |
 | `analyticsRetention` | `int` | `30` | Days to keep analytics records (0–3650, `0` = keep forever) |
-| `autoTrimAnalytics` | `bool` | `true` | Automatically trim old analytics on a daily schedule |
+| `autoTrimAnalytics` | `bool` | `true` | After date cleanup, trim the oldest remaining analytics records to `analyticsLimit` |
+
+The daily analytics-cleanup family runs only while `enableAnalytics` is on and `analyticsRetention` is greater than `0`. Turning analytics off or setting retention to `0` cancels its future recurring cleanup. Changing the positive retention value or the count-trim settings does not replace the daily chain.
 
 ### SMS logs
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `enableSmsLogs` | `bool` | `true` | Record a delivery log row for every message |
-| `smsLogsLimit` | `int` | `10000` | Maximum log records to retain (1–100000) |
+| `smsLogsLimit` | `int` | `10000` | Maximum log records to retain when count trimming is enabled (1–100000) |
 | `smsLogsRetention` | `int` | `30` | Days to keep log records (0–3650, `0` = keep forever) |
-| `autoTrimSmsLogs` | `bool` | `true` | Automatically trim old logs on a daily schedule |
+| `autoTrimSmsLogs` | `bool` | `true` | After date cleanup, trim the oldest remaining logs to `smsLogsLimit` |
+
+The daily SMS-log-cleanup family runs only while `enableSmsLogs` is on and `smsLogsRetention` is greater than `0`. Turning logs off or setting retention to `0` cancels its future recurring cleanup. This family is independent from analytics cleanup, so changing one does not replace or cancel the other.
+
+Both cleanup families preserve the canonical daily Craft-timezone target. Queue backends with a bounded delay use one or more short handoffs to reach that target; the handoffs only continue the schedule and never delete data. Native and other queue backends keep the complete delay.
 
 ### Interface
 

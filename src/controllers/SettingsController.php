@@ -11,6 +11,7 @@ namespace lindemannrock\smsmanager\controllers;
 use Craft;
 use craft\helpers\App;
 use craft\web\Controller;
+use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\base\helpers\SettingsPostHelper;
 use lindemannrock\smsmanager\models\Settings;
 use lindemannrock\smsmanager\SmsManager;
@@ -247,6 +248,13 @@ class SettingsController extends Controller
         $this->requirePostRequest();
 
         $settings = Settings::loadFromDatabase();
+        $previousEffectiveSettings = PluginHelper::applyConfigOverridesToSettings(
+            clone $settings,
+            'sms-manager',
+        );
+        $scheduler = SmsManager::$plugin->recurringCleanup;
+        $analyticsWasEnabled = $scheduler->analyticsEnabled($previousEffectiveSettings);
+        $logsWereEnabled = $scheduler->logsEnabled($previousEffectiveSettings);
         $postedSettings = Craft::$app->getRequest()->getBodyParam('settings', []);
         $section = $this->_validSettingsSection(
             Craft::$app->getRequest()->getBodyParam('section', 'general'),
@@ -277,6 +285,19 @@ class SettingsController extends Controller
                 'settings' => $settings,
             ]);
         }
+
+        $savedSettings = $scheduler->loadEffectiveSettings();
+        $cachedSettings = SmsManager::$plugin->getSettings();
+        if ($cachedSettings instanceof Settings) {
+            Settings::loadFromDatabase($cachedSettings);
+            PluginHelper::applyConfigOverridesToSettings($cachedSettings, 'sms-manager');
+        }
+
+        $scheduler->reconcileSettings(
+            $analyticsWasEnabled,
+            $logsWereEnabled,
+            $savedSettings,
+        );
 
         Craft::$app->getSession()->setNotice(Craft::t('sms-manager', 'Settings saved.'));
 

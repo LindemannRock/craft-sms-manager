@@ -13,6 +13,7 @@ namespace lindemannrock\smsmanager\tests\Integration;
 use lindemannrock\smsmanager\providers\TwilioProvider;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\tests\TestCase;
+use ReflectionMethod;
 
 /**
  * Twilio provider contract, pinned without hitting the network.
@@ -37,29 +38,12 @@ final class TwilioProviderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->provider = new class () extends TwilioProvider {
-            /**
-             * @param list<string> $countries
-             * @return array{number: string, valid: bool, error: string|null, fixed: bool}
-             */
-            public function exposeFormatRecipient(string $to, array $countries): array
-            {
-                return $this->formatRecipient($to, $countries);
-            }
-
-            /**
-             * @return array{success: bool, messageId: string|null, response: string, error: string|null}
-             */
-            public function exposeParseResponse(int $statusCode, string $body): array
-            {
-                return $this->parseResponse($statusCode, $body);
-            }
-        };
+        $this->provider = new TwilioProvider();
     }
 
     public function testFormatsRecipientToE164WithLeadingPlus(): void
     {
-        $result = $this->provider->exposeFormatRecipient('94400999', ['KW']);
+        $result = $this->formatRecipient('94400999', ['KW']);
 
         self::assertTrue($result['valid']);
         self::assertTrue($result['fixed'], 'Missing dial code should be repaired and flagged');
@@ -68,7 +52,7 @@ final class TwilioProviderTest extends TestCase
 
     public function testInvalidRecipientIsNotPrefixed(): void
     {
-        $result = $this->provider->exposeFormatRecipient('123', ['KW']);
+        $result = $this->formatRecipient('123', ['KW']);
 
         self::assertFalse($result['valid']);
         self::assertStringStartsNotWith('+', $result['number'], 'Invalid numbers must not be E.164-prefixed');
@@ -83,7 +67,7 @@ final class TwilioProviderTest extends TestCase
             'error_code' => null,
         ]);
 
-        $result = $this->provider->exposeParseResponse(201, $body);
+        $result = $this->parseResponse(201, $body);
 
         self::assertTrue($result['success']);
         self::assertSame('SM1234567890abcdef', $result['messageId']);
@@ -98,7 +82,7 @@ final class TwilioProviderTest extends TestCase
             'status' => 400,
         ]);
 
-        $result = $this->provider->exposeParseResponse(400, $body);
+        $result = $this->parseResponse(400, $body);
 
         self::assertFalse($result['success']);
         self::assertNull($result['messageId']);
@@ -114,7 +98,7 @@ final class TwilioProviderTest extends TestCase
             'error_code' => 30008,
         ]);
 
-        $result = $this->provider->exposeParseResponse(201, $body);
+        $result = $this->parseResponse(201, $body);
 
         self::assertFalse($result['success'], 'A present error_code must override the 2xx status');
     }
@@ -170,5 +154,24 @@ final class TwilioProviderTest extends TestCase
         $html = (new TwilioProvider())->getSettingsHtml($record);
 
         self::assertStringContainsString('ACxxx', $html);
+    }
+
+    /**
+     * @param list<string> $countries
+     * @return array{number: string, valid: bool, error: string|null, fixed: bool}
+     */
+    private function formatRecipient(string $to, array $countries): array
+    {
+        $method = new ReflectionMethod(TwilioProvider::class, 'formatRecipient');
+        /** @var array{number: string, valid: bool, error: string|null, fixed: bool} */
+        return $method->invoke($this->provider, $to, $countries);
+    }
+
+    /** @return array{success: bool, messageId: string|null, response: string, error: string|null} */
+    private function parseResponse(int $statusCode, string $body): array
+    {
+        $method = new ReflectionMethod(TwilioProvider::class, 'parseResponse');
+        /** @var array{success: bool, messageId: string|null, response: string, error: string|null} */
+        return $method->invoke($this->provider, $statusCode, $body);
     }
 }

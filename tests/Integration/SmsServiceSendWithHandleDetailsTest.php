@@ -10,10 +10,10 @@ declare(strict_types=1);
 
 namespace lindemannrock\smsmanager\tests\Integration;
 
+use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 use lindemannrock\smsmanager\records\SmsLogRecord;
 use lindemannrock\smsmanager\tests\Stubs\StubProvider;
 use lindemannrock\smsmanager\tests\TestCase;
-use lindemannrock\base\helpers\ConfigFileHelper as BaseConfigFileHelper;
 use ReflectionClass;
 
 /**

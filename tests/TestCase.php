@@ -11,6 +11,8 @@ declare(strict_types=1);
 namespace lindemannrock\smsmanager\tests;
 
 use Craft;
+use craft\db\Query;
+use craft\queue\Queue;
 use lindemannrock\base\testing\IntegrationTestCase;
 use lindemannrock\smsmanager\models\Settings;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
@@ -22,6 +24,8 @@ use lindemannrock\smsmanager\services\SenderIdsService;
 use lindemannrock\smsmanager\services\SmsService;
 use lindemannrock\smsmanager\SmsManager;
 use lindemannrock\smsmanager\tests\Stubs\StubProvider;
+use lindemannrock\smsmanager\tests\Support\IsolatedPersistenceQueue;
+use Throwable;
 
 /**
  * Base test case for sms-manager integration tests.
@@ -43,6 +47,8 @@ use lindemannrock\smsmanager\tests\Stubs\StubProvider;
  */
 abstract class TestCase extends IntegrationTestCase
 {
+    private static ?self $activeTest = null;
+
     /**
      * Marker prefix used for every test-seeded row.
      *
@@ -67,22 +73,64 @@ abstract class TestCase extends IntegrationTestCase
 
     private int $seedCounter = 0;
 
+    /** @var array<string, mixed>|null */
+    private ?array $settingsSnapshot = null;
+
+    /** @var array<string, mixed>|null */
+    private ?array $settingsRowSnapshot = null;
+
+    /** @var array<string, object> */
+    private array $appComponentSnapshots = [];
+
+    private ?object $originalQueue = null;
+
+    private bool $isolationFinished = false;
+
+    private bool $baseStateInitialised = false;
+
     protected function setUp(): void
     {
-        parent::setUp();
-        $plugin = SmsManager::$plugin;
-        $this->sms = $plugin->sms;
-        $this->providers = $plugin->providers;
-        $this->senderIds = $plugin->senderIds;
-        $this->seedCounter = 0;
-        $this->ensureAnalyticsTestSchema();
-        $this->purgeTestRows();
+        self::$activeTest = $this;
+        $this->isolationFinished = false;
+
+        try {
+            parent::setUp();
+            $this->baseStateInitialised = true;
+            $this->snapshotAppComponents();
+            $plugin = SmsManager::$plugin;
+            $this->settingsSnapshot = $plugin->getSettings()->getAttributes();
+            $settingsRow = (new Query())->from('{{%smsmanager_settings}}')->where(['id' => 1])->one();
+            $this->settingsRowSnapshot = is_array($settingsRow) ? $settingsRow : null;
+            $this->isolatePersistence();
+            $this->sms = $plugin->sms;
+            $this->providers = $plugin->providers;
+            $this->senderIds = $plugin->senderIds;
+            $this->seedCounter = 0;
+            $this->ensureAnalyticsTestSchema();
+            $this->purgeTestRows();
+        } catch (Throwable $exception) {
+            try {
+                $this->finishIsolation();
+            } catch (Throwable $cleanupException) {
+                fwrite(STDERR, 'SMS Manager setup cleanup failed: ' . $cleanupException->getMessage() . PHP_EOL);
+            }
+            throw $exception;
+        }
     }
 
     protected function tearDown(): void
     {
-        $this->purgeTestRows();
-        parent::tearDown();
+        $this->finishIsolation();
+    }
+
+    /**
+     * Runner fallback when child teardown exits before parent cleanup.
+     *
+     * @since 5.16.0
+     */
+    public static function finishActiveTestIsolation(): void
+    {
+        self::$activeTest?->finishIsolation();
     }
 
     /**
@@ -178,6 +226,16 @@ abstract class TestCase extends IntegrationTestCase
         return $settings;
     }
 
+    /** Return the bootstrap-owned connection-local persistence shadow. */
+    protected function isolatedPersistence(): IsolatedPersistenceQueue
+    {
+        if (!$this->originalQueue instanceof IsolatedPersistenceQueue) {
+            throw new \RuntimeException('SMS Manager test persistence is not isolated.');
+        }
+
+        return $this->originalQueue;
+    }
+
     /**
      * Drain every marker-tagged row across the four tables `SmsService::send`
      * can write to. Done on both setUp and tearDown so a previous failed run
@@ -239,5 +297,105 @@ abstract class TestCase extends IntegrationTestCase
         }
 
         $db->createCommand()->addColumn($tableName, $columnName, $definition)->execute();
+    }
+
+    private function snapshotAppComponents(): void
+    {
+        foreach (['config', 'mutex'] as $id) {
+            if (Craft::$app->has($id)) {
+                $component = Craft::$app->get($id);
+                if (is_object($component)) {
+                    $this->appComponentSnapshots[$id] = $component;
+                }
+            }
+        }
+    }
+
+    private function isolatePersistence(): void
+    {
+        $queue = Craft::$app->getQueue();
+        if (!$queue instanceof IsolatedPersistenceQueue) {
+            throw new \RuntimeException('SMS Manager tests require bootstrap-isolated persistence.');
+        }
+
+        $this->originalQueue = $queue;
+        $queue->clearTransientShadowRows();
+
+        Craft::$app->set('queue', new Queue([
+            'db' => $queue->db,
+            'mutex' => $queue->mutex,
+            'tableName' => $queue->tableName,
+            'channel' => $queue->channel,
+            'mutexTimeout' => $queue->mutexTimeout,
+        ]));
+    }
+
+    private function finishIsolation(): void
+    {
+        if ($this->isolationFinished) {
+            return;
+        }
+        $this->isolationFinished = true;
+        $errors = [];
+
+        $this->runCleanupStep($errors, fn() => $this->purgeTestRows());
+        $this->runCleanupStep($errors, function(): void {
+            foreach ($this->appComponentSnapshots as $id => $component) {
+                Craft::$app->set($id, $component);
+            }
+            $this->appComponentSnapshots = [];
+        });
+        $this->runCleanupStep($errors, function(): void {
+            if ($this->settingsSnapshot !== null) {
+                SmsManager::$plugin->getSettings()->setAttributes($this->settingsSnapshot, false);
+                $this->settingsSnapshot = null;
+            }
+        });
+        $this->runCleanupStep($errors, function(): void {
+            Craft::$app->getDb()->createCommand()->delete('{{%smsmanager_settings}}')->execute();
+            if ($this->settingsRowSnapshot !== null) {
+                Craft::$app->getDb()->createCommand()
+                    ->insert('{{%smsmanager_settings}}', $this->settingsRowSnapshot)
+                    ->execute();
+                $this->settingsRowSnapshot = null;
+            }
+        });
+        $this->runCleanupStep($errors, function(): void {
+            if ($this->originalQueue !== null) {
+                Craft::$app->set('queue', $this->originalQueue);
+                if ($this->originalQueue instanceof IsolatedPersistenceQueue) {
+                    $this->originalQueue->clearTransientShadowRows();
+                }
+                $this->originalQueue = null;
+            }
+        });
+
+        if ($this->baseStateInitialised) {
+            $this->runCleanupStep($errors, fn() => parent::tearDown());
+            $this->baseStateInitialised = false;
+        }
+        self::$activeTest = null;
+
+        if ($errors !== []) {
+            $messages = array_map(
+                static fn(Throwable $error): string => $error::class . ': ' . $error->getMessage(),
+                $errors,
+            );
+            throw new \RuntimeException(
+                'SMS Manager test isolation cleanup failed: ' . implode(' | ', $messages),
+                0,
+                $errors[0],
+            );
+        }
+    }
+
+    /** @param list<Throwable> $errors */
+    private function runCleanupStep(array &$errors, callable $cleanup): void
+    {
+        try {
+            $cleanup();
+        } catch (Throwable $exception) {
+            $errors[] = $exception;
+        }
     }
 }

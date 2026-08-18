@@ -22,17 +22,13 @@ use craft\services\Utilities;
 use craft\web\UrlManager;
 use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\CpNavHelper;
-use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\PluginHelper;
-use lindemannrock\base\helpers\RecurringQueueHelper;
-use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
-use lindemannrock\smsmanager\jobs\CleanupAnalyticsJob;
-use lindemannrock\smsmanager\jobs\CleanupLogsJob;
 use lindemannrock\smsmanager\models\Settings;
 use lindemannrock\smsmanager\services\IntegrationsService;
 use lindemannrock\smsmanager\services\ProvidersService;
+use lindemannrock\smsmanager\services\RecurringCleanupScheduler;
 use lindemannrock\smsmanager\services\SenderIdsService;
 use lindemannrock\smsmanager\services\SmsService;
 use lindemannrock\smsmanager\utilities\SmsManagerUtility;
@@ -51,6 +47,7 @@ use yii\base\Event;
  * @property-read ProvidersService $providers
  * @property-read SenderIdsService $senderIds
  * @property-read IntegrationsService $integrations
+ * @property-read RecurringCleanupScheduler $recurringCleanup
  * @property-read Settings $settings
  * @method Settings getSettings()
  */
@@ -140,6 +137,7 @@ class SmsManager extends Plugin
             'providers' => ProvidersService::class,
             'senderIds' => SenderIdsService::class,
             'integrations' => IntegrationsService::class,
+            'recurringCleanup' => RecurringCleanupScheduler::class,
         ]);
 
         // Register CP routes
@@ -185,8 +183,7 @@ class SmsManager extends Plugin
 
         // Schedule cleanup jobs (only on non-console requests to avoid running during migrations)
         if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
-            $this->scheduleAnalyticsCleanup();
-            $this->scheduleLogsCleanup();
+            $this->recurringCleanup->synchronize();
         }
     }
 
@@ -445,77 +442,5 @@ class SmsManager extends Plugin
                 'label' => Craft::t('sms-manager', 'Manage settings'),
             ],
         ];
-    }
-
-    /**
-     * Schedule analytics cleanup job
-     */
-    private function scheduleAnalyticsCleanup(): void
-    {
-        $settings = $this->getSettings();
-
-        if (!$settings->enableAnalytics || $settings->analyticsRetention <= 0) {
-            return;
-        }
-
-        $nextRun = ScheduleHelper::calculateNext('daily');
-        if ($nextRun === null) {
-            return;
-        }
-
-        $delay = max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
-        $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
-            $nextRun,
-            $settings,
-            null,
-            false,
-            pluginHandle: 'sms-manager',
-        );
-
-        RecurringQueueHelper::ensurePending(
-            pluginToken: 'smsmanager',
-            jobClass: CleanupAnalyticsJob::class,
-            delay: $delay,
-            jobFactory: fn() => new CleanupAnalyticsJob([
-                'reschedule' => true,
-                'nextRunTime' => $nextRunTime,
-            ]),
-        );
-    }
-
-    /**
-     * Schedule logs cleanup job
-     */
-    private function scheduleLogsCleanup(): void
-    {
-        $settings = $this->getSettings();
-
-        if (!$settings->enableSmsLogs || $settings->smsLogsRetention <= 0) {
-            return;
-        }
-
-        $nextRun = ScheduleHelper::calculateNext('daily');
-        if ($nextRun === null) {
-            return;
-        }
-
-        $delay = max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
-        $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
-            $nextRun,
-            $settings,
-            null,
-            false,
-            pluginHandle: 'sms-manager',
-        );
-
-        RecurringQueueHelper::ensurePending(
-            pluginToken: 'smsmanager',
-            jobClass: CleanupLogsJob::class,
-            delay: $delay,
-            jobFactory: fn() => new CleanupLogsJob([
-                'reschedule' => true,
-                'nextRunTime' => $nextRunTime,
-            ]),
-        );
     }
 }

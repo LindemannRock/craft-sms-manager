@@ -44,7 +44,11 @@ Click **Export** to download the current view as CSV, JSON, or Excel (whichever 
 
 ## Turning analytics on or off
 
-Analytics is on by default and controlled by `enableAnalytics`. When off, no analytics events are recorded and the section is hidden. Retention is governed by `analyticsLimit` and `analyticsRetention`, with old records trimmed automatically on a daily schedule. To wipe everything immediately, use **Utilities → SMS Manager → Clear all analytics**. See [Configuration](../get-started/configuration.md#analytics).
+Analytics is on by default and controlled by `enableAnalytics`. When off, no analytics events are recorded, the section is hidden, and future recurring analytics cleanup is cancelled.
+
+When analytics is enabled and `analyticsRetention` is greater than `0`, SMS Manager maintains one daily analytics-cleanup schedule. Each run first removes records older than the retention period. If `autoTrimAnalytics` is enabled, it then removes the oldest remaining records until the total is within `analyticsLimit`. Setting retention to `0` keeps records indefinitely and cancels future recurring analytics cleanup; the count limit is not applied by that recurring family while retention is `0`.
+
+On queue backends that limit individual delays, SMS Manager reaches the same daily Craft-timezone target through bounded handoffs; the handoffs do not run cleanup. Native and other queue backends retain the complete delay. To wipe everything immediately, use **Utilities → SMS Manager → Clear all analytics**. See [Configuration](../get-started/configuration.md#analytics).
 
 ## Next steps
 

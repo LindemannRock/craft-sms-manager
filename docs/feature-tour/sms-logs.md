@@ -45,7 +45,9 @@ With the **Delete SMS logs** permission you can delete a single log, delete sele
 
 ## Retention
 
-Logging is on by default (`enableSmsLogs`). Old logs are trimmed automatically on a daily schedule, governed by `smsLogsLimit` and `smsLogsRetention`. Set retention to `0` to keep logs forever. See [Configuration](../get-started/configuration.md#sms-logs).
+Logging is on by default (`enableSmsLogs`). When logging is enabled and `smsLogsRetention` is greater than `0`, SMS Manager maintains one daily log-cleanup schedule. Each run first removes logs older than the retention period. If `autoTrimSmsLogs` is enabled, it then removes the oldest remaining logs until the total is within `smsLogsLimit`.
+
+Disabling SMS logs or setting retention to `0` cancels future recurring log cleanup. A retention value of `0` keeps existing logs indefinitely; the count limit is not applied by that recurring family while retention is `0`. On queue backends that limit individual delays, SMS Manager uses bounded handoffs to reach the same daily Craft-timezone target without running cleanup early. Native and other queue backends retain the complete delay. See [Configuration](../get-started/configuration.md#sms-logs).
 
 > [!NOTE]
 > Logs identify providers and sender IDs even after the underlying record is deleted, and for config-only providers and senders, because each message stores a snapshot of the provider and sender handle at send time.

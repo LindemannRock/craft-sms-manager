@@ -44,7 +44,11 @@ SMS Manager schedules daily cleanup jobs for analytics and SMS logs. If one isn'
 - Check `smsLogsRetention` is greater than `0` for logs cleanup.
 - Check `enableAnalytics` / `enableSmsLogs` is on for the relevant job.
 
-During bootstrap, SMS Manager collapses duplicate pending cleanup rows automatically and keeps one row for the next daily cleanup run. If duplicates keep returning after a deployment, confirm all web workers are running the same plugin version and old queue workers have been restarted.
+Each cleanup family is independent. Saving settings or handling a normal web request reconciles the analytics and log schedules independently; console and migration bootstrap do not create or cancel cleanup rows. Disabling a family or setting its retention to `0` cancels future recurring cleanup for that family.
+
+During bootstrap, SMS Manager recognizes its earlier recurring cleanup rows, keeps the earliest healthy row, and removes only true duplicates from the same family. Failed rows do not block recovery, and unrelated or one-shot queue jobs are left alone. If duplicates keep returning after a deployment, confirm all web workers are running the same plugin version and old queue workers have been restarted.
+
+On a queue backend that limits individual delays, a daily schedule may appear as a sequence of bounded handoff jobs before the final cleanup job. Those intermediate handoffs do not delete analytics or logs. Native and other queue backends keep the full delay. This behavior is backend portability support; it does not indicate that a particular hosted environment has been validated.
 
 Craft stores queue job descriptions when rows are queued, so date/time format changes apply to newly queued rows. Existing delayed rows keep their old label until they run or are requeued. Queue labels stay compact: numeric months render numerically, while short and long month settings both render as short month names.
 
