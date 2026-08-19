@@ -42,6 +42,7 @@ final class RecurringCleanupScheduler extends Component
     public const LOGS_PORTABLE_MUTEX = 'sms-manager:logs-cleanup:portable';
 
     private const MUTEX_TIMEOUT = 5;
+    private const BOOTSTRAP_MUTEX_TIMEOUT = 0;
     private const PRIORITY = 1024;
     private const TTR = 1800;
 
@@ -49,10 +50,28 @@ final class RecurringCleanupScheduler extends Component
     public function synchronize(?Settings $settings = null): void
     {
         $settings ??= $this->loadEffectiveSettings();
+        $analyticsTarget = $this->analyticsEnabled($settings) ? $this->nextDailyRun() : null;
+        $logsTarget = $this->logsEnabled($settings) ? $this->nextDailyRun() : null;
 
         $this->runIndependently([
-            fn() => $this->synchronizeAnalytics($settings),
-            fn() => $this->synchronizeLogs($settings),
+            fn() => $this->synchronizeBootstrapFamily(
+                CleanupAnalyticsJob::class,
+                self::ANALYTICS_OWNER,
+                self::ANALYTICS_LIFECYCLE_MUTEX,
+                self::ANALYTICS_PORTABLE_MUTEX,
+                'analytics cleanup',
+                $analyticsTarget,
+                $analyticsTarget === null ? null : $this->analyticsJob($settings, $analyticsTarget),
+            ),
+            fn() => $this->synchronizeBootstrapFamily(
+                CleanupLogsJob::class,
+                self::LOGS_OWNER,
+                self::LOGS_LIFECYCLE_MUTEX,
+                self::LOGS_PORTABLE_MUTEX,
+                'SMS-log cleanup',
+                $logsTarget,
+                $logsTarget === null ? null : $this->logsJob($settings, $logsTarget),
+            ),
         ]);
     }
 
@@ -396,6 +415,59 @@ final class RecurringCleanupScheduler extends Component
             $this->ownedRows($jobClass, $owner),
             $this->legacyRows($jobClass, $owner),
         ));
+    }
+
+    /**
+     * Opportunistically reconcile one family during plugin bootstrap.
+     *
+     * @param class-string<BaseJob> $jobClass
+     */
+    private function synchronizeBootstrapFamily(
+        string $jobClass,
+        string $owner,
+        string $lifecycleMutex,
+        string $portableMutex,
+        string $familyLabel,
+        ?\DateTime $target,
+        ?BaseJob $job,
+    ): void {
+        $mutex = Craft::$app->getMutex();
+        if (!$mutex->acquire($lifecycleMutex, self::BOOTSTRAP_MUTEX_TIMEOUT)) {
+            $this->logBootstrapContention($familyLabel, 'lifecycle');
+            return;
+        }
+
+        try {
+            if (!$mutex->acquire($portableMutex, self::BOOTSTRAP_MUTEX_TIMEOUT)) {
+                $this->logBootstrapContention($familyLabel, 'portable');
+                return;
+            }
+
+            try {
+                if ($target === null) {
+                    $this->cancelLocked($jobClass, $owner);
+                    return;
+                }
+
+                if ($job === null) {
+                    throw new \LogicException('Enabled recurring cleanup requires a queue job.');
+                }
+
+                $this->queueAtLocked($jobClass, $owner, $portableMutex, $target, $job);
+            } finally {
+                $mutex->release($portableMutex);
+            }
+        } finally {
+            $mutex->release($lifecycleMutex);
+        }
+    }
+
+    private function logBootstrapContention(string $familyLabel, string $lockType): void
+    {
+        Craft::warning(
+            "Skipped {$familyLabel} bootstrap reconciliation because its {$lockType} lock is busy; a later bootstrap will retry.",
+            'sms-manager',
+        );
     }
 
     /**

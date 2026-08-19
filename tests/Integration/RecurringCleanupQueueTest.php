@@ -38,6 +38,8 @@ use lindemannrock\smsmanager\tests\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
 use ReflectionProperty;
+use yii\db\Command;
+use yii\log\Logger;
 use yii\mutex\Mutex;
 use yii\queue\Queue as BaseQueue;
 use yii\queue\sqs\Queue as SqsQueue;
@@ -393,7 +395,104 @@ final class RecurringCleanupQueueTest extends TestCase
         $this->synchronizeFamily($family, $this->enableFamily($family));
 
         self::assertSame([$this->lifecycleMutex($family), $this->portableMutex($family)], $mutex->acquisitions);
+        self::assertSame([5, 5], $mutex->timeouts);
         self::assertSame([$this->portableMutex($family), $this->lifecycleMutex($family)], $mutex->releases);
+    }
+
+    #[DataProvider('familyProvider')]
+    public function testBootstrapLifecycleContentionDefersOnlyTheBusyFamily(string $family): void
+    {
+        $otherFamily = $family === 'analytics' ? 'logs' : 'analytics';
+        $settings = $this->persistSettings([
+            'enableAnalytics' => true,
+            'analyticsRetention' => 30,
+            'enableSmsLogs' => true,
+            'smsLogsRetention' => 30,
+        ]);
+        $ids = [
+            $this->insertPayload($this->serializeJob($this->legacyJob($family))),
+            $this->insertPayload($this->serializeJob($this->recurringJob($family))),
+        ];
+        $mutex = new RecordingCleanupMutex([$this->lifecycleMutex($family)]);
+        Craft::$app->set('mutex', $mutex);
+        $messageOffset = count(Craft::getLogger()->messages);
+
+        $this->scheduler()->synchronize($settings);
+
+        self::assertSame($ids, $this->existingIds($ids));
+        self::assertSame(1, $this->countOwnerRows($family));
+        self::assertSame(1, $this->countOwnerRows($otherFamily));
+        self::assertContains($this->lifecycleMutex($otherFamily), $mutex->acquisitions);
+        self::assertSame(array_fill(0, count($mutex->timeouts), 0), $mutex->timeouts);
+        $this->assertBootstrapWarningSince($messageOffset, $family, 'lifecycle');
+    }
+
+    #[DataProvider('familyProvider')]
+    public function testBootstrapPortableContentionLeavesRowsUntouchedAndReleasesLifecycle(string $family): void
+    {
+        $otherFamily = $family === 'analytics' ? 'logs' : 'analytics';
+        $settings = $this->persistSettings([
+            'enableAnalytics' => true,
+            'analyticsRetention' => 30,
+            'enableSmsLogs' => true,
+            'smsLogsRetention' => 30,
+        ]);
+        $ids = [
+            $this->insertPayload($this->serializeJob($this->legacyJob($family))),
+            $this->insertPayload($this->serializeJob($this->recurringJob($family))),
+        ];
+        $mutex = new RecordingCleanupMutex([$this->portableMutex($family)]);
+        Craft::$app->set('mutex', $mutex);
+        $messageOffset = count(Craft::getLogger()->messages);
+
+        $this->scheduler()->synchronize($settings);
+
+        self::assertSame($ids, $this->existingIds($ids));
+        self::assertSame(1, $this->countOwnerRows($family));
+        self::assertSame(1, $this->countOwnerRows($otherFamily));
+        self::assertContains($this->lifecycleMutex($family), $mutex->releases);
+        self::assertNotContains($this->portableMutex($family), $mutex->releases);
+        self::assertSame(array_fill(0, count($mutex->timeouts), 0), $mutex->timeouts);
+        $this->assertBootstrapWarningSince($messageOffset, $family, 'portable');
+    }
+
+    #[DataProvider('familyProvider')]
+    public function testLaterBootstrapReconcilesAfterContentionClears(string $family): void
+    {
+        $settings = $this->persistSettings([
+            'enableAnalytics' => true,
+            'analyticsRetention' => 30,
+            'enableSmsLogs' => true,
+            'smsLogsRetention' => 30,
+        ]);
+        Craft::$app->set('mutex', new RecordingCleanupMutex([$this->lifecycleMutex($family)]));
+
+        $this->scheduler()->synchronize($settings);
+        self::assertSame(0, $this->countOwnerRows($family));
+
+        Craft::$app->set('mutex', new RecordingCleanupMutex());
+        $this->scheduler()->synchronize($settings);
+        self::assertSame(1, $this->countOwnerRows($family));
+    }
+
+    #[DataProvider('familyProvider')]
+    public function testDisabledBootstrapRetriesCancellationAfterContentionClears(string $family): void
+    {
+        $this->insertPayload($this->serializeJob($this->recurringJob($family)));
+        $settings = $this->persistSettings([
+            'enableAnalytics' => false,
+            'analyticsRetention' => 30,
+            'enableSmsLogs' => false,
+            'smsLogsRetention' => 30,
+        ]);
+        Craft::$app->set('mutex', new RecordingCleanupMutex([$this->lifecycleMutex($family)]));
+
+        $this->scheduler()->synchronize($settings);
+        self::assertSame(1, $this->countOwnerRows($family));
+
+        Craft::$app->set('mutex', new RecordingCleanupMutex());
+        $this->scheduler()->synchronize($settings);
+        self::assertSame(0, $this->countOwnerRows($family));
     }
 
     #[DataProvider('familyProvider')]
@@ -416,6 +515,7 @@ final class RecurringCleanupQueueTest extends TestCase
 
         self::assertSame($ids, $this->existingIds($ids));
         self::assertSame([$this->lifecycleMutex($family), $this->portableMutex($family)], $mutex->acquisitions);
+        self::assertSame([5, 5], $mutex->timeouts);
         self::assertSame([$this->lifecycleMutex($family)], $mutex->releases);
     }
 
@@ -436,6 +536,63 @@ final class RecurringCleanupQueueTest extends TestCase
     }
 
     #[DataProvider('familyProvider')]
+    public function testBootstrapPushFailuresAfterLockAcquisitionPropagate(string $family): void
+    {
+        $this->installPortableQueue(true);
+        self::assertNotNull($this->proxyQueue);
+        $this->proxyQueue->failPushes = true;
+        $settings = $this->persistSettings($family === 'analytics'
+            ? [
+                'enableAnalytics' => true,
+                'analyticsRetention' => 30,
+                'enableSmsLogs' => false,
+            ]
+            : [
+                'enableAnalytics' => false,
+                'enableSmsLogs' => true,
+                'smsLogsRetention' => 30,
+            ]);
+        $mutex = new RecordingCleanupMutex();
+        Craft::$app->set('mutex', $mutex);
+
+        $this->expectRuntimeFailure(
+            fn() => $this->scheduler()->synchronize($settings),
+            'SMS cleanup proxy failure',
+        );
+
+        self::assertContains($this->portableMutex($family), $mutex->releases);
+        self::assertContains($this->lifecycleMutex($family), $mutex->releases);
+    }
+
+    #[DataProvider('familyProvider')]
+    public function testBootstrapCancellationFailuresAfterLockAcquisitionPropagate(string $family): void
+    {
+        $this->insertPayload($this->serializeJob($this->recurringJob($family)));
+        $settings = $this->persistSettings([
+            'enableAnalytics' => false,
+            'enableSmsLogs' => false,
+        ]);
+        $mutex = new RecordingCleanupMutex();
+        Craft::$app->set('mutex', $mutex);
+        $db = Craft::$app->getDb();
+        $commandMap = $db->commandMap;
+        $db->commandMap[$db->getDriverName()] = FailingCleanupDeleteCommand::class;
+
+        try {
+            $this->expectRuntimeFailure(
+                fn() => $this->scheduler()->synchronize($settings),
+                'SMS cleanup cancellation failure',
+            );
+        } finally {
+            $db->commandMap = $commandMap;
+        }
+
+        self::assertSame(1, $this->countOwnerRows($family));
+        self::assertContains($this->portableMutex($family), $mutex->releases);
+        self::assertContains($this->lifecycleMutex($family), $mutex->releases);
+    }
+
+    #[DataProvider('familyProvider')]
     public function testAbsoluteTargetIsCalculatedBeforePortableLockWaiting(string $family): void
     {
         $this->installPortableQueue(true);
@@ -449,6 +606,31 @@ final class RecurringCleanupQueueTest extends TestCase
         $this->timePaused = true;
 
         $this->synchronizeFamily($family, $settings);
+
+        $handoff = $this->unserializeJob($this->onlyOwnerRow($family));
+        self::assertInstanceOf(DeferredQueueJob::class, $handoff);
+        self::assertSame($target->getTimestamp(), $handoff->targetTimestamp);
+    }
+
+    #[DataProvider('familyProvider')]
+    public function testBootstrapTargetIsCalculatedBeforeLifecycleLockAcquisition(string $family): void
+    {
+        $this->installPortableQueue(true);
+        $settings = $this->persistSettings([
+            'enableAnalytics' => $family === 'analytics',
+            'analyticsRetention' => 30,
+            'enableSmsLogs' => $family === 'logs',
+            'smsLogsRetention' => 30,
+        ]);
+        $target = ScheduleHelper::calculateNext('daily');
+        self::assertNotNull($target);
+        Craft::$app->set('mutex', new RecordingCleanupMutex(
+            portableTimestamp: $target->getTimestamp() - 1_000,
+            portableNames: [$this->lifecycleMutex($family)],
+        ));
+        $this->timePaused = true;
+
+        $this->scheduler()->synchronize($settings);
 
         $handoff = $this->unserializeJob($this->onlyOwnerRow($family));
         self::assertInstanceOf(DeferredQueueJob::class, $handoff);
@@ -606,6 +788,25 @@ final class RecurringCleanupQueueTest extends TestCase
         self::assertSame(1, $this->countOwnerRows('analytics'));
     }
 
+    #[DataProvider('familyProvider')]
+    public function testSettingsTransitionsRetainStrictLifecycleTimeouts(string $family): void
+    {
+        $settings = $this->persistSettings($family === 'analytics'
+            ? ['enableAnalytics' => true, 'analyticsRetention' => 30]
+            : ['enableSmsLogs' => true, 'smsLogsRetention' => 30]);
+        $mutex = new RecordingCleanupMutex([$this->lifecycleMutex($family)]);
+        Craft::$app->set('mutex', $mutex);
+        $reconcile = $family === 'analytics'
+            ? fn() => $this->scheduler()->reconcileAnalytics(false, $settings)
+            : fn() => $this->scheduler()->reconcileLogs(false, $settings);
+
+        $this->expectRuntimeFailure($reconcile, 'lifecycle lock');
+
+        self::assertSame([$this->lifecycleMutex($family)], $mutex->acquisitions);
+        self::assertSame([5], $mutex->timeouts);
+        self::assertSame(0, $this->countOwnerRows($family));
+    }
+
     public function testAnalyticsCleanupDeletesByDateThenTrimsByCountAndCreatesOneSuccessor(): void
     {
         $this->pauseAt(self::START_TIMESTAMP);
@@ -697,13 +898,44 @@ final class RecurringCleanupQueueTest extends TestCase
     {
         $this->enableFamily($family);
         $scheduler = $this->scheduler();
+        $mutex = new RecordingCleanupMutex();
+        Craft::$app->set('mutex', $mutex);
+        $cleanup = function() use ($mutex, $family): void {
+            self::assertTrue($mutex->isHeld($this->lifecycleMutex($family)));
+            throw new \RuntimeException('cleanup failed');
+        };
         $run = $family === 'analytics'
-            ? fn() => $scheduler->runAnalyticsOccurrence(static fn() => throw new \RuntimeException('cleanup failed'))
-            : fn() => $scheduler->runLogsOccurrence(static fn() => throw new \RuntimeException('cleanup failed'));
+            ? fn() => $scheduler->runAnalyticsOccurrence($cleanup)
+            : fn() => $scheduler->runLogsOccurrence($cleanup);
 
         $this->expectRuntimeFailure($run, 'cleanup failed');
 
         self::assertSame(0, $this->countOwnerRows($family));
+        self::assertFalse($mutex->isHeld($this->lifecycleMutex($family)));
+        self::assertSame([$this->lifecycleMutex($family)], $mutex->releases);
+    }
+
+    #[DataProvider('familyProvider')]
+    public function testSuccessfulOccurrenceRunsUnderLifecycleLockAndCreatesOneSuccessor(string $family): void
+    {
+        $this->enableFamily($family);
+        $mutex = new RecordingCleanupMutex();
+        Craft::$app->set('mutex', $mutex);
+        $cleanupCalls = 0;
+        $cleanup = function() use ($mutex, $family, &$cleanupCalls): void {
+            self::assertTrue($mutex->isHeld($this->lifecycleMutex($family)));
+            $cleanupCalls++;
+        };
+
+        if ($family === 'analytics') {
+            $this->scheduler()->runAnalyticsOccurrence($cleanup);
+        } else {
+            $this->scheduler()->runLogsOccurrence($cleanup);
+        }
+
+        self::assertSame(1, $cleanupCalls);
+        self::assertFalse($mutex->isHeld($this->lifecycleMutex($family)));
+        self::assertSame(1, $this->countOwnerRows($family));
     }
 
     public function testAnalyticsAndLogCancellationNeverMutateTheOtherFamilyOrUnrelatedRows(): void
@@ -1099,6 +1331,22 @@ final class RecurringCleanupQueueTest extends TestCase
             self::assertStringContainsString($message, $exception->getMessage());
         }
     }
+
+    private function assertBootstrapWarningSince(int $messageOffset, string $family, string $lockType): void
+    {
+        $familyLabel = $family === 'analytics' ? 'analytics cleanup' : 'SMS-log cleanup';
+        $messages = array_slice(Craft::getLogger()->messages, $messageOffset);
+        $matches = array_filter(
+            $messages,
+            static fn(array $message): bool => $message[1] === Logger::LEVEL_WARNING
+                && $message[2] === 'sms-manager'
+                && str_contains((string)$message[0], $familyLabel)
+                && str_contains((string)$message[0], "$lockType lock is busy")
+                && str_contains((string)$message[0], 'later bootstrap will retry'),
+        );
+
+        self::assertCount(1, $matches);
+    }
 }
 
 /** Records delay-limited proxy pushes without contacting a provider. */
@@ -1139,13 +1387,31 @@ final class RecordingUnknownCleanupQueue extends BaseQueue
     }
 }
 
+/** Fails only isolated queue-row deletion after scheduler inspection. */
+final class FailingCleanupDeleteCommand extends Command
+{
+    public function execute(): int
+    {
+        $sql = $this->getRawSql();
+        if (str_starts_with($sql, 'DELETE FROM `queue`')) {
+            throw new \RuntimeException('SMS cleanup cancellation failure.');
+        }
+
+        return parent::execute();
+    }
+}
+
 /** Mutex seam that records ordering and fails only explicitly named locks. */
 final class RecordingCleanupMutex extends Mutex
 {
     /** @var list<string> */
     public array $acquisitions = [];
+    /** @var list<int> */
+    public array $timeouts = [];
     /** @var list<string> */
     public array $releases = [];
+    /** @var array<string, true> */
+    private array $heldLocks = [];
 
     /**
      * @param list<string> $failedNames
@@ -1164,18 +1430,32 @@ final class RecordingCleanupMutex extends Mutex
     {
         $name = (string)$name;
         $this->acquisitions[] = $name;
+        $this->timeouts[] = (int)$timeout;
         if ($this->portableTimestamp !== null && in_array($name, $this->portableNames, true)) {
             DateTimeHelper::resume();
             DateTimeHelper::pause(new \DateTime('@' . $this->portableTimestamp));
         }
 
-        return !in_array($name, $this->failedNames, true);
+        if (in_array($name, $this->failedNames, true)) {
+            return false;
+        }
+
+        $this->heldLocks[$name] = true;
+
+        return true;
     }
 
     protected function releaseLock($name): bool
     {
-        $this->releases[] = (string)$name;
+        $name = (string)$name;
+        $this->releases[] = $name;
+        unset($this->heldLocks[$name]);
 
         return true;
+    }
+
+    public function isHeld(string $name): bool
+    {
+        return isset($this->heldLocks[$name]);
     }
 }
