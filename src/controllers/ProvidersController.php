@@ -219,6 +219,9 @@ class ProvidersController extends Controller
         }
 
         $isConfigProvider = $provider->isFromConfig();
+        if (!$isConfigProvider) {
+            $this->requirePermission('smsManager:editProviders');
+        }
         $providerSettings = $isConfigProvider ? [] : $provider->getSettingsArray();
         $providerTypes = SmsManager::$plugin->providers->getProviderTypeOptions();
         $countryOptions = GeoHelper::getCountryDialCodeOptions(true);
@@ -466,7 +469,7 @@ class ProvidersController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        $this->requirePermission('smsManager:manageProviders');
+        $this->requirePermission('smsManager:editProviders');
 
         $request = Craft::$app->getRequest();
         $providerId = $request->getRequiredBodyParam('providerId');
