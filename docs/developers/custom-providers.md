@@ -103,14 +103,28 @@ Every settings template also receives a `countryOptions` variable — the dial-c
 
 ### The `send()` result shape
 
-`send()` must return an array with these keys:
+`send()` must return `success`, `messageId`, and `response`. On a successful result, `error` is optional; returning `error => null` is recommended so the shape stays consistent. SMS Manager normalizes either successful form to include `error => null`.
 
 | Key | Type | Description |
 |-----|------|-------------|
 | `success` | `bool` | Whether the gateway accepted the message |
 | `messageId` | `string\|null` | Gateway message ID, if any |
-| `response` | `string\|null` | Raw gateway response (stored on the log) |
-| `error` | `string\|null` | Error message on failure |
+| `response` | `string\|null` | Raw gateway response on success |
+| `error` | `string\|null` | Optional on success and must be `null` when present. Use the safe failure helper for failures; the service replaces other free text with bounded metadata before returning or persisting it |
+
+Treat failure data as untrusted. Transport exception messages and gateway bodies can contain request URLs, authorization headers, credentials, recipients, sender IDs, or complete message text. Catch provider-call failures inside `send()` and classify them without inspecting their free-text payload:
+
+```php
+try {
+    // Call the gateway.
+} catch (\Throwable $e) {
+    return $this->failureResultFromThrowable($e);
+}
+```
+
+The classifier uses only safe exception type and response-status metadata: a response-bearing Guzzle `RequestException` becomes `http`, a Guzzle `ConnectException` or other response-less `TransferException` becomes `transport`, and any other throwable becomes `provider-exception`.
+
+Do not log the exception message, request URI, authorization headers, recipient, sender ID, or message. For operational correlation, log the returned failure string and use `recipientReference($to)` for the destination. As a final safeguard, `SmsService` discards all free-text failure fields returned by custom providers and catches uncaught provider exceptions.
 
 ## Helpers from `BaseProvider`
 
@@ -120,6 +134,9 @@ Inside `send()` you can use the protected helpers the built-in providers rely on
 - `sanitizeMessage($message)` — strip characters that break gateway encoding.
 - `validateApiEndpoint($url, $providerAllowedHosts)` — enforce the [outbound request security](../get-started/configuration.md#outbound-request-security) policy before a request.
 - `getRedirectPolicy()` — a safe Guzzle redirect policy honoring the security settings.
+- `failureResult($category, $status = null)` — create a failure with the provider handle, safe category/status, and correlation reference.
+- `failureResultFromThrowable($e)` — safely classify Guzzle HTTP/transport failures and other provider throwables without reading their free-text payload.
+- `recipientReference($to)` — create the irreversible recipient reference used in plugin-level logs.
 
 ## Register the provider
 

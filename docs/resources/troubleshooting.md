@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and how to resolve them. For detailed errors, check **SMS Manager → SMS Logs** (per-message provider responses) and **SMS Manager → System Logs** (plugin-level logging).
+Common issues and how to resolve them. For failed sends, check **SMS Manager → SMS Logs** for a safe failure category, optional HTTP status, and correlation reference. **SMS Manager → System Logs** carries the matching reference without storing the full recipient or message.
 
 ## Messages aren't sending
 
@@ -9,8 +9,9 @@ Work through these in order:
 1. **Provider enabled?** **SMS Manager → Providers** — the provider must be enabled. A disabled provider returns a "Provider is disabled" error.
 2. **Sender ID enabled?** **SMS Manager → Sender IDs** — the sender must be enabled too.
 3. **Credentials correct?** Re-check the provider's API key (MPP-SMS) or Account SID and Auth Token (Twilio). If you used an environment variable, confirm it's set.
-4. **Check the SMS log.** Each failed message stores the provider's error and raw response — that usually names the cause.
-5. **Check system logs.** **SMS Manager → System Logs** for plugin-level detail.
+4. **Check the SMS log.** Match the provider, category, status, and correlation reference to the failed attempt.
+5. **Check system logs.** **SMS Manager → System Logs** carries the same failure reference plus an irreversible recipient reference.
+6. **Check the provider dashboard.** Raw gateway error text is deliberately not copied into Craft because it can contain credentials, request URLs, or message data. Use the time and correlation details to compare the attempt with the provider's own dashboard.
 
 ## "No provider configured" or "No sender ID configured"
 
@@ -32,7 +33,7 @@ A send that relies on the default provider or sender failed to resolve one. This
 
 ## A recipient number is rejected
 
-If the provider has an **Allowed countries** list, numbers outside it are rejected at send time with a clear error. Either add the country to the provider, or send through a provider that allows it. MPP-SMS also validates number length for the supported GCC/MENA countries.
+If the provider has an **Allowed countries** list, numbers outside it are rejected at send time with the `invalid-recipient` category. Either add the country to the provider, or send through a provider that allows it. MPP-SMS also validates number length for the supported GCC/MENA countries.
 
 ## Scheduled cleanup jobs are missing
 
@@ -60,11 +61,17 @@ Numeric settings (analytics limit, logs limit, retention periods, items per page
 
 When a setting is overridden in `config/sms-manager.php`, the Control Panel field is skipped on save — change the config file value instead.
 
-## Common MPP-SMS provider errors
+## Provider failure categories
 
-| Error | Cause |
-|-------|-------|
-| Invalid API Key | Wrong key in the provider settings |
-| Invalid Sender ID | Sender ID not registered with the provider |
-| Invalid Mobile Number | Number format the gateway can't accept |
-| Insufficient Balance | Top up your provider account |
+| Category | What to check |
+|----------|---------------|
+| `configuration` | Required credentials are missing from the provider settings or environment |
+| `endpoint-policy` | The configured endpoint conflicts with the outbound request security policy |
+| `invalid-recipient` | Recipient format, length, or Allowed Countries settings |
+| `transport` | Connectivity, timeout, DNS, TLS, and provider availability |
+| `http` | The HTTP status, credentials, account state, and provider dashboard |
+| `provider` / `provider-response` | The custom or built-in provider rejected the request; check its dashboard |
+| `provider-exception` | Provider code failed outside a recognized transport exception; check plugin compatibility and the provider implementation |
+| `malformed-response` | The gateway returned an empty or unusable success response |
+
+Every provider failure includes a correlation reference. Include it, along with the provider, category, status, and approximate time, in support requests. Do not paste API keys, authorization headers, request URLs, recipients, or message text into tickets.

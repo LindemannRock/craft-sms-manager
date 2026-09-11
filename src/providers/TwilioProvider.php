@@ -155,24 +155,17 @@ class TwilioProvider extends BaseProvider
 
         if (!$phoneResult['valid']) {
             $this->logError('Twilio: Invalid phone number', [
-                'to' => $to,
-                'normalized' => $toNumber,
-                'error' => $phoneResult['error'],
+                'recipient' => $this->recipientReference($to),
                 'allowedCountries' => $allowedCountries,
             ]);
 
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => $phoneResult['error'],
-            ];
+            return $this->failureResult('invalid-recipient');
         }
 
         if ($phoneResult['fixed']) {
             $this->logInfo('Twilio: Phone number was auto-corrected', [
-                'original' => $to,
-                'corrected' => $toNumber,
+                'originalRecipient' => $this->recipientReference($to),
+                'normalizedRecipient' => $this->recipientReference($toNumber),
             ]);
         }
 
@@ -181,12 +174,7 @@ class TwilioProvider extends BaseProvider
 
         if (empty($accountSid) || empty($authToken)) {
             $this->logError('Twilio: credentials not configured');
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => 'Twilio credentials not configured',
-            ];
+            return $this->failureResult('configuration');
         }
 
         $endpoint = 'https://api.twilio.com/2010-04-01/Accounts/' . rawurlencode($accountSid) . '/Messages.json';
@@ -196,12 +184,7 @@ class TwilioProvider extends BaseProvider
             $this->logError('Twilio: API endpoint validation failed', [
                 'error' => $endpointValidation['error'],
             ]);
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => $endpointValidation['error'],
-            ];
+            return $this->failureResult('endpoint-policy');
         }
 
         try {
@@ -228,31 +211,27 @@ class TwilioProvider extends BaseProvider
 
             if ($result['success']) {
                 $this->logInfo('Twilio: Message sent successfully', [
-                    'to' => $toNumber,
+                    'recipient' => $this->recipientReference($to),
                     'language' => $language,
                     'messageId' => $result['messageId'],
                 ]);
             } else {
                 $this->logError('Twilio: Message failed', [
-                    'to' => $toNumber,
+                    'recipient' => $this->recipientReference($to),
                     'language' => $language,
-                    'error' => $result['error'],
+                    'failure' => $result['error'],
                 ]);
             }
 
             return $result;
         } catch (\Throwable $e) {
+            $result = $this->failureResultFromThrowable($e);
             $this->logError('Twilio: Request failed', [
-                'to' => $toNumber,
-                'error' => $e->getMessage(),
+                'recipient' => $this->recipientReference($to),
+                'failure' => $result['error'],
             ]);
 
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => $e->getMessage(),
-            ];
+            return $result;
         }
     }
 
@@ -282,11 +261,11 @@ class TwilioProvider extends BaseProvider
      * Parse a Twilio Messages API response into the provider result contract.
      *
      * A success is a 2xx response carrying a message `sid` with no `error_code`.
-     * Twilio errors return a non-2xx status with a JSON `{code, message}` body.
+     * Failure bodies are deliberately discarded at this provider boundary.
      *
      * @param int $statusCode HTTP status code
      * @param string $body Raw response body
-     * @return array{success: bool, messageId: string|null, response: string, error: string|null}
+     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null}
      */
     protected function parseResponse(int $statusCode, string $body): array
     {
@@ -308,15 +287,10 @@ class TwilioProvider extends BaseProvider
             ];
         }
 
-        $error = $data['message']
-            ?? $data['error_message']
-            ?? ('Twilio request failed with status ' . $statusCode);
+        $category = $statusCode < 200 || $statusCode >= 300
+            ? 'http'
+            : 'malformed-response';
 
-        return [
-            'success' => false,
-            'messageId' => $messageId,
-            'response' => $body,
-            'error' => $error,
-        ];
+        return $this->failureResult($category, $statusCode);
     }
 }

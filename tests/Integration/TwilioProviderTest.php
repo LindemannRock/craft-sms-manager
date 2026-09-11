@@ -26,7 +26,7 @@ use ReflectionMethod;
  *     but the shared `normalizeAndValidatePhone` strips it. `formatRecipient`
  *     must re-add it — the single most likely Twilio-specific regression.
  *  2. **Response parsing**: a 2xx with a `sid` is success (messageId = sid);
- *     a Twilio error body (`{code, message}`) is a failure carrying `message`.
+ *     failure bodies are replaced by bounded diagnostic metadata.
  *  3. **Settings validation**: Account SID + Auth Token are both required.
  *
  * @since 5.13.0
@@ -74,7 +74,7 @@ final class TwilioProviderTest extends TestCase
         self::assertNull($result['error']);
     }
 
-    public function testParseResponseErrorUsesMessage(): void
+    public function testParseResponseErrorUsesBoundedMetadata(): void
     {
         $body = json_encode([
             'code' => 21211,
@@ -86,7 +86,12 @@ final class TwilioProviderTest extends TestCase
 
         self::assertFalse($result['success']);
         self::assertNull($result['messageId']);
-        self::assertSame("The 'To' number is not a valid phone number.", $result['error']);
+        self::assertNull($result['response']);
+        self::assertMatchesRegularExpression(
+            '/^SMS provider failure \[provider=twilio; category=http; status=400; reference=[0-9a-f-]{36}\]$/',
+            (string) $result['error'],
+        );
+        self::assertStringNotContainsString("The 'To' number", (string) $result['error']);
     }
 
     public function testParseResponseTreatsErrorCodeAsFailure(): void

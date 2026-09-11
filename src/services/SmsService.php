@@ -12,6 +12,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\StringHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\helpers\SmsPrivacyHelper;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\records\SenderIdRecord;
@@ -390,13 +391,19 @@ class SmsService extends Component
         $providerSettings = $provider->getSettingsArray();
         $providerSettings['isDev'] = (bool)$senderId->isDev;
 
-        $result = $providerInstance->send(
-            $to,
-            $message,
-            $senderId->senderId,
-            $language,
-            $providerSettings,
-        );
+        try {
+            $result = $providerInstance->send(
+                $to,
+                $message,
+                $senderId->senderId,
+                $language,
+                $providerSettings,
+            );
+        } catch (\Throwable $throwable) {
+            $result = SmsPrivacyHelper::failureResultFromThrowable($provider->type, $throwable);
+        }
+
+        $result = SmsPrivacyHelper::sanitizeProviderResult($result, $provider->type);
 
         $executionTime = (int)round((microtime(true) - $startTime) * 1000);
 
@@ -414,8 +421,8 @@ class SmsService extends Component
             }
 
             $this->logInfo('SMS sent successfully', [
-                'to' => $to,
-                'provider' => $provider->name,
+                'recipient' => SmsPrivacyHelper::recipientReference($to),
+                'providerType' => $provider->type,
                 'senderId' => $senderId->name,
             ]);
         } else {
@@ -432,9 +439,9 @@ class SmsService extends Component
             }
 
             $this->logError('SMS sending failed', [
-                'to' => $to,
-                'provider' => $provider->name,
-                'error' => $result['error'],
+                'recipient' => SmsPrivacyHelper::recipientReference($to),
+                'providerType' => $provider->type,
+                'failure' => $result['error'],
             ]);
         }
 
@@ -446,8 +453,8 @@ class SmsService extends Component
             'executionTime' => $executionTime,
             'providerName' => $provider->name,
             'senderIdName' => $senderId->name,
-            'senderIdValue' => $senderId->senderId,
-            'recipient' => $to,
+            'senderIdValue' => $result['success'] ? $senderId->senderId : '[redacted]',
+            'recipient' => $result['success'] ? $to : SmsPrivacyHelper::recipientReference($to),
         ];
     }
 

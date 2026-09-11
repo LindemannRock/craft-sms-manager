@@ -1,18 +1,18 @@
 # SMS logs
 
-SMS logs are the per-message record of everything SMS Manager has sent — who it went to, what it said, whether it succeeded, and exactly what the provider returned. When a message doesn't arrive, this is where you find out why.
+SMS logs are the governed per-message record of everything SMS Manager has sent — who it went to, what it said, and whether it succeeded. Successful sends can include the provider's response. Failed sends keep safe diagnostic metadata instead of raw gateway or transport text that could expose message data or credentials.
 
 ## What you'll use it for
 
 - Confirming a specific message was sent
-- Diagnosing a failure from the provider's own response and error
+- Diagnosing a failure from its category, HTTP status when available, and correlation reference
 - Searching for messages to a recipient or containing some text
 - Exporting a delivery history for reporting or audit
 - Tracing which plugin or feature triggered a message
 
 ## Viewing logs
 
-Go to **SMS Manager → SMS Logs**. Each row shows the date, recipient, message, language, provider, sender ID, status, and source. Expand a row to see the full message, the raw provider response, the provider message ID, and any error.
+Go to **SMS Manager → SMS Logs**. Each row shows the date, recipient, message, language, provider, sender ID, status, and source. Expand a row to see the full message, the provider message ID and response for a successful send, or sanitized failure metadata for a failed send.
 
 ![SMS logs](images/sms-logs-index.webp)
 
@@ -22,7 +22,7 @@ Go to **SMS Manager → SMS Logs**. Each row shows the date, recipient, message,
 |--------|---------|
 | **Pending** | The log row was created but the provider hasn't returned a result yet |
 | **Sent** | The provider accepted the message |
-| **Failed** | The provider rejected the message — see the error and response |
+| **Failed** | The provider rejected the message or could not be reached — use the category/status/reference in the error for diagnosis and correlation |
 
 ## Filtering and searching
 
@@ -51,6 +51,8 @@ Disabling SMS logs or setting retention to `0` cancels future recurring log clea
 
 > [!NOTE]
 > Logs identify providers and sender IDs even after the underlying record is deleted, and for config-only providers and senders, because each message stores a snapshot of the provider and sender handle at send time.
+
+Delivery logs intentionally retain the full recipient and message when `enableSmsLogs` is on. Access, export, retention, and deletion stay governed by the SMS-log permissions and settings. Plugin-level logs use an irreversible recipient reference and never include message content; turning delivery logs off prevents the governed per-message record from being created.
 
 ## Next steps
 

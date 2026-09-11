@@ -16,10 +16,8 @@ use lindemannrock\smsmanager\tests\TestCase;
 /**
  * Result shape from {@see \lindemannrock\smsmanager\services\SmsService::sendWithDetails}.
  *
- * Integrations (formie-sms, campaign-manager) use this method to pick up the
- * provider/sender label, the recipient, and the wall-clock execution time
- * for inline UI feedback. The shape contract is a public surface, so each
- * field must match exactly what callers expect.
+ * The shape contract is a public surface, so each field must remain present
+ * while failed results avoid echoing provider or send payload data.
  *
  * @since 5.12.0
  */
@@ -74,8 +72,13 @@ final class SmsServiceSendWithDetailsTest extends TestCase
         );
 
         self::assertFalse($result['success']);
-        self::assertSame('gateway 503', $result['error']);
-        self::assertSame($recipient, $result['recipient']);
+        self::assertMatchesRegularExpression(
+            '/^SMS provider failure \[provider=sm_test_stub; category=provider; reference=[0-9a-f-]{36}\]$/',
+            (string) $result['error'],
+        );
+        self::assertStringStartsWith('hmac-sha256:', $result['recipient']);
+        self::assertNotSame($recipient, $result['recipient']);
+        self::assertSame('[redacted]', $result['senderIdValue']);
         self::assertSame($provider->name, $result['providerName']);
         self::assertSame($senderId->name, $result['senderIdName']);
     }

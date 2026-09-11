@@ -16,7 +16,7 @@ It's an infrastructure plugin — there's no campaign builder or contact list he
 - Sending transactional SMS — order confirmations, OTPs, alerts — from an entry save, a form submission, or a custom plugin
 - Managing multiple gateways and sender IDs in one place, with per-environment defaults
 - Sending Arabic and English messages with correct encoding
-- Keeping an auditable log of every message sent, with provider responses and errors
+- Keeping an auditable log of every message sent, with successful provider responses and sanitized failure diagnostics
 - Seeing how many messages went out, how many succeeded, and which plugin triggered them
 
 ## Core capabilities
@@ -27,7 +27,7 @@ It's an infrastructure plugin — there's no campaign builder or contact list he
 
 - **[Analytics](analytics.md)** — Daily sent/failed counts, success rate, language and encoding breakdown, and per-provider, per–sender ID, and per-site performance. Filter by site, language, provider, sender ID, and date range.
 
-- **[SMS logs](sms-logs.md)** — A full delivery history with recipient, message, status, provider response, and error. Filter, search, and export to CSV, JSON, or Excel.
+- **[SMS logs](sms-logs.md)** — A governed delivery history with recipient, message, status, successful provider responses, and safe failure metadata. Filter, search, and export to CSV, JSON, or Excel.
 
 - **[Test SMS](test-sms.md)** — Send a one-off message from the Control Panel to verify a provider and sender ID before wiring anything up.
 

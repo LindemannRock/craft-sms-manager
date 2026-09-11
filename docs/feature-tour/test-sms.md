@@ -22,7 +22,7 @@ Go to **SMS Manager → Settings → Test SMS**.
 5. **Language** — choose the message language (`en` or `ar`) so the right encoding is used.
 6. Click **Send**.
 
-The result appears inline — on success, the provider message ID and timing; on failure, the exact provider error. The send is recorded in [SMS Logs](sms-logs.md) with the source `sms-manager-test`, so you can trace it like any other message.
+The result appears inline — on success, the provider message ID and timing; on failure, safe diagnostic metadata with the provider, failure category, optional HTTP status, and a correlation reference. The send is recorded in [SMS Logs](sms-logs.md) with the source `sms-manager-test`, so you can trace it like any other message without exposing transport URLs, credentials, or message content in the error.
 
 > [!NOTE]
 > The Test SMS page lives under Settings and requires the **Manage settings** permission. It sends through the same pipeline as a production send, so a successful test means real credentials and a real, deliverable message.
@@ -34,5 +34,5 @@ Test SMS addresses the sender by its handle, which means it routes correctly eve
 ## Next steps
 
 - [Providers](providers.md) — set up the gateway you're testing
-- [SMS logs](sms-logs.md) — find your test message and its provider response
+- [SMS logs](sms-logs.md) — find your test message and delivery details
 - [Sending SMS](../developers/sending-sms.md) — send the same way from code

@@ -11,6 +11,7 @@ namespace lindemannrock\smsmanager\providers;
 use Craft;
 use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\helpers\SmsPrivacyHelper;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\SmsManager;
 
@@ -248,8 +249,8 @@ abstract class BaseProvider implements ProviderInterface
                 $number = substr($number, strlen($dialCode));
                 $fixed = true;
                 $this->logInfo('Phone number fixed: removed duplicate country code', [
-                    'original' => $originalNumber,
-                    'fixed' => $number,
+                    'originalRecipient' => $this->recipientReference($originalNumber),
+                    'normalizedRecipient' => $this->recipientReference($number),
                     'country' => $countryCode,
                 ]);
             }
@@ -280,8 +281,8 @@ abstract class BaseProvider implements ProviderInterface
                 $number = $dialCode . $number;
                 $fixed = true;
                 $this->logInfo('Phone number fixed: added country code', [
-                    'original' => $originalNumber,
-                    'fixed' => $number,
+                    'originalRecipient' => $this->recipientReference($originalNumber),
+                    'normalizedRecipient' => $this->recipientReference($number),
                     'country' => $countryCode,
                 ]);
 
@@ -299,9 +300,37 @@ abstract class BaseProvider implements ProviderInterface
         return [
             'number' => $number,
             'valid' => false,
-            'error' => "Phone number format does not match any allowed country ({$countryList}). Number: {$number}",
+            'error' => "Phone number format does not match any allowed country ({$countryList}).",
             'fixed' => $fixed,
         ];
+    }
+
+    /**
+     * Return an irreversible recipient reference for general logs.
+     */
+    protected function recipientReference(string $recipient): string
+    {
+        return SmsPrivacyHelper::recipientReference($recipient);
+    }
+
+    /**
+     * Return a bounded provider failure without retaining remote free text.
+     *
+     * @return array{success: false, messageId: null, response: null, error: string}
+     */
+    protected function failureResult(string $category, ?int $status = null): array
+    {
+        return SmsPrivacyHelper::failureResult(static::handle(), $category, $status);
+    }
+
+    /**
+     * Classify a provider throwable without retaining its free-text payload.
+     *
+     * @return array{success: false, messageId: null, response: null, error: string}
+     */
+    protected function failureResultFromThrowable(\Throwable $throwable): array
+    {
+        return SmsPrivacyHelper::failureResultFromThrowable(static::handle(), $throwable);
     }
 
     /**

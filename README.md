@@ -24,7 +24,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 - **Sender ID management** — register, enable, and default the names messages are sent from
 - **Arabic and English** — correct encoding per message language (UCS-2 for Arabic)
 - **Analytics** — sent/failed totals, success rate, language and encoding breakdown, per-provider, per–sender ID, and per–source plugin views, with site and date filtering
-- **SMS logs** — full delivery history with provider responses and errors; export to CSV, JSON, or Excel
+- **SMS logs** — governed delivery history with successful responses and sanitized failure diagnostics; export to CSV, JSON, or Excel
 - **Test SMS** — send a one-off message from the Control Panel to verify a setup
 - **Dashboard** — at-a-glance messaging activity and provider status
 - **Craft dashboard widgets** — optional SMS activity and recent-message widgets for the Craft dashboard

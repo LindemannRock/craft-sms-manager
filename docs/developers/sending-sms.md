@@ -59,7 +59,7 @@ $ok = SmsManager::$plugin->sms->send(
 
 ## sendWithDetails()
 
-Same inputs as `send()`, but returns the full result instead of a boolean — useful when you need the provider message ID, the raw response, or the error.
+Same inputs as `send()`, but returns the full result instead of a boolean — useful when you need the provider message ID, timing, or safe failure details. Successful sends retain the provider response. Failed provider calls return bounded diagnostic metadata instead of gateway or transport text that could contain message data or credentials.
 
 ```php
 public function sendWithDetails(
@@ -133,14 +133,22 @@ public function sendWithHandleDetails(
 | Key | Type | Description |
 |-----|------|-------------|
 | `success` | `bool` | Whether the message was accepted by the provider |
-| `messageId` | `string\|null` | Provider message ID, if returned |
-| `response` | `string\|null` | Raw provider response |
-| `error` | `string\|null` | Error message on failure |
+| `messageId` | `string\|null` | Provider message ID on success; `null` for a provider failure |
+| `response` | `string\|null` | Raw provider response on success; `null` for a provider failure |
+| `error` | `string\|null` | Service validation error, or bounded provider failure metadata with provider, category, optional HTTP status, and correlation reference |
 | `executionTime` | `int` | Time taken, in milliseconds |
 | `providerName` | `string\|null` | Resolved provider name |
 | `senderIdName` | `string\|null` | Resolved sender ID name |
-| `senderIdValue` | `string\|null` | The actual sender ID value sent to the gateway |
-| `recipient` | `string` | The recipient passed in |
+| `senderIdValue` | `string\|null` | Actual sender ID on success; `[redacted]` after a provider failure |
+| `recipient` | `string` | Recipient on success; an irreversible `hmac-sha256:` reference after a provider failure |
+
+A provider failure looks like this:
+
+```text
+SMS provider failure [provider=mpp-sms; category=http; status=503; reference=…]
+```
+
+Use the category and reference when correlating the API result, SMS log, and plugin-level log. SMS Manager never forwards transport exception messages, request URLs, authorization headers, or free-text gateway failures through this result.
 
 ## Source plugin tracking
 

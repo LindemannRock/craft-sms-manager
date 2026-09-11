@@ -20,7 +20,7 @@ use lindemannrock\smsmanager\tests\TestCase;
  *
  * When the provider returns `success=false`, the service must still write a
  * log row (so a failed send is auditable), mark it `failed`, and persist the
- * provider's error string. The analytics row must show one `totalFailed` and
+ * a bounded failure reference. The analytics row must show one `totalFailed` and
  * zero `totalSent` so the dashboards don't double-count the attempt as a
  * success.
  *
@@ -52,7 +52,10 @@ final class SmsServiceSendFailureTest extends TestCase
         $logRow = $this->fetchLogRowByRecipient($recipient);
         self::assertNotNull($logRow, 'A log row should still be written on failure for auditability');
         self::assertSame(SmsLogRecord::STATUS_FAILED, $logRow['status']);
-        self::assertSame('mocked downstream timeout', $logRow['errorMessage']);
+        self::assertMatchesRegularExpression(
+            '/^SMS provider failure \[provider=sm_test_stub; category=provider; reference=[0-9a-f-]{36}\]$/',
+            (string) $logRow['errorMessage'],
+        );
 
         $analyticsCount = $this->countRows(AnalyticsRecord::tableName(), [
             'sourcePlugin' => $sourcePlugin,

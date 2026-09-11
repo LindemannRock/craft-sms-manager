@@ -168,48 +168,30 @@ class MppSmsProvider extends BaseProvider
         // If phone number is invalid, return error
         if (!$phoneResult['valid']) {
             $this->logError('MPP-SMS: Invalid phone number', [
-                'to' => $to,
-                'normalized' => $toNumber,
-                'error' => $phoneResult['error'],
+                'recipient' => $this->recipientReference($to),
                 'allowedCountries' => $allowedCountries,
             ]);
 
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => $phoneResult['error'],
-            ];
+            return $this->failureResult('invalid-recipient');
         }
 
         // Log if phone number was auto-fixed
         if ($phoneResult['fixed']) {
             $this->logInfo('MPP-SMS: Phone number was auto-corrected', [
-                'original' => $to,
-                'corrected' => $toNumber,
+                'originalRecipient' => $this->recipientReference($to),
+                'normalizedRecipient' => $this->recipientReference($toNumber),
             ]);
         }
 
         // Additional check: validate phone number against allowed countries (if not wildcard)
         if (!empty($allowedCountries) && !in_array('*', $allowedCountries, true)) {
             if (!GeoHelper::isPhoneNumberAllowed($toNumber, $allowedCountries)) {
-                $allowedNames = array_map(
-                    fn($code) => GeoHelper::getCountryWithDialCode($code),
-                    $allowedCountries
-                );
-                $allowedList = implode(', ', array_filter($allowedNames));
-
                 $this->logError('MPP-SMS: Phone number not allowed for this provider', [
-                    'to' => $toNumber,
+                    'recipient' => $this->recipientReference($to),
                     'allowedCountries' => $allowedCountries,
                 ]);
 
-                return [
-                    'success' => false,
-                    'messageId' => null,
-                    'response' => null,
-                    'error' => Craft::t('sms-manager', 'This provider only supports: {countries}', ['countries' => $allowedList]),
-                ];
+                return $this->failureResult('invalid-recipient');
             }
         }
 
@@ -228,12 +210,7 @@ class MppSmsProvider extends BaseProvider
 
         if (empty($apiKey)) {
             $this->logError('MPP-SMS: API key not configured');
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => 'API key not configured',
-            ];
+            return $this->failureResult('configuration');
         }
 
         // Sanitize message
@@ -252,12 +229,7 @@ class MppSmsProvider extends BaseProvider
             $this->logError('MPP-SMS: API endpoint validation failed', [
                 'error' => $endpointValidation['error'],
             ]);
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => $endpointValidation['error'],
-            ];
+            return $this->failureResult('endpoint-policy');
         }
 
         // Build API URL manually to control encoding
@@ -291,37 +263,35 @@ class MppSmsProvider extends BaseProvider
 
             if ($success) {
                 $this->logInfo('MPP-SMS: Message sent successfully', [
-                    'to' => $toNumber,
+                    'recipient' => $this->recipientReference($to),
                     'language' => $language,
                     'messageId' => $messageId,
-                    'response' => $content,
                 ]);
-            } else {
-                $this->logError('MPP-SMS: Message failed', [
-                    'to' => $toNumber,
-                    'language' => $language,
+
+                return [
+                    'success' => true,
+                    'messageId' => $messageId,
                     'response' => $content,
-                ]);
+                    'error' => null,
+                ];
             }
 
-            return [
-                'success' => $success,
-                'messageId' => $messageId,
-                'response' => $content,
-                'error' => $success ? null : $content,
-            ];
-        } catch (\Throwable $e) {
-            $this->logError('MPP-SMS: Request failed', [
-                'to' => $toNumber,
-                'error' => $e->getMessage(),
+            $result = $this->failureResult($content === '' ? 'malformed-response' : 'provider-response');
+            $this->logError('MPP-SMS: Message failed', [
+                'recipient' => $this->recipientReference($to),
+                'language' => $language,
+                'failure' => $result['error'],
             ]);
 
-            return [
-                'success' => false,
-                'messageId' => null,
-                'response' => null,
-                'error' => $e->getMessage(),
-            ];
+            return $result;
+        } catch (\Throwable $e) {
+            $result = $this->failureResultFromThrowable($e);
+            $this->logError('MPP-SMS: Request failed', [
+                'recipient' => $this->recipientReference($to),
+                'failure' => $result['error'],
+            ]);
+
+            return $result;
         }
     }
 

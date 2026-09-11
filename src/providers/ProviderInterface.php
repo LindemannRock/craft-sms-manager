@@ -137,7 +137,7 @@ interface ProviderInterface
      * @param string $senderId Sender ID to use
      * @param string $language Message language ('en', 'ar', etc.)
      * @param array $settings Provider settings
-     * @return array Result with 'success', 'messageId', 'response' keys
+     * @return array{success: bool, messageId: string|null, response: string|null, error?: string|null}
      */
     public function send(string $to, string $message, string $senderId, string $language, array $settings): array;
 }

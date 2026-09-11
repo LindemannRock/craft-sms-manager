@@ -58,10 +58,22 @@ final class StubProvider extends BaseProvider
      */
     public static string $successResponse = 'OK,stub';
 
+    /** When true, return the original three-key success result shape. */
+    public static bool $omitSuccessError = false;
+
     /**
      * Error string returned when {@see $failSend} is set.
      */
     public static string $failError = 'stub: forced failure';
+
+    /** Raw response returned with a forced failure. */
+    public static ?string $failResponse = null;
+
+    /** Message ID returned with a forced failure. */
+    public static ?string $failMessageId = null;
+
+    /** When true, throw the configured failure instead of returning it. */
+    public static bool $throwOnSend = false;
 
     public static function handle(): string
     {
@@ -104,21 +116,30 @@ final class StubProvider extends BaseProvider
             'settings' => $settings,
         ];
 
+        if (self::$throwOnSend) {
+            throw new \RuntimeException(self::$failError);
+        }
+
         if (self::$failSend) {
             return [
                 'success' => false,
-                'messageId' => null,
-                'response' => null,
+                'messageId' => self::$failMessageId,
+                'response' => self::$failResponse,
                 'error' => self::$failError,
             ];
         }
 
-        return [
+        $result = [
             'success' => true,
             'messageId' => self::$successMessageId,
             'response' => self::$successResponse,
-            'error' => null,
         ];
+
+        if (!self::$omitSuccessError) {
+            $result['error'] = null;
+        }
+
+        return $result;
     }
 
     /**
@@ -132,6 +153,10 @@ final class StubProvider extends BaseProvider
         self::$failSend = false;
         self::$successMessageId = 'stub-msg-id';
         self::$successResponse = 'OK,stub';
+        self::$omitSuccessError = false;
         self::$failError = 'stub: forced failure';
+        self::$failResponse = null;
+        self::$failMessageId = null;
+        self::$throwOnSend = false;
     }
 }
