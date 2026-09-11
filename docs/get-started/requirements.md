@@ -1,10 +1,10 @@
 # Requirements
 
-## System requirements
+## System Requirements
 
 | Requirement | Version |
 |-------------|---------|
-| [Craft CMS](https://craftcms.com/) | 5.0+ |
+| [Craft CMS](https://craftcms.com/) | 5.10+ |
 | [PHP](https://php.net/) | 8.2+ |
 
 ## Dependencies
@@ -13,7 +13,7 @@ Composer pulls these packages automatically. Craft plugin dependencies also need
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| [lindemannrock/craft-plugin-base](https://github.com/LindemannRock/craft-plugin-base) | 5.0+ | Shared base plugin utilities (helpers, traits, layouts) |
-| [lindemannrock/craft-logging-library](https://github.com/LindemannRock/craft-logging-library) | 5.0+ | Optional — install in CP for log viewing |
+| [lindemannrock/craft-plugin-base](https://github.com/LindemannRock/craft-plugin-base) | 5.38.2+ | Shared base plugin utilities (helpers, traits, layouts) |
+| [lindemannrock/craft-logging-library](https://github.com/LindemannRock/craft-logging-library) | 5.18.2+ | Required by Composer; install in Craft for log viewing |
 
 You also need an account with at least one supported SMS gateway ([MPP-SMS](../feature-tour/provider-mpp-sms.md) or [Twilio](../feature-tour/provider-twilio.md)) to actually send messages.
