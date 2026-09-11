@@ -304,11 +304,11 @@ class ProvidersController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        $this->requirePermission('smsManager:manageProviders');
 
         $request = Craft::$app->getRequest();
-        $type = $request->getRequiredBodyParam('type');
         $providerId = $request->getBodyParam('providerId');
+        $this->requirePermission($providerId === null ? 'smsManager:createProviders' : 'smsManager:editProviders');
+        $type = $request->getRequiredBodyParam('type');
 
         $providerInstance = SmsManager::$plugin->providers->createProviderByType($type);
         if ($providerInstance === null) {
