@@ -32,9 +32,9 @@ use Throwable;
  *
  * Layers plugin-specific shorthand on top of {@see IntegrationTestCase}:
  *  - direct accessors for `sms` / `providers` / `senderIds` services
- *  - marker-prefixed seeders for provider + sender ID rows (the live DB may
- *    already host real CP-created records, so every test-owned row goes in
- *    under the `__sm_test_` namespace and gets purged on setUp/tearDown)
+ *  - collision-resistant seeders for provider + sender ID rows (the live DB
+ *    may already host real CP-created records, so every successful insert is
+ *    tracked by primary key and deleted exactly on tearDown)
  *  - the `__sm_test_` marker rides along through `recipient` (logs) and
  *    `sourcePlugin` (analytics) so the same prefix drains every table the
  *    SMS pipeline writes to
@@ -54,8 +54,8 @@ abstract class TestCase extends IntegrationTestCase
      *
      * Applied to `handle` columns on the providers + sender_ids tables, to
      * the `recipient` column on the logs table, and to the `sourcePlugin`
-     * column on the analytics table. Plain ASCII so `purgeRowsByMarker`'s
-     * LIKE wildcard isn't tripped by any unintended regex characters.
+     * column on the analytics table. Provider and sender cleanup uses exact
+     * tracked IDs; the marker cleanup is limited to connection-local shadows.
      */
     protected const MARKER = '__sm_test_';
 
@@ -72,6 +72,12 @@ abstract class TestCase extends IntegrationTestCase
     protected SenderIdsService $senderIds;
 
     private int $seedCounter = 0;
+
+    /** @var array<int, true> */
+    private array $ownedProviderIds = [];
+
+    /** @var array<int, true> */
+    private array $ownedSenderIdIds = [];
 
     /** @var array<string, mixed>|null */
     private ?array $settingsSnapshot = null;
@@ -106,6 +112,8 @@ abstract class TestCase extends IntegrationTestCase
             $this->providers = $plugin->providers;
             $this->senderIds = $plugin->senderIds;
             $this->seedCounter = 0;
+            $this->ownedProviderIds = [];
+            $this->ownedSenderIdIds = [];
             $this->ensureAnalyticsTestSchema();
             $this->purgeTestRows();
         } catch (Throwable $exception) {
@@ -156,7 +164,7 @@ abstract class TestCase extends IntegrationTestCase
     protected function seedProvider(array $overrides = []): ProviderRecord
     {
         $this->seedCounter++;
-        $handle = self::MARKER . 'provider_' . $this->seedCounter;
+        $handle = $this->nextTestMarker(self::MARKER, 'provider');
 
         $record = new ProviderRecord();
         $record->name = $overrides['name'] ?? $handle;
@@ -168,8 +176,13 @@ abstract class TestCase extends IntegrationTestCase
         ]);
         $record->source = 'database';
 
+        $saved = $record->save(false);
+        if ($saved) {
+            $this->trackProviderForCleanup($record);
+        }
+
         $this->assertTrue(
-            $record->save(false),
+            $saved,
             'Seeded provider must save — errors: ' . json_encode($record->getErrors()),
         );
 
@@ -185,7 +198,7 @@ abstract class TestCase extends IntegrationTestCase
     protected function seedSenderId(ProviderRecord $provider, array $overrides = []): SenderIdRecord
     {
         $this->seedCounter++;
-        $handle = self::MARKER . 'sender_' . $this->seedCounter;
+        $handle = $this->nextTestMarker(self::MARKER, 'sender');
 
         $record = new SenderIdRecord();
         $record->providerId = $provider->id;
@@ -197,12 +210,55 @@ abstract class TestCase extends IntegrationTestCase
         $record->isDev = $overrides['isDev'] ?? false;
         $record->source = 'database';
 
+        $saved = $record->save(false);
+        if ($saved) {
+            $this->trackSenderIdForCleanup($record);
+        }
+
         $this->assertTrue(
-            $record->save(false),
+            $saved,
             'Seeded sender ID must save — errors: ' . json_encode($record->getErrors()),
         );
 
         return $record;
+    }
+
+    /** Register a successfully created provider for exact cleanup. */
+    protected function trackProviderForCleanup(ProviderRecord $provider): void
+    {
+        if ($provider->id === null) {
+            throw new \LogicException('Cannot track an unsaved provider record.');
+        }
+
+        $this->ownedProviderIds[(int)$provider->id] = true;
+    }
+
+    /** Register a successfully created sender ID for exact cleanup. */
+    protected function trackSenderIdForCleanup(SenderIdRecord $senderId): void
+    {
+        if ($senderId->id === null) {
+            throw new \LogicException('Cannot track an unsaved sender ID record.');
+        }
+
+        $this->ownedSenderIdIds[(int)$senderId->id] = true;
+    }
+
+    /** Delete only provider and sender rows created by the current test. */
+    protected function cleanupOwnedProviderAndSenderRows(): void
+    {
+        if ($this->ownedSenderIdIds !== []) {
+            Craft::$app->getDb()->createCommand()
+                ->delete(SenderIdRecord::tableName(), ['id' => array_keys($this->ownedSenderIdIds)])
+                ->execute();
+            $this->ownedSenderIdIds = [];
+        }
+
+        if ($this->ownedProviderIds !== []) {
+            Craft::$app->getDb()->createCommand()
+                ->delete(ProviderRecord::tableName(), ['id' => array_keys($this->ownedProviderIds)])
+                ->execute();
+            $this->ownedProviderIds = [];
+        }
     }
 
     /**
@@ -237,20 +293,14 @@ abstract class TestCase extends IntegrationTestCase
     }
 
     /**
-     * Drain every marker-tagged row across the four tables `SmsService::send`
-     * can write to. Done on both setUp and tearDown so a previous failed run
-     * can't poison the next one. The logs table has no `handle` column —
-     * cleanup pivots on `recipient`, which every test sets to a marker-tagged
-     * phone-number-looking string. The analytics table has no `handle`
-     * either; we tag `sourcePlugin` instead so analytics rows still hold the
-     * marker after `SmsService` propagates it.
+     * Drain marker-tagged rows from the connection-local log and analytics
+     * shadows. Provider and sender rows live in owner tables and are cleaned
+     * separately by exact primary key.
      */
     protected function purgeTestRows(): void
     {
         $this->purgeRowsByMarker(SmsLogRecord::tableName(), 'recipient', self::MARKER);
         $this->purgeRowsByMarker(AnalyticsRecord::tableName(), 'sourcePlugin', self::MARKER);
-        $this->purgeRowsByMarker(SenderIdRecord::tableName(), 'handle', self::MARKER);
-        $this->purgeRowsByMarker(ProviderRecord::tableName(), 'handle', self::MARKER);
     }
 
     /**
@@ -339,6 +389,7 @@ abstract class TestCase extends IntegrationTestCase
         $errors = [];
 
         $this->runCleanupStep($errors, fn() => $this->purgeTestRows());
+        $this->runCleanupStep($errors, fn() => $this->cleanupOwnedProviderAndSenderRows());
         $this->runCleanupStep($errors, function(): void {
             foreach ($this->appComponentSnapshots as $id => $component) {
                 Craft::$app->set($id, $component);

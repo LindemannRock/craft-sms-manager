@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace lindemannrock\smsmanager\tests\Integration;
 
-use Craft;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\tests\TestCase;
@@ -22,80 +21,82 @@ use lindemannrock\smsmanager\tests\TestCase;
  */
 final class HandleUniquenessTest extends TestCase
 {
-    private const HANDLE_PREFIX = 'sm-test-';
+    private string $handleToken = '';
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->registerStubProvider();
-        $this->deleteHandleRows();
-    }
-
-    protected function tearDown(): void
-    {
-        $this->deleteHandleRows();
-        parent::tearDown();
+        $this->handleToken = bin2hex(random_bytes(8));
     }
 
     public function testNewDuplicateProviderHandleAutoSuffixes(): void
     {
-        $this->seedProvider(['handle' => self::HANDLE_PREFIX . 'provider']);
+        $handle = $this->handle('provider');
+        $this->seedProvider(['handle' => $handle]);
 
-        $provider = $this->makeProvider('Provider', self::HANDLE_PREFIX . 'provider');
+        $provider = $this->makeProvider('Provider', $handle);
 
-        self::assertTrue($this->providers->saveProvider($provider), implode(', ', $provider->getFirstErrors()));
-        self::assertSame(self::HANDLE_PREFIX . 'provider-1', $provider->handle);
+        self::assertTrue($this->saveOwnedProvider($provider), implode(', ', $provider->getFirstErrors()));
+        self::assertSame($handle . '-1', $provider->handle);
     }
 
     public function testExistingProviderDuplicateHandleRejects(): void
     {
-        $this->seedProvider(['handle' => self::HANDLE_PREFIX . 'provider-one']);
-        $provider = $this->seedProvider(['handle' => self::HANDLE_PREFIX . 'provider-two']);
+        $firstHandle = $this->handle('provider-one');
+        $this->seedProvider(['handle' => $firstHandle]);
+        $provider = $this->seedProvider(['handle' => $this->handle('provider-two')]);
 
-        $provider->handle = self::HANDLE_PREFIX . 'provider-one';
+        $provider->handle = $firstHandle;
 
-        self::assertFalse($this->providers->saveProvider($provider));
+        self::assertFalse($this->saveOwnedProvider($provider));
         self::assertSame('Handle must be unique.', $provider->getFirstError('handle'));
     }
 
     public function testProviderHandleNormalizesToKebabSlug(): void
     {
-        $provider = $this->makeProvider('Provider', 'SM Test Mixed Case');
+        $provider = $this->makeProvider('Provider', 'SM Test ' . $this->handleToken . ' Mixed Case');
 
-        self::assertTrue($this->providers->saveProvider($provider), implode(', ', $provider->getFirstErrors()));
-        self::assertSame('sm-test-mixed-case', $provider->handle);
+        self::assertTrue($this->saveOwnedProvider($provider), implode(', ', $provider->getFirstErrors()));
+        self::assertSame($this->handle('mixed-case'), $provider->handle);
     }
 
     public function testNewDuplicateSenderIdHandleAutoSuffixes(): void
     {
-        $provider = $this->seedProvider(['handle' => self::HANDLE_PREFIX . 'provider']);
-        $this->seedSenderId($provider, ['handle' => self::HANDLE_PREFIX . 'sender']);
+        $provider = $this->seedProvider(['handle' => $this->handle('provider')]);
+        $handle = $this->handle('sender');
+        $this->seedSenderId($provider, ['handle' => $handle]);
 
-        $senderId = $this->makeSenderId($provider, 'Sender', self::HANDLE_PREFIX . 'sender');
+        $senderId = $this->makeSenderId($provider, 'Sender', $handle);
 
-        self::assertTrue($this->senderIds->saveSenderId($senderId), implode(', ', $senderId->getFirstErrors()));
-        self::assertSame(self::HANDLE_PREFIX . 'sender-1', $senderId->handle);
+        self::assertTrue($this->saveOwnedSenderId($senderId), implode(', ', $senderId->getFirstErrors()));
+        self::assertSame($handle . '-1', $senderId->handle);
     }
 
     public function testExistingSenderIdDuplicateHandleRejects(): void
     {
-        $provider = $this->seedProvider(['handle' => self::HANDLE_PREFIX . 'provider']);
-        $this->seedSenderId($provider, ['handle' => self::HANDLE_PREFIX . 'sender-one']);
-        $senderId = $this->seedSenderId($provider, ['handle' => self::HANDLE_PREFIX . 'sender-two']);
+        $provider = $this->seedProvider(['handle' => $this->handle('provider')]);
+        $firstHandle = $this->handle('sender-one');
+        $this->seedSenderId($provider, ['handle' => $firstHandle]);
+        $senderId = $this->seedSenderId($provider, ['handle' => $this->handle('sender-two')]);
 
-        $senderId->handle = self::HANDLE_PREFIX . 'sender-one';
+        $senderId->handle = $firstHandle;
 
-        self::assertFalse($this->senderIds->saveSenderId($senderId));
+        self::assertFalse($this->saveOwnedSenderId($senderId));
         self::assertSame('Handle must be unique.', $senderId->getFirstError('handle'));
     }
 
     public function testSenderIdHandleNormalizesToKebabSlug(): void
     {
-        $provider = $this->seedProvider(['handle' => self::HANDLE_PREFIX . 'provider']);
-        $senderId = $this->makeSenderId($provider, 'Sender', 'SM Test Sender Mixed Case');
+        $provider = $this->seedProvider(['handle' => $this->handle('provider')]);
+        $senderId = $this->makeSenderId(
+            $provider,
+            'Sender',
+            'SM Test ' . $this->handleToken . ' Sender Mixed Case',
+        );
 
-        self::assertTrue($this->senderIds->saveSenderId($senderId), implode(', ', $senderId->getFirstErrors()));
-        self::assertSame('sm-test-sender-mixed-case', $senderId->handle);
+        self::assertTrue($this->saveOwnedSenderId($senderId), implode(', ', $senderId->getFirstErrors()));
+        self::assertSame($this->handle('sender-mixed-case'), $senderId->handle);
     }
 
     private function makeProvider(string $name, string $handle = ''): ProviderRecord
@@ -126,14 +127,28 @@ final class HandleUniquenessTest extends TestCase
         return $senderId;
     }
 
-    private function deleteHandleRows(): void
+    private function handle(string $suffix): string
     {
-        Craft::$app->getDb()->createCommand()
-            ->delete(SenderIdRecord::tableName(), ['like', 'handle', self::HANDLE_PREFIX])
-            ->execute();
+        return 'sm-test-' . $this->handleToken . '-' . $suffix;
+    }
 
-        Craft::$app->getDb()->createCommand()
-            ->delete(ProviderRecord::tableName(), ['like', 'handle', self::HANDLE_PREFIX])
-            ->execute();
+    private function saveOwnedProvider(ProviderRecord $provider): bool
+    {
+        $saved = $this->providers->saveProvider($provider);
+        if ($saved) {
+            $this->trackProviderForCleanup($provider);
+        }
+
+        return $saved;
+    }
+
+    private function saveOwnedSenderId(SenderIdRecord $senderId): bool
+    {
+        $saved = $this->senderIds->saveSenderId($senderId);
+        if ($saved) {
+            $this->trackSenderIdForCleanup($senderId);
+        }
+
+        return $saved;
     }
 }
