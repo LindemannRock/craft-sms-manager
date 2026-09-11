@@ -176,6 +176,30 @@ const allDialCodes = {{ allDialCodes|json_encode|raw }};
 const apiKeyInfo = document.getElementById('apiKeyInfo');
 const apiKeyInfoMessage = document.getElementById('apiKeyInfoMessage');
 
+{% include 'sms-manager/settings/_components/_test-result-renderer.twig' %}
+
+const testResultCopy = {
+    validationTitle: '{{ "Validation Error"|t("sms-manager") }}',
+    successTitle: '{{ "SMS Sent Successfully"|t("sms-manager") }}',
+    successMessage: '{{ 'The test SMS was sent successfully.'|t('sms-manager') }}',
+    failureTitle: '{{ "SMS Sending Failed"|t("sms-manager") }}',
+    failureMessage: '{{ 'The test SMS failed to send.'|t('sms-manager') }}',
+    errorTitle: '{{ "Error"|t("sms-manager") }}',
+    provider: '{{ 'Provider'|t('sms-manager') }}',
+    senderId: '{{ 'Sender ID'|t('sms-manager') }}',
+    recipient: '{{ 'Recipient'|t('sms-manager') }}',
+    messageId: '{{ 'Message ID'|t('sms-manager') }}',
+    executionTime: '{{ 'Execution Time'|t('sms-manager') }}',
+    providerResponse: '{{ 'Provider Response'|t('sms-manager') }}',
+    unknown: 'Unknown',
+    unknownError: 'Unknown error',
+    notAvailable: 'N/A',
+    usingDevelopmentApiKey: '{{ 'Using Development API Key'|t('sms-manager') }}',
+    usingMainApiKey: '{{ 'Using Main API Key'|t('sms-manager') }}',
+    noDevelopmentApiKey: '{{ 'No development API key configured'|t('sms-manager') }}',
+    allowedCountries: '{{ 'Allowed Countries'|t('sms-manager') }}',
+};
+
 // Update country dropdown based on provider's allowed countries
 // Uses lrPhoneInput component's updateAllowedCountries method
 function updateCountryDropdown() {
@@ -209,22 +233,10 @@ function updateApiKeyInfo() {
 
     if (selectedSenderId) {
         apiKeyInfo.style.display = 'block';
-        let message = '';
-
-        // API key info
-        if (selectedSenderId.isDev) {
-            if (hasDevKey) {
-                message = '<strong>{{ 'Using Development API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.dev) + '</code>';
-            } else {
-                message = '<strong>{{ 'Using Main API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.main) + '</code> — {{ 'No development API key configured'|t('sms-manager') }}';
-            }
-        } else {
-            message = '<strong>{{ 'Using Main API Key'|t('sms-manager') }}:</strong> <code>' + Craft.escapeHtml(apiKeys.main) + '</code>';
-        }
 
         // Allowed countries info - build display names from allDialCodes
+        let countriesList = null;
         if (allowedCountries.length > 0) {
-            let countriesList;
             if (allowedCountries.includes('*')) {
                 countriesList = '{{ 'All Countries'|t('sms-manager') }}';
             } else {
@@ -235,10 +247,15 @@ function updateApiKeyInfo() {
                     })
                     .join(', ');
             }
-            message += '<br><strong>{{ 'Allowed Countries'|t('sms-manager') }}:</strong> ' + Craft.escapeHtml(countriesList);
         }
 
-        apiKeyInfoMessage.innerHTML = message;
+        window.lrSmsTestResults.renderApiKeyInfo(apiKeyInfoMessage, {
+            isDevelopment: selectedSenderId.isDev,
+            hasDevelopmentKey: hasDevKey,
+            mainKey: apiKeys.main,
+            developmentKey: apiKeys.dev,
+            countries: countriesList,
+        }, testResultCopy);
     } else {
         apiKeyInfo.style.display = 'none';
     }
@@ -251,7 +268,7 @@ if (testProviderSelect) {
         const senderIds = senderIdsByProvider[providerHandle] || [];
 
         // Clear and rebuild sender ID options
-        testSenderIdSelect.innerHTML = '';
+        testSenderIdSelect.replaceChildren();
         senderIds.forEach(function(senderId) {
             const option = document.createElement('option');
             option.value = senderId.handle;
@@ -343,26 +360,35 @@ if (testButton) {
         // Validation
         if (!localNumber) {
             testResults.style.display = 'block';
-            resultsTitle.innerHTML = '{{ "Validation Error"|t("sms-manager") }}';
-            resultsTitle.style.color = '#dc2626';
-            resultsContent.innerHTML = '<p style="color: #dc2626;">{{ "Please enter a recipient phone number"|t("sms-manager") }}</p>';
+            window.lrSmsTestResults.renderValidation(
+                resultsTitle,
+                resultsContent,
+                '{{ "Please enter a recipient phone number"|t("sms-manager") }}',
+                testResultCopy
+            );
             return;
         }
 
         // Must contain at least some digits
         if (localNumber.length < 6) {
             testResults.style.display = 'block';
-            resultsTitle.innerHTML = '{{ "Validation Error"|t("sms-manager") }}';
-            resultsTitle.style.color = '#dc2626';
-            resultsContent.innerHTML = '<p style="color: #dc2626;">{{ "Phone number must contain at least 6 digits."|t("sms-manager") }}</p>';
+            window.lrSmsTestResults.renderValidation(
+                resultsTitle,
+                resultsContent,
+                '{{ "Phone number must contain at least 6 digits."|t("sms-manager") }}',
+                testResultCopy
+            );
             return;
         }
 
         if (!message) {
             testResults.style.display = 'block';
-            resultsTitle.innerHTML = '{{ "Validation Error"|t("sms-manager") }}';
-            resultsTitle.style.color = '#dc2626';
-            resultsContent.innerHTML = '<p style="color: #dc2626;">{{ "Please enter a message"|t("sms-manager") }}</p>';
+            window.lrSmsTestResults.renderValidation(
+                resultsTitle,
+                resultsContent,
+                '{{ "Please enter a message"|t("sms-manager") }}',
+                testResultCopy
+            );
             return;
         }
 
@@ -392,49 +418,9 @@ if (testButton) {
             testResults.style.display = 'block';
 
             if (data.success) {
-                resultsTitle.innerHTML = '{{ "SMS Sent Successfully"|t("sms-manager") }}';
-                resultsTitle.style.color = '#059669';
-
-                resultsContent.innerHTML = `
-<div style="padding: 16px; background: #f0fdf4; border-left: 4px solid #059669; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
-    <p style="margin: 0;"><strong>{{ 'The test SMS was sent successfully.'|t('sms-manager') }}</strong></p>
-</div>
-<dl style="display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin: 20px 0;">
-    <dt><strong>{{ 'Provider'|t('sms-manager') }}:</strong></dt>
-    <dd>${Craft.escapeHtml(data.providerName)}</dd>
-
-    <dt><strong>{{ 'Sender ID'|t('sms-manager') }}:</strong></dt>
-    <dd>${Craft.escapeHtml(data.senderIdName)} (<code>${Craft.escapeHtml(data.senderIdValue)}</code>)</dd>
-
-    <dt><strong>{{ 'Recipient'|t('sms-manager') }}:</strong></dt>
-    <dd><code>${Craft.escapeHtml(data.recipient)}</code></dd>
-
-    <dt><strong>{{ 'Message ID'|t('sms-manager') }}:</strong></dt>
-    <dd><code>${data.messageId || 'N/A'}</code></dd>
-
-    <dt><strong>{{ 'Execution Time'|t('sms-manager') }}:</strong></dt>
-    <dd>${data.executionTime}ms</dd>
-</dl>
-${data.response ? `<details style="margin-top: 16px;"><summary style="cursor: pointer; color: #6b7280;">{{ 'Provider Response'|t('sms-manager') }}</summary><pre style="background: #f3f4f6; padding: 12px; border-radius: 4px; margin-top: 8px; overflow-x: auto; font-size: 12px;">${Craft.escapeHtml(data.response)}</pre></details>` : ''}
-`;
+                window.lrSmsTestResults.renderSuccess(resultsTitle, resultsContent, data, testResultCopy);
             } else {
-                resultsTitle.innerHTML = '{{ "SMS Sending Failed"|t("sms-manager") }}';
-                resultsTitle.style.color = '#dc2626';
-
-                resultsContent.innerHTML = `
-<div style="padding: 16px; background: #fef2f2; border-left: 4px solid #dc2626; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
-    <p style="margin: 0;"><strong>{{ 'The test SMS failed to send.'|t('sms-manager') }}</strong></p>
-    <p style="margin: 8px 0 0; color: #dc2626;">${Craft.escapeHtml(data.error || 'Unknown error')}</p>
-</div>
-<dl style="display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin: 20px 0;">
-    <dt><strong>{{ 'Provider'|t('sms-manager') }}:</strong></dt>
-    <dd>${Craft.escapeHtml(data.providerName || 'Unknown')}</dd>
-
-    <dt><strong>{{ 'Sender ID'|t('sms-manager') }}:</strong></dt>
-    <dd>${Craft.escapeHtml(data.senderIdName || 'Unknown')}</dd>
-</dl>
-${data.response ? `<details style="margin-top: 16px;"><summary style="cursor: pointer; color: #6b7280;">{{ 'Provider Response'|t('sms-manager') }}</summary><pre style="background: #f3f4f6; padding: 12px; border-radius: 4px; margin-top: 8px; overflow-x: auto; font-size: 12px;">${Craft.escapeHtml(data.response)}</pre></details>` : ''}
-`;
+                window.lrSmsTestResults.renderFailure(resultsTitle, resultsContent, data, testResultCopy);
             }
         })
         .catch(error => {
@@ -442,9 +428,7 @@ ${data.response ? `<details style="margin-top: 16px;"><summary style="cursor: po
             testButton.textContent = '{{ "Send Test SMS"|t("sms-manager") }}';
 
             testResults.style.display = 'block';
-            resultsTitle.innerHTML = '{{ "Error"|t("sms-manager") }}';
-            resultsTitle.style.color = '#dc2626';
-            resultsContent.innerHTML = `<p style="color: #dc2626;">${error.message}</p>`;
+            window.lrSmsTestResults.renderCaughtError(resultsTitle, resultsContent, error.message, testResultCopy);
         });
     });
 }

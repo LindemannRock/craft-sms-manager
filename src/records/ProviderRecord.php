@@ -37,6 +37,9 @@ class ProviderRecord extends ActiveRecord
 
     private const PLUGIN_HANDLE = 'sms-manager';
 
+    /** @var list<string> Supported provider credential keys omitted from config displays. */
+    private const SENSITIVE_CONFIG_KEYS = ['apiKey', 'password', 'devApiKey', 'authToken'];
+
     /**
      * @var string|null Raw config display for tooltips
      */
@@ -193,7 +196,7 @@ class ProviderRecord extends ActiveRecord
         $model->source = 'config';
 
         // Build raw config display for tooltip
-        $model->rawConfigDisplay = $model->formatConfigDisplay($config, $handle, ['apiKey', 'password', 'devApiKey']);
+        $model->rawConfigDisplay = $model->formatConfigDisplay($config, $handle, self::SENSITIVE_CONFIG_KEYS);
 
         return $model;
     }

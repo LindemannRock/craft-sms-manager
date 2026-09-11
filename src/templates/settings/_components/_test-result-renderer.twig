@@ -1,0 +1,147 @@
+(function(window, document) {
+    'use strict';
+
+    function createElement(tagName, text, styles) {
+        const element = document.createElement(tagName);
+        if (text !== undefined) {
+            element.textContent = text;
+        }
+        if (styles) {
+            element.style.cssText = styles;
+        }
+        return element;
+    }
+
+    function appendDefinition(list, label, value) {
+        const term = createElement('dt');
+        term.appendChild(createElement('strong', label + ':'));
+        list.appendChild(term);
+
+        const description = createElement('dd');
+        if (typeof value === 'string') {
+            description.textContent = value;
+        } else {
+            description.appendChild(value);
+        }
+        list.appendChild(description);
+    }
+
+    function appendResponse(content, response, label) {
+        if (!response) {
+            return;
+        }
+
+        const details = createElement('details', undefined, 'margin-top: 16px;');
+        details.appendChild(createElement('summary', label, 'cursor: pointer; color: #6b7280;'));
+        details.appendChild(createElement(
+            'pre',
+            response,
+            'background: #f3f4f6; padding: 12px; border-radius: 4px; margin-top: 8px; overflow-x: auto; font-size: 12px;'
+        ));
+        content.appendChild(details);
+    }
+
+    function appendStatusBanner(content, message, error) {
+        const color = error ? '#dc2626' : '#059669';
+        const background = error ? '#fef2f2' : '#f0fdf4';
+        const banner = createElement(
+            'div',
+            undefined,
+            `padding: 16px; background: ${background}; border-left: 4px solid ${color}; margin-bottom: 20px; border-radius: 0 4px 4px 0;`
+        );
+        const messageParagraph = createElement('p', undefined, 'margin: 0;');
+        messageParagraph.appendChild(createElement('strong', message));
+        banner.appendChild(messageParagraph);
+        content.appendChild(banner);
+
+        return banner;
+    }
+
+    function renderValidation(title, content, message, copy) {
+        title.textContent = copy.validationTitle;
+        title.style.color = '#dc2626';
+        content.replaceChildren(createElement('p', message, 'color: #dc2626;'));
+    }
+
+    function renderSuccess(title, content, data, copy) {
+        title.textContent = copy.successTitle;
+        title.style.color = '#059669';
+        content.replaceChildren();
+        appendStatusBanner(content, copy.successMessage, false);
+
+        const list = createElement(
+            'dl',
+            undefined,
+            'display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin: 20px 0;'
+        );
+        appendDefinition(list, copy.provider, data.providerName);
+
+        const sender = document.createElement('span');
+        sender.appendChild(document.createTextNode(data.senderIdName + ' ('));
+        sender.appendChild(createElement('code', data.senderIdValue));
+        sender.appendChild(document.createTextNode(')'));
+        appendDefinition(list, copy.senderId, sender);
+        appendDefinition(list, copy.recipient, createElement('code', data.recipient));
+        appendDefinition(list, copy.messageId, createElement('code', data.messageId || copy.notAvailable));
+        appendDefinition(list, copy.executionTime, data.executionTime + 'ms');
+        content.appendChild(list);
+        appendResponse(content, data.response, copy.providerResponse);
+    }
+
+    function renderFailure(title, content, data, copy) {
+        title.textContent = copy.failureTitle;
+        title.style.color = '#dc2626';
+        content.replaceChildren();
+
+        const banner = appendStatusBanner(content, copy.failureMessage, true);
+        banner.appendChild(createElement('p', data.error || copy.unknownError, 'margin: 8px 0 0; color: #dc2626;'));
+
+        const list = createElement(
+            'dl',
+            undefined,
+            'display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin: 20px 0;'
+        );
+        appendDefinition(list, copy.provider, data.providerName || copy.unknown);
+        appendDefinition(list, copy.senderId, data.senderIdName || copy.unknown);
+        content.appendChild(list);
+        appendResponse(content, data.response, copy.providerResponse);
+    }
+
+    function renderCaughtError(title, content, error, copy) {
+        title.textContent = copy.errorTitle;
+        title.style.color = '#dc2626';
+        content.replaceChildren(createElement('p', error, 'color: #dc2626;'));
+    }
+
+    function renderApiKeyInfo(content, data, copy) {
+        content.replaceChildren();
+
+        let label = copy.usingMainApiKey;
+        let key = data.mainKey;
+        if (data.isDevelopment && data.hasDevelopmentKey) {
+            label = copy.usingDevelopmentApiKey;
+            key = data.developmentKey;
+        }
+
+        content.appendChild(createElement('strong', label + ':'));
+        content.appendChild(document.createTextNode(' '));
+        content.appendChild(createElement('code', key));
+        if (data.isDevelopment && !data.hasDevelopmentKey) {
+            content.appendChild(document.createTextNode(' — ' + copy.noDevelopmentApiKey));
+        }
+
+        if (data.countries !== null) {
+            content.appendChild(createElement('br'));
+            content.appendChild(createElement('strong', copy.allowedCountries + ':'));
+            content.appendChild(document.createTextNode(' ' + data.countries));
+        }
+    }
+
+    window.lrSmsTestResults = {
+        renderApiKeyInfo,
+        renderCaughtError,
+        renderFailure,
+        renderSuccess,
+        renderValidation,
+    };
+})(window, document);

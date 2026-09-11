@@ -74,38 +74,6 @@ class ProvidersController extends Controller
             ->column();
         $collisionHandles = array_values(array_intersect($configHandles, $databaseHandles));
 
-        // Auto-assign default if needed (only if not set via config file).
-        // Runs against the full provider list, not the filtered subset, so a
-        // narrowed status/source filter never accidentally promotes a default.
-        if (!$isDefaultFromConfig) {
-            $defaultHandle = $settings->defaultProviderHandle;
-            $needsReassign = false;
-
-            if (empty($defaultHandle)) {
-                $needsReassign = true;
-            } else {
-                $defaultProvider = SmsManager::$plugin->providers->getProviderByHandle($defaultHandle);
-                if (!$defaultProvider || !$defaultProvider->enabled) {
-                    $needsReassign = true;
-                }
-            }
-
-            if ($needsReassign && !empty($providers)) {
-                foreach ($providers as $provider) {
-                    if ($provider->enabled) {
-                        $settings->defaultProviderHandle = $provider->handle;
-                        $settings->saveToDatabase();
-
-                        $this->logInfo('Auto-assigned default provider', [
-                            'handle' => $provider->handle,
-                            'reason' => empty($defaultHandle) ? 'no default set' : 'previous default invalid',
-                        ]);
-                        break;
-                    }
-                }
-            }
-        }
-
         // ---- Param parsing + allowlist validation -------------------------
 
         $statusFilter = (string) $request->getQueryParam('status', 'all');
@@ -250,13 +218,14 @@ class ProvidersController extends Controller
             throw new NotFoundHttpException(Craft::t('sms-manager', 'Provider not found'));
         }
 
-        $providerSettings = $provider->getSettingsArray();
+        $isConfigProvider = $provider->isFromConfig();
+        $providerSettings = $isConfigProvider ? [] : $provider->getSettingsArray();
         $providerTypes = SmsManager::$plugin->providers->getProviderTypeOptions();
         $countryOptions = GeoHelper::getCountryDialCodeOptions(true);
         $settings = SmsManager::$plugin->getSettings();
         $providerCount = ProviderRecord::find()->count();
 
-        $providerInstance = SmsManager::$plugin->providers->createProviderByType($provider->type);
+        $providerInstance = $isConfigProvider ? null : SmsManager::$plugin->providers->createProviderByType($provider->type);
         $settingsHtml = $providerInstance ? $providerInstance->getSettingsHtml($provider) : '';
 
         return $this->renderTemplate('sms-manager/providers/edit', [

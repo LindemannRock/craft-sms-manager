@@ -81,38 +81,6 @@ class SenderIdsController extends Controller
             ->column();
         $collisionHandles = array_values(array_intersect($configHandles, $databaseHandles));
 
-        // Auto-assign default if needed (only if not set via config file).
-        // Runs against the full sender ID list, not the filtered subset, so a
-        // narrowed filter never accidentally promotes a default.
-        if (!$isDefaultFromConfig) {
-            $defaultHandle = $settings->defaultSenderIdHandle;
-            $needsReassign = false;
-
-            if (empty($defaultHandle)) {
-                $needsReassign = true;
-            } else {
-                $defaultSenderId = SmsManager::$plugin->senderIds->getSenderIdByHandle($defaultHandle);
-                if (!$defaultSenderId || !$defaultSenderId->enabled) {
-                    $needsReassign = true;
-                }
-            }
-
-            if ($needsReassign && !empty($senderIds)) {
-                foreach ($senderIds as $senderId) {
-                    if ($senderId->enabled) {
-                        $settings->defaultSenderIdHandle = $senderId->handle;
-                        $settings->saveToDatabase();
-
-                        $this->logInfo('Auto-assigned default sender ID', [
-                            'handle' => $senderId->handle,
-                            'reason' => empty($defaultHandle) ? 'no default set' : 'previous default invalid',
-                        ]);
-                        break;
-                    }
-                }
-            }
-        }
-
         // ---- Param parsing + allowlist validation -------------------------
 
         $statusFilter = (string) $request->getQueryParam('status', 'all');
