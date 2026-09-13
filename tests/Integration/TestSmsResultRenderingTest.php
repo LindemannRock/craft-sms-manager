@@ -54,6 +54,11 @@ final class TestSmsResultRenderingTest extends TestCase
 
         self::assertStringNotContainsString('.innerHTML', $template);
         self::assertStringContainsString("settings/_components/_test-result-renderer", $template);
+        self::assertStringContainsString("view.registerAssetBundle('lindemannrock\\\\smsmanager\\\\web\\\\assets\\\\encoding\\\\EncodingAsset')", $template);
+        self::assertStringContainsString('window.lrSmsEncoding.analyze(message)', $template);
+        self::assertStringContainsString('const isRtl = rtlLanguages.includes(lang)', $template);
+        self::assertStringContainsString('unit-count', $template);
+        self::assertStringContainsString('sms-count', $template);
     }
 
     private function domHarness(): string

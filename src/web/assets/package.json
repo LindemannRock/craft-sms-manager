@@ -4,8 +4,9 @@
   "private": true,
   "description": "Build tools for SMS Manager asset packages",
   "scripts": {
-    "build": "npm run build:analytics",
-    "build:analytics": "mkdir -p analytics/dist && terser analytics/src/analytics.js -o analytics/dist/analytics.js -c -m"
+    "build": "npm run build:analytics && npm run build:encoding",
+    "build:analytics": "mkdir -p analytics/dist && terser analytics/src/analytics.js -o analytics/dist/analytics.js -c -m",
+    "build:encoding": "mkdir -p encoding/dist && terser encoding/src/encoding.js -o encoding/dist/encoding.js -c -m"
   },
   "devDependencies": {
     "terser": "^5.46.1"

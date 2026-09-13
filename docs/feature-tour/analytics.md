@@ -7,7 +7,8 @@ Every message SMS Manager sends is recorded as an analytics event (when analytic
 ## What you'll use it for
 
 - Checking sent vs failed totals and the success rate over a period
-- Seeing the English/Arabic split and encoding mix
+- Comparing the independent language and content-derived encoding breakdowns
+- Reviewing Unicode character totals and billable SMS segment totals
 - Comparing how different providers and sender IDs are performing
 - Reporting per site in a multisite install
 
@@ -17,7 +18,8 @@ Go to **SMS Manager → Analytics**. The screen shows:
 
 - **Summary** — total sent and failed, plus the success rate (sent ÷ sent + failed)
 - **Daily trend** — sent and failed per day across the range
-- **Language breakdown** — English, Arabic, and other counts, plus an encoding breakdown
+- **Language breakdown** — messages grouped by their recorded language
+- **Encoding breakdown** — GSM-7, UCS-2, and unknown historical events, plus character and SMS segment totals
 - **Provider breakdown** — sent/failed per provider
 - **Sender ID breakdown** — sent/failed per sender ID
 - **Site breakdown** — totals per site
@@ -33,14 +35,23 @@ Narrow the view with the filter bar:
 - **Provider** — a single provider
 - **Sender ID** — a single sender ID
 - **Language** — a single message language
+- **Source** — a source plugin, or direct sends
+
+## Encoding, characters, and segments
+
+Encoding is calculated from message content, not from language, locale, text direction, or RTL status. A GSM-7 message can use 160 septets in one segment or 153 septets per multipart segment; GSM extension-table characters consume two septets. A UCS-2 message can use 70 UTF-16 code units in one segment or 67 units per multipart segment; emoji and other astral characters consume two UTF-16 code units.
+
+The **Characters** total counts Unicode code points. **SMS segments** is the number of calculated wire-size segments, and is the meaning of the exported `SMS Segments` column. An empty message has zero characters and zero segments. Language remains a separate grouping and filter, so identical content has the same encoding and segment count under every language selection.
+
+Older rows created before content facts were recorded remain visible as **Unknown** encoding. Their character and segment values are also **Unknown**, not zero. When a filtered result includes any such history, aggregate character or segment totals show **Unknown** rather than a misleading partial sum.
 
 ## Source plugin tracking
 
-When a message is sent with a source plugin handle, SMS Manager records it on the message. The Analytics screen doesn't break down by source, but [SMS Logs](sms-logs.md) shows the source per message and lets you filter by it — so you can tell whether messages came from a form integration, a custom plugin, or a direct send. Pass the source when sending; see [Sending SMS](../developers/sending-sms.md).
+When a message is sent with a source plugin handle, SMS Manager records it on the event. Use the **Source** filter to isolate a plugin or direct sends. [SMS Logs](sms-logs.md) also shows and filters the source per message. Pass the source when sending; see [Sending SMS](../developers/sending-sms.md).
 
 ## Exporting
 
-Click **Export** to download the current view as CSV, JSON, or Excel (whichever formats are enabled in [Configuration](../get-started/configuration.md#date-time-and-export-formatting)). Exporting requires the **Export analytics** permission.
+Click **Export** to download the current filtered view as CSV, JSON, or Excel (whichever formats are enabled in [Configuration](../get-started/configuration.md#date-time-and-export-formatting)). Exports include language, content-derived encoding, source, Unicode character count, and SMS segment count. Historical unavailable facts are written as **Unknown**. Exporting requires the **Export analytics** permission.
 
 ## Turning analytics on or off
 

@@ -33,13 +33,14 @@ final class SmsServiceSendWithHandleTest extends TestCase
         $provider = $this->seedProvider();
         $senderId = $this->seedSenderId($provider, ['senderId' => 'TestBrand']);
         $recipient = $this->markerRecipient();
+        $sourcePlugin = $this->markerSourcePlugin();
 
         $ok = $this->sms->sendWithHandle(
             to: $recipient,
-            message: 'Handle path',
+            message: str_repeat('^', 81),
             senderIdHandle: (string) $senderId->handle,
             language: 'en',
-            sourcePlugin: $this->markerSourcePlugin(),
+            sourcePlugin: $sourcePlugin,
         );
 
         self::assertTrue($ok, 'sendWithHandle() should return true when the provider succeeds');
@@ -47,7 +48,7 @@ final class SmsServiceSendWithHandleTest extends TestCase
         self::assertCount(1, StubProvider::$sentCalls, 'Stub should record exactly one send');
         $call = StubProvider::$sentCalls[0];
         self::assertSame($recipient, $call['to']);
-        self::assertSame('Handle path', $call['message']);
+        self::assertSame(str_repeat('^', 81), $call['message']);
         self::assertSame('TestBrand', $call['senderId']);
 
         $logRow = $this->fetchLogRowByRecipient($recipient);
@@ -55,6 +56,12 @@ final class SmsServiceSendWithHandleTest extends TestCase
         self::assertSame(SmsLogRecord::STATUS_SENT, $logRow['status']);
         self::assertSame((int) $provider->id, (int) $logRow['providerId']);
         self::assertSame((int) $senderId->id, (int) $logRow['senderIdId']);
+
+        $analyticsRow = $this->fetchAnalyticsRowBySource($sourcePlugin);
+        self::assertNotNull($analyticsRow);
+        self::assertSame('gsm-7', $analyticsRow['encoding']);
+        self::assertSame(81, (int)$analyticsRow['totalCharacters']);
+        self::assertSame(2, (int)$analyticsRow['totalMessages']);
     }
 
     public function testSendWithHandleReturnsFalseWhenHandleUnknown(): void

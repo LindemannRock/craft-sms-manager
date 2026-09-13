@@ -22,8 +22,9 @@ A send that relies on the default provider or sender failed to resolve one. This
 
 ## Arabic messages display incorrectly
 
-- Pass `'ar'` as the language when sending — encoding is chosen from the language.
-- MPP-SMS encodes Arabic as UCS-2 automatically; Twilio auto-detects and sends non-Latin text as UCS-2.
+- Pass `'ar'` as the language when sending so language-aware providers receive the correct metadata.
+- SMS Manager's analytics and Test SMS calculator classify the message content itself as GSM-7 or UCS-2; changing only the language does not change that classification.
+- MPP-SMS still uses the language for its existing gateway-specific wire parameter and UCS-2 conversion. Twilio determines its own transport encoding from the submitted content.
 - Confirm the recipient's device supports Arabic SMS.
 
 ## Analytics isn't tracking

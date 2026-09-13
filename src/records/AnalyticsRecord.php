@@ -15,7 +15,7 @@ use yii\db\ActiveQueryInterface;
 /**
  * Analytics Record
  *
- * Stores aggregated SMS analytics per day.
+ * Stores one analytics event per attempted provider dispatch.
  *
  * @author    LindemannRock
  * @package   SmsManager
@@ -26,16 +26,14 @@ use yii\db\ActiveQueryInterface;
  * @property int|null $senderIdId
  * @property int|null $siteId
  * @property string|null $language
+ * @property string|null $encoding Content-derived `gsm-7` or `ucs-2`; null for historical rows whose content was unavailable
  * @property \DateTime|string $date
  * @property int $totalSent
  * @property int $totalDelivered
  * @property int $totalFailed
  * @property int $totalPending
- * @property int $totalCharacters
- * @property int $totalMessages
- * @property int $englishCount
- * @property int $arabicCount
- * @property int $otherCount
+ * @property int|null $totalCharacters Unicode code-point count; null when historically unknown
+ * @property int|null $totalMessages SMS segment count; null when historically unknown
  * @property string|null $sourcePlugin
  * @property \DateTime $dateCreated
  * @property \DateTime $dateUpdated

@@ -8,14 +8,21 @@
 
 {# Encoding labels for SMS character encoding #}
 {% set encodingLabels = {
-    'gsm7': 'GSM-7 (Latin)'|t('sms-manager'),
-    'ucs2': 'UCS-2 (Unicode)'|t('sms-manager'),
-    'mixed': 'Mixed'|t('sms-manager')
+    'gsm7': 'GSM-7',
+    'ucs2': 'UCS-2',
+    'unknown': 'Unknown'|t('sms-manager')
 } %}
 
 {% set providerOptions = [{ value: 'all', label: 'All Providers'|t('sms-manager') }] %}
 {% for provider in providers %}
     {% set providerOptions = providerOptions|merge([{ value: provider.id, label: provider.name }]) %}
+{% endfor %}
+
+{% set senderOptions = [{ value: 'all', label: 'All Sender IDs'|t('sms-manager') }] %}
+{% for senderId in senderIds %}
+    {% if senderId.id %}
+        {% set senderOptions = senderOptions|merge([{ value: senderId.id, label: senderId.name }]) %}
+    {% endif %}
 {% endfor %}
 
 {# ============================================================================
@@ -60,6 +67,16 @@
                 param: 'language',
                 current: language,
                 options: languageOptions,
+            },
+            {
+                param: 'senderId',
+                current: senderIdId,
+                options: senderOptions,
+            },
+            {
+                param: 'source',
+                current: source,
+                options: sourceOptions,
             },
         ],
     },
@@ -122,6 +139,8 @@
     customFilters: {
         providerId: providerId,
         language: language,
+        senderId: senderIdId,
+        source: source,
     },
     csrfName: craft.app.config.general.csrfTokenName,
     csrfToken: craft.app.request.csrfToken,

@@ -17,6 +17,7 @@ use lindemannrock\base\web\assets\analytics\AnalyticsAsset as BaseAnalyticsAsset
 use lindemannrock\smsmanager\SmsManager;
 use lindemannrock\smsmanager\tests\TestCase;
 use lindemannrock\smsmanager\web\assets\analytics\AnalyticsAsset;
+use lindemannrock\smsmanager\web\assets\encoding\EncodingAsset;
 
 /**
  * Covers static asset delivery for SMS Manager analytics.
@@ -46,6 +47,21 @@ final class AssetDeliveryTest extends TestCase
         self::assertSame($sourceRoot, $runtimeAliasRoot);
         self::assertDirectoryExists($runtimeAliasRoot . '/web/assets/analytics/dist');
         self::assertFileExists($runtimeAliasRoot . '/web/assets/analytics/dist/analytics.js');
+        self::assertDirectoryExists($runtimeAliasRoot . '/web/assets/encoding/dist');
+        self::assertFileExists($runtimeAliasRoot . '/web/assets/encoding/dist/encoding.js');
+    }
+
+    public function testEncodingBundleResolvesAuthoredBuildWithoutApplicationState(): void
+    {
+        $bundle = new EncodingAsset();
+
+        self::assertSame(
+            Craft::getAlias('@lindemannrock/smsmanager/web/assets/encoding/dist'),
+            $bundle->sourcePath,
+        );
+        self::assertSame(['encoding.js'], $bundle->js);
+        self::assertSame([], $bundle->css);
+        self::assertSame([], $bundle->depends);
     }
 
     public function testAnalyticsBundleResolvesAliasWithoutPluginDatabaseOrPublicationState(): void

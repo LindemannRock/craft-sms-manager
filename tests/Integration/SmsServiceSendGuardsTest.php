@@ -82,13 +82,14 @@ final class SmsServiceSendGuardsTest extends TestCase
         $provider = $this->seedProvider(['type' => self::MARKER . 'unknown']);
         $senderId = $this->seedSenderId($provider);
         $recipient = $this->markerRecipient();
+        $sourcePlugin = $this->markerSourcePlugin();
 
         $ok = $this->sms->send(
             to: $recipient,
             message: 'unknown-type',
             providerId: $provider->id,
             senderIdId: $senderId->id,
-            sourcePlugin: $this->markerSourcePlugin(),
+            sourcePlugin: $sourcePlugin,
         );
 
         self::assertFalse($ok);
@@ -97,5 +98,12 @@ final class SmsServiceSendGuardsTest extends TestCase
         self::assertNotNull($logRow, 'Unknown provider type writes a failed log row before short-circuiting');
         self::assertSame(SmsLogRecord::STATUS_FAILED, $logRow['status']);
         self::assertSame('Unknown provider type', $logRow['errorMessage']);
+
+        $analyticsRow = $this->fetchAnalyticsRowBySource($sourcePlugin);
+        self::assertNotNull($analyticsRow, 'Unknown provider type writes one failed analytics event');
+        self::assertSame('gsm-7', $analyticsRow['encoding']);
+        self::assertSame(12, (int)$analyticsRow['totalCharacters']);
+        self::assertSame(1, (int)$analyticsRow['totalMessages']);
+        self::assertSame(1, (int)$analyticsRow['totalFailed']);
     }
 }

@@ -12,6 +12,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\StringHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\helpers\SmsEncodingHelper;
 use lindemannrock\smsmanager\helpers\SmsPrivacyHelper;
 use lindemannrock\smsmanager\records\AnalyticsRecord;
 use lindemannrock\smsmanager\records\ProviderRecord;
@@ -307,6 +308,7 @@ class SmsService extends Component
         $settings = $plugin->getSettings();
         $siteId = $siteId ?? $this->currentSiteId();
         $language = $this->normalizeLanguage($language);
+        $messageFacts = SmsEncodingHelper::analyze($message);
 
         if (!$provider->enabled) {
             $this->logError('Provider is disabled', ['providerId' => $provider->id, 'name' => $provider->name]);
@@ -375,6 +377,9 @@ class SmsService extends Component
         if (!$providerInstance) {
             $this->logError('Unknown provider type', ['type' => $provider->type]);
             $this->updateLogStatus($log, SmsLogRecord::STATUS_FAILED, 'Unknown provider type');
+            if ($settings->enableAnalytics) {
+                $this->updateAnalytics($provider->id, $senderId->id, $siteId, $language, false, $sourcePlugin, $messageFacts);
+            }
             return [
                 'success' => false,
                 'messageId' => null,
@@ -417,7 +422,7 @@ class SmsService extends Component
             );
 
             if ($settings->enableAnalytics) {
-                $this->updateAnalytics($provider->id, $senderId->id, $siteId, $language, true, $sourcePlugin);
+                $this->updateAnalytics($provider->id, $senderId->id, $siteId, $language, true, $sourcePlugin, $messageFacts);
             }
 
             $this->logInfo('SMS sent successfully', [
@@ -435,7 +440,7 @@ class SmsService extends Component
             );
 
             if ($settings->enableAnalytics) {
-                $this->updateAnalytics($provider->id, $senderId->id, $siteId, $language, false, $sourcePlugin);
+                $this->updateAnalytics($provider->id, $senderId->id, $siteId, $language, false, $sourcePlugin, $messageFacts);
             }
 
             $this->logError('SMS sending failed', [
@@ -496,6 +501,7 @@ class SmsService extends Component
      * @param string $language Message language
      * @param bool $success Whether send was successful
      * @param string|null $sourcePlugin Source plugin
+     * @param array{encoding: string, characters: int, units: int, segments: int} $messageFacts Content-derived message facts
      */
     private function updateAnalytics(
         ?int $providerId,
@@ -504,6 +510,7 @@ class SmsService extends Component
         string $language,
         bool $success,
         ?string $sourcePlugin,
+        array $messageFacts,
     ): void {
         $now = new \DateTime();
 
@@ -519,11 +526,9 @@ class SmsService extends Component
             'totalDelivered' => 0,
             'totalFailed' => $success ? 0 : 1,
             'totalPending' => 0,
-            'totalCharacters' => 0,
-            'totalMessages' => 0,
-            'englishCount' => $language === 'en' ? 1 : 0,
-            'arabicCount' => $language === 'ar' ? 1 : 0,
-            'otherCount' => ($language !== 'en' && $language !== 'ar') ? 1 : 0,
+            'encoding' => $messageFacts['encoding'],
+            'totalCharacters' => $messageFacts['characters'],
+            'totalMessages' => $messageFacts['segments'],
             'uid' => StringHelper::UUID(),
             'dateCreated' => $now,
             'dateUpdated' => $now,

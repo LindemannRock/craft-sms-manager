@@ -31,7 +31,6 @@ class Install extends Migration
         $this->createSenderIdsTable();
         $this->createLogsTable();
         $this->createAnalyticsTable();
-        $this->createTemplatesTable();
 
         return true;
     }
@@ -42,7 +41,6 @@ class Install extends Migration
     public function safeDown(): bool
     {
         // Drop tables in reverse order (respecting foreign keys)
-        $this->dropTableIfExists('{{%smsmanager_templates}}');
         $this->dropTableIfExists('{{%smsmanager_analytics}}');
         $this->dropTableIfExists('{{%smsmanager_logs}}');
         $this->dropTableIfExists('{{%smsmanager_senderids}}');
@@ -284,6 +282,7 @@ class Install extends Migration
             'senderIdId' => $this->integer()->null(),
             'siteId' => $this->integer()->null(),
             'language' => $this->string(10)->null(),
+            'encoding' => $this->string(10)->null()->comment('Content-derived gsm-7 or ucs-2; null when unknown'),
             // Aggregation period
             'date' => $this->dateTime()->notNull(), // Datetime of stats
             // Counts
@@ -291,13 +290,10 @@ class Install extends Migration
             'totalDelivered' => $this->integer()->notNull()->defaultValue(0),
             'totalFailed' => $this->integer()->notNull()->defaultValue(0),
             'totalPending' => $this->integer()->notNull()->defaultValue(0),
-            // Character/message stats
-            'totalCharacters' => $this->integer()->notNull()->defaultValue(0),
-            'totalMessages' => $this->integer()->notNull()->defaultValue(0), // SMS segments
-            // Language breakdown
-            'englishCount' => $this->integer()->notNull()->defaultValue(0),
-            'arabicCount' => $this->integer()->notNull()->defaultValue(0),
-            'otherCount' => $this->integer()->notNull()->defaultValue(0),
+            // Message facts. Nullable values distinguish unavailable historical
+            // content from a real empty message (0 characters / 0 segments).
+            'totalCharacters' => $this->integer()->null()->comment('Unicode code-point count; null when unknown'),
+            'totalMessages' => $this->integer()->null()->comment('SMS segment count; null when unknown'),
             // Source tracking
             'sourcePlugin' => $this->string(64)->null(),
             // Standard columns
@@ -311,6 +307,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['senderIdId'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['siteId'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['language'], false);
+        $this->createIndex(null, '{{%smsmanager_analytics}}', ['encoding'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['date'], false);
         $this->createIndex(null, '{{%smsmanager_analytics}}', ['sourcePlugin'], false);
 
@@ -344,33 +341,5 @@ class Install extends Migration
             'SET NULL',
             'CASCADE'
         );
-    }
-
-    /**
-     * Create templates table (Phase 2 - empty for now)
-     */
-    private function createTemplatesTable(): void
-    {
-        if ($this->db->tableExists('{{%smsmanager_templates}}')) {
-            return;
-        }
-
-        $this->createTable('{{%smsmanager_templates}}', [
-            'id' => $this->primaryKey(),
-            'name' => $this->string(255)->notNull(),
-            'handle' => $this->string(64)->notNull(),
-            'language' => $this->string(10)->notNull()->defaultValue('en'),
-            'message' => $this->text()->notNull(),
-            'enabled' => $this->boolean()->notNull()->defaultValue(true),
-            // Standard columns
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        // Indexes
-        $this->createIndex(null, '{{%smsmanager_templates}}', ['handle'], true);
-        $this->createIndex(null, '{{%smsmanager_templates}}', ['language'], false);
-        $this->createIndex(null, '{{%smsmanager_templates}}', ['enabled'], false);
     }
 }

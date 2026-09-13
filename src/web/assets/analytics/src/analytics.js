@@ -166,7 +166,7 @@
             if (data && data.labels && data.labels.length > 0) {
                 var hasData = Array.isArray(data.gsm7) && data.gsm7.some(function(v) { return Number(v) > 0; }) ||
                     Array.isArray(data.ucs2) && data.ucs2.some(function(v) { return Number(v) > 0; }) ||
-                    Array.isArray(data.mixed) && data.mixed.some(function(v) { return Number(v) > 0; });
+                    Array.isArray(data.unknown) && data.unknown.some(function(v) { return Number(v) > 0; });
                 if (hasData) {
                     renderEncodingDailyChart(data);
                 } else {
@@ -340,8 +340,8 @@
                     backgroundColor: '#8b5cf6'
                 },
                 {
-                    label: encodingLabels.mixed,
-                    data: data.mixed,
+                    label: encodingLabels.unknown,
+                    data: data.unknown,
                     backgroundColor: '#6b7280'
                 }
             ]

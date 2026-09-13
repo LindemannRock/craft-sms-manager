@@ -84,5 +84,11 @@ final class SmsServiceSendHappyPathTest extends TestCase
             'totalFailed' => 0,
         ]);
         self::assertSame(1, $analyticsCount, 'A single successful analytics row should have been written');
+
+        $analyticsRow = $this->fetchAnalyticsRowBySource($sourcePlugin);
+        self::assertNotNull($analyticsRow);
+        self::assertSame('gsm-7', $analyticsRow['encoding']);
+        self::assertSame(10, (int)$analyticsRow['totalCharacters']);
+        self::assertSame(1, (int)$analyticsRow['totalMessages']);
     }
 }

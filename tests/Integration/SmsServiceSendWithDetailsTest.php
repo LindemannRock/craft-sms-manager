@@ -32,13 +32,14 @@ final class SmsServiceSendWithDetailsTest extends TestCase
             'senderId' => 'BrandX',
         ]);
         $recipient = $this->markerRecipient();
+        $sourcePlugin = $this->markerSourcePlugin();
 
         $result = $this->sms->sendWithDetails(
             to: $recipient,
-            message: 'details ok',
+            message: str_repeat('😀', 36),
             providerId: $provider->id,
             senderIdId: $senderId->id,
-            sourcePlugin: $this->markerSourcePlugin(),
+            sourcePlugin: $sourcePlugin,
         );
 
         self::assertTrue($result['success']);
@@ -51,6 +52,12 @@ final class SmsServiceSendWithDetailsTest extends TestCase
         self::assertSame($recipient, $result['recipient']);
         self::assertIsInt($result['executionTime']);
         self::assertGreaterThanOrEqual(0, $result['executionTime']);
+
+        $analyticsRow = $this->fetchAnalyticsRowBySource($sourcePlugin);
+        self::assertNotNull($analyticsRow);
+        self::assertSame('ucs-2', $analyticsRow['encoding']);
+        self::assertSame(36, (int)$analyticsRow['totalCharacters']);
+        self::assertSame(2, (int)$analyticsRow['totalMessages']);
     }
 
     public function testSendWithDetailsReturnsErrorShapeOnProviderFailure(): void

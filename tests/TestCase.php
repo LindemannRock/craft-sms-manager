@@ -273,6 +273,16 @@ abstract class TestCase extends IntegrationTestCase
     }
 
     /**
+     * Fetch the single analytics event written for a marker source.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function fetchAnalyticsRowBySource(string $sourcePlugin): ?array
+    {
+        return $this->fetchRow(AnalyticsRecord::tableName(), ['sourcePlugin' => $sourcePlugin]);
+    }
+
+    /**
      * Plugin settings shorthand.
      */
     protected function settings(): Settings
@@ -333,6 +343,9 @@ abstract class TestCase extends IntegrationTestCase
         $this->ensureColumn(SmsLogRecord::tableName(), 'siteId', 'integer NULL');
         $this->ensureColumn(AnalyticsRecord::tableName(), 'siteId', 'integer NULL');
         $this->ensureColumn(AnalyticsRecord::tableName(), 'language', 'varchar(10) NULL');
+        $this->ensureColumn(AnalyticsRecord::tableName(), 'encoding', 'varchar(10) NULL');
+        $db->createCommand()->alterColumn(AnalyticsRecord::tableName(), 'totalCharacters', 'integer NULL')->execute();
+        $db->createCommand()->alterColumn(AnalyticsRecord::tableName(), 'totalMessages', 'integer NULL')->execute();
 
         $db->getSchema()->refreshTableSchema(SmsLogRecord::tableName());
         $db->getSchema()->refreshTableSchema(AnalyticsRecord::tableName());

@@ -34,7 +34,7 @@ public function send(
 |-----------|------|-------------|
 | `$to` | `string` | Recipient phone number |
 | `$message` | `string` | Message content |
-| `$language` | `string` | `'en'` or `'ar'` — controls provider encoding (default `'en'`) |
+| `$language` | `string` | Message language metadata (default `'en'`). Providers may use it for their own wire protocol; analytics encoding is determined from `$message` content |
 | `$providerId` | `?int` | Provider ID. `null` uses the default provider |
 | `$senderIdId` | `?int` | Sender ID. `null` uses the default sender for the provider |
 | `$sourcePlugin` | `?string` | Source handle for analytics and logs (e.g. your plugin's handle) |
@@ -171,6 +171,10 @@ If your plugin participates in resource usage tracking (so providers and senders
 ## What happens on send
 
 Every send resolves a provider and sender ID, checks both are enabled, writes a delivery log row (when logging is enabled), invokes the provider, then records the outcome on the log and in analytics. A send fails early — with a specific error — when no provider or sender resolves, when either is disabled, or when the provider type is unknown.
+
+For each attempted provider dispatch, analytics classifies the actual message content as GSM-7 or UCS-2. GSM-7 has a 160-septet single-segment limit and a 153-septet multipart limit; characters from the GSM extension table consume two septets. UCS-2 has a 70 UTF-16-code-unit single-segment limit and a 67-unit multipart limit; emoji and other astral characters consume two UTF-16 code units. The stored character total is the number of Unicode code points, while the SMS total is the calculated segment count. An empty message has zero characters and zero segments.
+
+Language and encoding are deliberately separate analytics dimensions: changing only `$language` does not change content classification or segment count. MPP-SMS continues to use the language value for its existing gateway-specific wire parameter and encoding behavior; that transport contract is separate from the content-derived analytics facts.
 
 ## Next steps
 

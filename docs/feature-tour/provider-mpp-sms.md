@@ -45,6 +45,8 @@ MPP-SMS picks encoding from the message language:
 
 Pass the correct language when sending so the right encoding is used. See [Sending SMS](../developers/sending-sms.md).
 
+This is MPP-SMS's existing gateway wire-format contract. It is separate from SMS Manager's analytics and Test SMS calculator, which classify GSM-7 or UCS-2 from message content. The provider handle remains `mpp-sms`.
+
 ## Phone number handling
 
 Before sending, MPP-SMS normalizes the recipient number: it converts Arabic and Persian numerals to Western digits, strips spaces and hidden characters, and removes `+` or `00` prefixes. When the provider has an **Allowed countries** list, it also repairs common mistakes — a duplicated country code (`96596594400999` → `96594400999`) or a local number missing its country code (`94400999` → `96594400999` for Kuwait) — and rejects numbers that don't match an allowed country.

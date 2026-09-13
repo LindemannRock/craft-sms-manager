@@ -1,5 +1,6 @@
 {% extends "sms-manager/_layouts/settings" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('lindemannrock\\smsmanager\\web\\assets\\encoding\\EncodingAsset') %}
 
 {% set title = "Test SMS"|t('sms-manager') %}
 {% set selectedSettingsItem = 'test' %}
@@ -113,7 +114,7 @@
 
             {{ forms.selectField({
                 label: 'Language'|t('sms-manager'),
-                instructions: 'Select the message language (affects character encoding)'|t('sms-manager'),
+                instructions: 'Select the message language. Language controls text direction but not SMS encoding.'|t('sms-manager'),
                 id: 'testLanguage',
                 name: 'testLanguage',
                 options: languageOptions,
@@ -121,9 +122,13 @@
             }) }}
 
             <div id="message-info" style="padding: 12px; background: #f3f4f6; border-radius: 4px; margin-bottom: 20px;">
-                <span id="char-count">0</span> {{ 'characters'|t('sms-manager') }}
+                <strong>{{ 'Encoding'|t('sms-manager') }}:</strong> <span id="encoding-value">GSM-7</span>
                 <span class="light" style="margin-left: 12px;">|</span>
-                <span style="margin-left: 12px;"><span id="sms-count">1</span> {{ 'SMS part(s)'|t('sms-manager') }}</span>
+                <span style="margin-left: 12px;"><strong>{{ 'Characters'|t('sms-manager') }}:</strong> <span id="char-count">0</span></span>
+                <span class="light" style="margin-left: 12px;">|</span>
+                <span style="margin-left: 12px;"><strong>{{ 'Encoding Units'|t('sms-manager') }}:</strong> <span id="unit-count">0</span></span>
+                <span class="light" style="margin-left: 12px;">|</span>
+                <span style="margin-left: 12px;"><strong>{{ 'SMS Segments'|t('sms-manager') }}:</strong> <span id="sms-count">0</span></span>
             </div>
 
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -155,7 +160,9 @@ const resultsTitle = document.getElementById('resultsTitle');
 const resultsContent = document.getElementById('resultsContent');
 const testStatus = document.getElementById('testStatus');
 const charCount = document.getElementById('char-count');
+const unitCount = document.getElementById('unit-count');
 const smsCount = document.getElementById('sms-count');
+const encodingValue = document.getElementById('encoding-value');
 
 // Sender IDs by provider for filtering
 const senderIdsByProvider = {{ senderIdsByProvider|json_encode|raw }};
@@ -322,21 +329,12 @@ function updateTextDirection() {
 if (testMessageInput) {
     function updateCharCount() {
         const message = testMessageInput.value;
-        const length = message.length;
-        const lang = testLanguageSelect.value;
-        const isRtl = rtlLanguages.includes(lang);
+        const facts = window.lrSmsEncoding.analyze(message);
 
-        charCount.textContent = length;
-
-        // Calculate SMS parts (GSM-7: 160/153, UCS-2: 70/67 for RTL/Unicode)
-        let singleLimit = isRtl ? 70 : 160;
-        let multiLimit = isRtl ? 67 : 153;
-
-        let parts = 1;
-        if (length > singleLimit) {
-            parts = Math.ceil(length / multiLimit);
-        }
-        smsCount.textContent = parts;
+        encodingValue.textContent = facts.encoding === 'gsm-7' ? 'GSM-7' : 'UCS-2';
+        charCount.textContent = facts.characters;
+        unitCount.textContent = facts.units;
+        smsCount.textContent = facts.segments;
     }
 
     testMessageInput.addEventListener('input', updateCharCount);

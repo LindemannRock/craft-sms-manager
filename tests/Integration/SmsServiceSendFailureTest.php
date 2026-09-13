@@ -41,7 +41,8 @@ final class SmsServiceSendFailureTest extends TestCase
 
         $ok = $this->sms->send(
             to: $recipient,
-            message: 'will fail',
+            message: 'سيفشل 😀',
+            language: 'en',
             providerId: $provider->id,
             senderIdId: $senderId->id,
             sourcePlugin: $sourcePlugin,
@@ -63,5 +64,12 @@ final class SmsServiceSendFailureTest extends TestCase
             'totalFailed' => 1,
         ]);
         self::assertSame(1, $analyticsCount, 'A single failed analytics row should have been written');
+
+        $analyticsRow = $this->fetchAnalyticsRowBySource($sourcePlugin);
+        self::assertNotNull($analyticsRow);
+        self::assertSame('en', $analyticsRow['language']);
+        self::assertSame('ucs-2', $analyticsRow['encoding']);
+        self::assertSame(7, (int)$analyticsRow['totalCharacters']);
+        self::assertSame(1, (int)$analyticsRow['totalMessages']);
     }
 }

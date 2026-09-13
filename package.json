@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "cd src/web/assets && npm run build",
-    "build:analytics": "cd src/web/assets && npm run build:analytics"
+    "build:analytics": "cd src/web/assets && npm run build:analytics",
+    "test:encoding": "node tests/js/sms-encoding.test.js"
   },
   "author": {
     "name": "Bilal Harry Lindemann",

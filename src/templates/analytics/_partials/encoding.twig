@@ -3,20 +3,32 @@
 {# Encoding Summary Stats #}
 <div class="lr-unified-cards">
     {% include 'lindemannrock-base/_components/unified-card' with {
-        value: summaryStats.english,
+        value: summaryStats.gsm7,
         description: encodingLabels.gsm7 ~ ' ' ~ 'Messages'|t('sms-manager'),
         align: 'center',
     } only %}
 
     {% include 'lindemannrock-base/_components/unified-card' with {
-        value: summaryStats.arabic,
+        value: summaryStats.ucs2,
         description: encodingLabels.ucs2 ~ ' ' ~ 'Messages'|t('sms-manager'),
         align: 'center',
     } only %}
 
     {% include 'lindemannrock-base/_components/unified-card' with {
-        value: summaryStats.other,
-        description: encodingLabels.mixed ~ ' ' ~ 'Messages'|t('sms-manager'),
+        value: summaryStats.unknownEncoding,
+        description: encodingLabels.unknown ~ ' ' ~ 'Messages'|t('sms-manager'),
+        align: 'center',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/unified-card' with {
+        value: summaryStats.characters ?? 'Unknown'|t('sms-manager'),
+        description: 'Characters'|t('sms-manager'),
+        align: 'center',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/unified-card' with {
+        value: summaryStats.segments ?? 'Unknown'|t('sms-manager'),
+        description: 'SMS Segments'|t('sms-manager'),
         align: 'center',
     } only %}
 </div>
@@ -39,9 +51,9 @@
 {% set encodingInfo %}
     <strong>{{ 'About SMS Encoding'|t('sms-manager') }}</strong><br><br>
     {{ 'SMS messages use different encodings based on character content, which affects segment length:'|t('sms-manager') }}<br><br>
-    <strong>{{ encodingLabels.gsm7 }}</strong> — {{ '160 characters per segment. Used for Latin-alphabet languages (English, German, French, Spanish, etc.), numbers, and basic punctuation.'|t('sms-manager') }}<br><br>
-    <strong>{{ encodingLabels.ucs2 }}</strong> — {{ '70 characters per segment. Required for Arabic, Hebrew, Chinese, Japanese, Korean, Russian, Greek, Thai, and emojis.'|t('sms-manager') }}<br><br>
-    <strong>{{ encodingLabels.mixed }}</strong> — {{ 'Messages containing a mix of GSM-7 and UCS-2 characters.'|t('sms-manager') }}
+    <strong>{{ encodingLabels.gsm7 }}</strong> — {{ '160 septets for one segment or 153 per multipart segment. Extension-table characters consume two septets.'|t('sms-manager') }}<br><br>
+    <strong>{{ encodingLabels.ucs2 }}</strong> — {{ '70 UTF-16 code units for one segment or 67 per multipart segment. Emoji and other astral characters consume two units.'|t('sms-manager') }}<br><br>
+    <strong>{{ encodingLabels.unknown }}</strong> — {{ 'Historical messages whose content was unavailable keep encoding, character, and segment facts unknown.'|t('sms-manager') }}
 {% endset %}
 
 {% include 'lindemannrock-base/_components/info-box' with {

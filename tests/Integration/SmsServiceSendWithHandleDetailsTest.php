@@ -79,13 +79,14 @@ final class SmsServiceSendWithHandleDetailsTest extends TestCase
         ]);
 
         $recipient = $this->markerRecipient();
+        $sourcePlugin = $this->markerSourcePlugin();
 
         $result = $this->sms->sendWithHandleDetails(
             to: $recipient,
-            message: 'Details path',
+            message: '日本語',
             senderIdHandle: $senderHandle,
             language: 'en',
-            sourcePlugin: $this->markerSourcePlugin(),
+            sourcePlugin: $sourcePlugin,
         );
 
         self::assertTrue($result['success'], 'sendWithHandleDetails() must succeed for a config-only sender + provider');
@@ -106,6 +107,12 @@ final class SmsServiceSendWithHandleDetailsTest extends TestCase
         self::assertSame(SmsLogRecord::STATUS_SENT, $logRow['status']);
         self::assertNull($logRow['providerId']);
         self::assertNull($logRow['senderIdId']);
+
+        $analyticsRow = $this->fetchAnalyticsRowBySource($sourcePlugin);
+        self::assertNotNull($analyticsRow);
+        self::assertSame('ucs-2', $analyticsRow['encoding']);
+        self::assertSame(3, (int)$analyticsRow['totalCharacters']);
+        self::assertSame(1, (int)$analyticsRow['totalMessages']);
     }
 
     public function testReturnsErrorArrayForUnknownHandleWithoutContactingProvider(): void

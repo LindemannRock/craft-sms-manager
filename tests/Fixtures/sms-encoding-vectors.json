@@ -1,0 +1,194 @@
+[
+  {
+    "name": "empty message",
+    "message": "",
+    "encoding": "gsm-7",
+    "characters": 0,
+    "units": 0,
+    "segments": 0
+  },
+  {
+    "name": "complete GSM basic text alphabet",
+    "message": "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà",
+    "encoding": "gsm-7",
+    "characters": 127,
+    "units": 127,
+    "segments": 1
+  },
+  {
+    "name": "complete GSM extension alphabet",
+    "message": "^{}\\[~]|€\f",
+    "encoding": "gsm-7",
+    "characters": 10,
+    "units": 20,
+    "segments": 1
+  },
+  {
+    "name": "GSM compatible accented Latin",
+    "message": "èéùìòÇØøÅåÆæßÉÄÖÑÜ§¿äöñüà",
+    "encoding": "gsm-7",
+    "characters": 25,
+    "units": 25,
+    "segments": 1
+  },
+  {
+    "name": "non GSM accented Latin",
+    "message": "á",
+    "encoding": "ucs-2",
+    "characters": 1,
+    "units": 1,
+    "segments": 1
+  },
+  {
+    "name": "Arabic",
+    "message": "مثال",
+    "encoding": "ucs-2",
+    "characters": 4,
+    "units": 4,
+    "segments": 1
+  },
+  {
+    "name": "Japanese",
+    "message": "日本語",
+    "encoding": "ucs-2",
+    "characters": 3,
+    "units": 3,
+    "segments": 1
+  },
+  {
+    "name": "emoji astral character",
+    "message": "😀",
+    "encoding": "ucs-2",
+    "characters": 1,
+    "units": 2,
+    "segments": 1
+  },
+  {
+    "name": "other astral character",
+    "message": "𐐷",
+    "encoding": "ucs-2",
+    "characters": 1,
+    "units": 2,
+    "segments": 1
+  },
+  {
+    "name": "mixed GSM and non GSM",
+    "message": "Hello 😀",
+    "encoding": "ucs-2",
+    "characters": 7,
+    "units": 8,
+    "segments": 1
+  },
+  {
+    "name": "newlines and GSM controls",
+    "message": "Line 1\nLine 2\r",
+    "encoding": "gsm-7",
+    "characters": 14,
+    "units": 14,
+    "segments": 1
+  },
+  {
+    "name": "160 GSM septets",
+    "repeat": {"value": "A", "count": 160},
+    "encoding": "gsm-7",
+    "characters": 160,
+    "units": 160,
+    "segments": 1
+  },
+  {
+    "name": "161 GSM septets",
+    "repeat": {"value": "A", "count": 161},
+    "encoding": "gsm-7",
+    "characters": 161,
+    "units": 161,
+    "segments": 2
+  },
+  {
+    "name": "GSM extension single segment boundary",
+    "repeat": {"value": "^", "count": 80},
+    "encoding": "gsm-7",
+    "characters": 80,
+    "units": 160,
+    "segments": 1
+  },
+  {
+    "name": "GSM extension multipart boundary",
+    "repeat": {"value": "^", "count": 81},
+    "encoding": "gsm-7",
+    "characters": 81,
+    "units": 162,
+    "segments": 2
+  },
+  {
+    "name": "two full GSM multipart segments",
+    "repeat": {"value": "A", "count": 306},
+    "encoding": "gsm-7",
+    "characters": 306,
+    "units": 306,
+    "segments": 2
+  },
+  {
+    "name": "GSM third multipart segment",
+    "repeat": {"value": "A", "count": 307},
+    "encoding": "gsm-7",
+    "characters": 307,
+    "units": 307,
+    "segments": 3
+  },
+  {
+    "name": "70 UCS-2 units",
+    "repeat": {"value": "漢", "count": 70},
+    "encoding": "ucs-2",
+    "characters": 70,
+    "units": 70,
+    "segments": 1
+  },
+  {
+    "name": "71 UCS-2 units",
+    "repeat": {"value": "漢", "count": 71},
+    "encoding": "ucs-2",
+    "characters": 71,
+    "units": 71,
+    "segments": 2
+  },
+  {
+    "name": "two full UCS-2 multipart segments",
+    "repeat": {"value": "漢", "count": 134},
+    "encoding": "ucs-2",
+    "characters": 134,
+    "units": 134,
+    "segments": 2
+  },
+  {
+    "name": "UCS-2 third multipart segment",
+    "repeat": {"value": "漢", "count": 135},
+    "encoding": "ucs-2",
+    "characters": 135,
+    "units": 135,
+    "segments": 3
+  },
+  {
+    "name": "emoji single segment boundary",
+    "repeat": {"value": "😀", "count": 35},
+    "encoding": "ucs-2",
+    "characters": 35,
+    "units": 70,
+    "segments": 1
+  },
+  {
+    "name": "emoji multipart boundary",
+    "repeat": {"value": "😀", "count": 36},
+    "encoding": "ucs-2",
+    "characters": 36,
+    "units": 72,
+    "segments": 2
+  },
+  {
+    "name": "emoji third multipart segment",
+    "repeat": {"value": "😀", "count": 68},
+    "encoding": "ucs-2",
+    "characters": 68,
+    "units": 136,
+    "segments": 3
+  }
+]

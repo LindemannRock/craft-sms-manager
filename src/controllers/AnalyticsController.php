@@ -88,6 +88,8 @@ class AnalyticsController extends Controller
 
         $languageOptions = $this->getLanguageFilterOptions();
         $language = $this->resolveLanguageFilter((string) $request->getQueryParam('language', 'all'), $languageOptions);
+        $sourceOptions = $this->getSourceFilterOptions();
+        $source = $this->resolveSourceFilter((string) $request->getQueryParam('source', 'all'), $sourceOptions);
 
         $bounds = DateRangeHelper::getBounds($dateRange);
         $startDate = $bounds['start'] ?? null;
@@ -97,7 +99,7 @@ class AnalyticsController extends Controller
         $query = (new Query())
             ->from(AnalyticsRecord::tableName());
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         // Get summary stats
         $summaryStats = (clone $query)
@@ -106,9 +108,14 @@ class AnalyticsController extends Controller
                 'SUM([[totalDelivered]]) as delivered',
                 'SUM([[totalFailed]]) as failed',
                 'SUM([[totalPending]]) as pending',
-                'SUM([[englishCount]]) as english',
-                'SUM([[arabicCount]]) as arabic',
-                'SUM([[otherCount]]) as other',
+                "SUM(CASE WHEN [[encoding]] = 'gsm-7' THEN 1 ELSE 0 END) as gsm7",
+                "SUM(CASE WHEN [[encoding]] = 'ucs-2' THEN 1 ELSE 0 END) as ucs2",
+                'SUM(CASE WHEN [[encoding]] IS NULL THEN 1 ELSE 0 END) as [[unknownEncoding]]',
+                'SUM([[totalCharacters]]) as characters',
+                'SUM([[totalMessages]]) as segments',
+                'COUNT(*) as [[eventRows]]',
+                'COUNT([[totalCharacters]]) as [[knownCharacters]]',
+                'COUNT([[totalMessages]]) as [[knownSegments]]',
             ])
             ->one();
 
@@ -134,11 +141,7 @@ class AnalyticsController extends Controller
         }
         unset($row);
 
-        // Calculate totals
-        $totalSent = (int)($summaryStats['sent'] ?? 0);
-        $totalFailed = (int)($summaryStats['failed'] ?? 0);
-        $total = $totalSent + $totalFailed;
-        $successRate = $total > 0 ? round(($totalSent / $total) * 100, 1) : 0;
+        $summaryStats = $this->normalizeSummaryStats($summaryStats ?: []);
 
         return $this->renderTemplate('sms-manager/analytics/index', [
             'settings' => $settings,
@@ -147,24 +150,44 @@ class AnalyticsController extends Controller
             'senderIdId' => $senderIdId,
             'siteId' => $siteId,
             'language' => $language,
-            'summaryStats' => [
-                'sent' => $totalSent,
-                'delivered' => (int)($summaryStats['delivered'] ?? 0),
-                'failed' => $totalFailed,
-                'pending' => (int)($summaryStats['pending'] ?? 0),
-                'english' => (int)($summaryStats['english'] ?? 0),
-                'arabic' => (int)($summaryStats['arabic'] ?? 0),
-                'other' => (int)($summaryStats['other'] ?? 0),
-                'total' => $total,
-                'successRate' => $successRate,
-            ],
+            'source' => $source,
+            'summaryStats' => $summaryStats,
             'providerData' => $providerData,
             'providers' => $providers,
             'senderIds' => $senderIds,
             'sites' => $sites,
             'languageOptions' => $languageOptions,
+            'sourceOptions' => $sourceOptions,
             'pluginHandle' => SmsManager::$plugin->id,
         ]);
+    }
+
+    /**
+     * Normalize aggregate values without presenting partial historical fact sums.
+     *
+     * @param array<string, mixed> $stats
+     * @return array<string, int|float|null>
+     */
+    private function normalizeSummaryStats(array $stats): array
+    {
+        $sent = (int)($stats['sent'] ?? 0);
+        $failed = (int)($stats['failed'] ?? 0);
+        $total = $sent + $failed;
+        $eventRows = (int)($stats['eventRows'] ?? 0);
+
+        return [
+            'sent' => $sent,
+            'delivered' => (int)($stats['delivered'] ?? 0),
+            'failed' => $failed,
+            'pending' => (int)($stats['pending'] ?? 0),
+            'gsm7' => (int)($stats['gsm7'] ?? 0),
+            'ucs2' => (int)($stats['ucs2'] ?? 0),
+            'unknownEncoding' => (int)($stats['unknownEncoding'] ?? 0),
+            'characters' => (int)($stats['knownCharacters'] ?? 0) === $eventRows ? (int)($stats['characters'] ?? 0) : null,
+            'segments' => (int)($stats['knownSegments'] ?? 0) === $eventRows ? (int)($stats['segments'] ?? 0) : null,
+            'total' => $total,
+            'successRate' => $total > 0 ? round(($sent / $total) * 100, 1) : 0,
+        ];
     }
 
     /**
@@ -189,18 +212,17 @@ class AnalyticsController extends Controller
 
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(SmsManager::$plugin->id));
 
-        // providerId is either the literal 'all' or a numeric provider ID.
-        // Anything else collapses to 'all' so non-existent IDs don't silently
-        // return zero-result queries.
-        $providerIdRaw = $request->getBodyParam('providerId', 'all');
-        $providerId = $providerIdRaw === 'all' || !is_numeric($providerIdRaw)
-            ? 'all'
-            : (string) (int) $providerIdRaw;
+        $providerId = $this->resolveProviderFilter((string) $request->getBodyParam('providerId', 'all'));
+        $senderIdId = $this->resolveSenderIdFilter((string) $request->getBodyParam('senderId', 'all'));
 
         $siteId = $this->resolveSiteId((string) $request->getBodyParam('siteId', 'all'));
         $language = $this->resolveLanguageFilter(
             (string) $request->getBodyParam('language', 'all'),
             $this->getLanguageFilterOptions(),
+        );
+        $source = $this->resolveSourceFilter(
+            (string) $request->getBodyParam('source', 'all'),
+            $this->getSourceFilterOptions(),
         );
 
         // Calculate date range (supports all options: thisMonth, lastYear, etc.)
@@ -209,15 +231,15 @@ class AnalyticsController extends Controller
         $endDate = $bounds['end'] ?? null;
 
         $data = match ($type) {
-            'daily' => $this->getDailyChartData($startDate, $endDate, $providerId, $siteId, $language),
-            'providers' => $this->getProviderChartData($startDate, $endDate, $providerId, $siteId, $language),
-            'senderids' => $this->getSenderIdChartData($startDate, $endDate, $providerId, $siteId, $language),
-            'languages' => $this->getLanguageChartData($startDate, $endDate, $providerId, $siteId, $language),
-            'sites' => $this->getSiteChartData($startDate, $endDate, $providerId, $siteId, $language),
-            'senderid-sites' => $this->getSiteChartData($startDate, $endDate, $providerId, $siteId, $language),
-            'encoding' => $this->getEncodingChartData($startDate, $endDate, $providerId, $siteId, $language),
-            'encoding-daily' => $this->getEncodingDailyChartData($startDate, $endDate, $providerId, $siteId, $language),
-            'sender-id-table' => $this->getSenderIdTableData($startDate, $endDate, $providerId, $siteId, $language),
+            'daily' => $this->getDailyChartData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
+            'providers' => $this->getProviderChartData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
+            'senderids' => $this->getSenderIdChartData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
+            'languages' => $this->getLanguageChartData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
+            'sites' => $this->getSiteChartData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
+            'senderid-sites' => $this->getSiteChartData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
+            'encoding' => $this->getEncodingChartData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
+            'encoding-daily' => $this->getEncodingDailyChartData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
+            'sender-id-table' => $this->getSenderIdTableData($startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source),
         };
 
         return $this->asJson([
@@ -229,7 +251,7 @@ class AnalyticsController extends Controller
     /**
      * Get daily chart data
      */
-    private function getDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId, int|string $siteId, string $language): array
+    private function getDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId, int|string $siteId, string $language, string $senderIdId, string $source): array
     {
         $localDate = DateFormatHelper::localDateExpression('date');
 
@@ -243,7 +265,7 @@ class AnalyticsController extends Controller
             ->groupBy([$localDate])
             ->orderBy(['date' => SORT_ASC]);
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->all();
 
@@ -308,7 +330,7 @@ class AnalyticsController extends Controller
     /**
      * Get provider chart data
      */
-    private function getProviderChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
+    private function getProviderChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language, string $senderIdId, string $source): array
     {
         $query = (new Query())
             ->select([
@@ -320,7 +342,7 @@ class AnalyticsController extends Controller
             ->groupBy(['providerId'])
             ;
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->all();
 
@@ -343,7 +365,7 @@ class AnalyticsController extends Controller
     /**
      * Get sender ID chart data
      */
-    private function getSenderIdChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
+    private function getSenderIdChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language, string $senderIdId, string $source): array
     {
         $query = (new Query())
             ->select([
@@ -354,7 +376,7 @@ class AnalyticsController extends Controller
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['senderIdId']);
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->all();
 
@@ -380,7 +402,7 @@ class AnalyticsController extends Controller
     /**
      * Get sender ID table data for AJAX lazy-loading
      */
-    private function getSenderIdTableData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
+    private function getSenderIdTableData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language, string $senderIdId, string $source): array
     {
         $query = (new Query())
             ->select([
@@ -392,7 +414,7 @@ class AnalyticsController extends Controller
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['senderIdId', 'siteId']);
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->all();
 
@@ -415,7 +437,7 @@ class AnalyticsController extends Controller
     /**
      * Get site chart data from analytics records.
      */
-    private function getSiteChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
+    private function getSiteChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language, string $senderIdId, string $source): array
     {
         $query = (new Query())
             ->select([
@@ -426,7 +448,7 @@ class AnalyticsController extends Controller
             ->from(AnalyticsRecord::tableName())
             ->groupBy(['siteId']);
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->all();
 
@@ -450,7 +472,7 @@ class AnalyticsController extends Controller
     /**
      * Get language chart data from analytics records
      */
-    private function getLanguageChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
+    private function getLanguageChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language, string $senderIdId, string $source): array
     {
         $query = (new Query())
             ->select([
@@ -461,7 +483,7 @@ class AnalyticsController extends Controller
             ->groupBy(['language'])
             ->orderBy(['count' => SORT_DESC]);
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->all();
 
@@ -510,30 +532,30 @@ class AnalyticsController extends Controller
     /**
      * Get encoding chart data (GSM-7 vs UCS-2)
      */
-    private function getEncodingChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language): array
+    private function getEncodingChartData(?\DateTime $startDate, ?\DateTime $endDate, string $providerId, int|string $siteId, string $language, string $senderIdId, string $source): array
     {
         $query = (new Query())
             ->select([
-                'SUM([[englishCount]]) as gsm7',
-                'SUM([[arabicCount]]) as ucs2',
-                'SUM([[otherCount]]) as mixed',
+                "SUM(CASE WHEN [[encoding]] = 'gsm-7' THEN 1 ELSE 0 END) as gsm7",
+                "SUM(CASE WHEN [[encoding]] = 'ucs-2' THEN 1 ELSE 0 END) as ucs2",
+                'SUM(CASE WHEN [[encoding]] IS NULL THEN 1 ELSE 0 END) as unknown',
             ])
             ->from(AnalyticsRecord::tableName());
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->one();
 
         return [
             'labels' => [
-                Craft::t('sms-manager', 'GSM-7 (Latin)'),
-                Craft::t('sms-manager', 'UCS-2 (Unicode)'),
-                Craft::t('sms-manager', 'Mixed'),
+                'GSM-7',
+                'UCS-2',
+                Craft::t('sms-manager', 'Unknown'),
             ],
             'values' => [
                 (int)($data['gsm7'] ?? 0),
                 (int)($data['ucs2'] ?? 0),
-                (int)($data['mixed'] ?? 0),
+                (int)($data['unknown'] ?? 0),
             ],
         ];
     }
@@ -541,22 +563,22 @@ class AnalyticsController extends Controller
     /**
      * Get encoding daily chart data
      */
-    private function getEncodingDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId, int|string $siteId, string $language): array
+    private function getEncodingDailyChartData(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, string $providerId, int|string $siteId, string $language, string $senderIdId, string $source): array
     {
         $localDate = DateFormatHelper::localDateExpression('date');
 
         $query = (new Query())
             ->select([
                 'date' => $localDate,
-                'SUM([[englishCount]]) as gsm7',
-                'SUM([[arabicCount]]) as ucs2',
-                'SUM([[otherCount]]) as mixed',
+                "SUM(CASE WHEN [[encoding]] = 'gsm-7' THEN 1 ELSE 0 END) as gsm7",
+                "SUM(CASE WHEN [[encoding]] = 'ucs-2' THEN 1 ELSE 0 END) as ucs2",
+                'SUM(CASE WHEN [[encoding]] IS NULL THEN 1 ELSE 0 END) as unknown',
             ])
             ->from(AnalyticsRecord::tableName())
             ->groupBy([$localDate])
             ->orderBy(['date' => SORT_ASC]);
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->all();
 
@@ -565,7 +587,7 @@ class AnalyticsController extends Controller
                 'labels' => [],
                 'gsm7' => [],
                 'ucs2' => [],
-                'mixed' => [],
+                'unknown' => [],
             ];
         }
 
@@ -607,7 +629,7 @@ class AnalyticsController extends Controller
                 'date' => $date->format('M j'),
                 'gsm7' => (int)($dayData['gsm7'] ?? 0),
                 'ucs2' => (int)($dayData['ucs2'] ?? 0),
-                'mixed' => (int)($dayData['mixed'] ?? 0),
+                'unknown' => (int)($dayData['unknown'] ?? 0),
             ];
 
             $date->modify('+1 day');
@@ -617,7 +639,7 @@ class AnalyticsController extends Controller
             'labels' => array_column($chartData, 'date'),
             'gsm7' => array_column($chartData, 'gsm7'),
             'ucs2' => array_column($chartData, 'ucs2'),
-            'mixed' => array_column($chartData, 'mixed'),
+            'unknown' => array_column($chartData, 'unknown'),
         ];
     }
 
@@ -632,6 +654,7 @@ class AnalyticsController extends Controller
         int|string $siteId,
         string $language,
         string $senderIdId = 'all',
+        string $source = 'all',
     ): void {
         if ($startDate) {
             $query->andWhere(['>=', 'date', Db::prepareDateForDb($startDate)]);
@@ -650,6 +673,12 @@ class AnalyticsController extends Controller
 
         if ($language !== 'all') {
             $query->andWhere(['language' => $language]);
+        }
+
+        if ($source === '__direct__') {
+            $query->andWhere(['or', ['sourcePlugin' => null], ['sourcePlugin' => '']]);
+        } elseif ($source !== 'all') {
+            $query->andWhere(['sourcePlugin' => $source]);
         }
 
         if ($siteId !== 'all') {
@@ -748,6 +777,72 @@ class AnalyticsController extends Controller
         return in_array($language, $valid, true) ? $language : 'all';
     }
 
+    /** @return array<int, array{value: string, label: string}> */
+    private function getSourceFilterOptions(): array
+    {
+        $query = (new Query())
+            ->select(['sourcePlugin'])
+            ->distinct()
+            ->from(AnalyticsRecord::tableName())
+            ->orderBy(['sourcePlugin' => SORT_ASC]);
+        $this->applyAnalyticsFilters($query, null, null, 'all', 'all', 'all');
+        $sources = $query->column();
+
+        $options = [
+            ['value' => 'all', 'label' => Craft::t('sms-manager', 'All Sources')],
+        ];
+        $directAdded = false;
+        foreach ($sources as $source) {
+            if ($source === null || $source === '') {
+                if ($directAdded) {
+                    continue;
+                }
+                $directAdded = true;
+            }
+            $options[] = $source === null || $source === ''
+                ? ['value' => '__direct__', 'label' => Craft::t('sms-manager', 'Direct')]
+                : ['value' => (string)$source, 'label' => (string)$source];
+        }
+
+        return $options;
+    }
+
+    /** @param array<int, array{value: string, label: string}> $sourceOptions */
+    private function resolveSourceFilter(string $source, array $sourceOptions): string
+    {
+        return in_array($source, array_column($sourceOptions, 'value'), true) ? $source : 'all';
+    }
+
+    private function resolveProviderFilter(string $providerId): string
+    {
+        if ($providerId === 'all') {
+            return 'all';
+        }
+
+        foreach (SmsManager::$plugin->providers->getAllProviders() as $provider) {
+            if ($provider->id !== null && (string)$provider->id === $providerId) {
+                return $providerId;
+            }
+        }
+
+        return 'all';
+    }
+
+    private function resolveSenderIdFilter(string $senderIdId): string
+    {
+        if ($senderIdId === 'all') {
+            return 'all';
+        }
+
+        foreach (SmsManager::$plugin->senderIds->getAllSenderIds() as $senderId) {
+            if ($senderId->id !== null && (string)$senderId->id === $senderIdId) {
+                return $senderIdId;
+            }
+        }
+
+        return 'all';
+    }
+
     /**
      * Return the display label for a language code.
      *
@@ -844,6 +939,43 @@ class AnalyticsController extends Controller
     }
 
     /**
+     * Convert analytics records to consumer-facing export rows.
+     *
+     * @param array<int, array<string, mixed>> $data
+     * @return array<int, array<string, int|string>>
+     */
+    private function formatAnalyticsExportRows(array $data): array
+    {
+        $providersById = $this->providersByIdFromRows($data);
+        $senderIdsById = $this->senderIdsByIdFromRows($data);
+
+        $rows = [];
+        foreach ($data as $row) {
+            $provider = $providersById[$row['providerId']] ?? null;
+            $senderId = $senderIdsById[$row['senderIdId']] ?? null;
+            $site = $row['siteId'] ? Craft::$app->getSites()->getSiteById((int) $row['siteId']) : null;
+
+            $rows[] = [
+                'date' => $row['date'],
+                'site' => $site?->name ?? Craft::t('sms-manager', 'Unknown'),
+                'language' => $row['language'] ?: Craft::t('sms-manager', 'Unknown'),
+                'encoding' => $row['encoding'] ?: Craft::t('sms-manager', 'Unknown'),
+                'source' => $row['sourcePlugin'] ?: Craft::t('sms-manager', 'Direct'),
+                'provider' => $provider ? $provider->name : Craft::t('sms-manager', 'Unknown'),
+                'senderId' => $senderId ? $senderId->name : Craft::t('sms-manager', 'Unknown'),
+                'totalSent' => (int)$row['totalSent'],
+                'totalDelivered' => (int)$row['totalDelivered'],
+                'totalFailed' => (int)$row['totalFailed'],
+                'totalPending' => (int)$row['totalPending'],
+                'totalCharacters' => $row['totalCharacters'] !== null ? (int)$row['totalCharacters'] : Craft::t('sms-manager', 'Unknown'),
+                'totalMessages' => $row['totalMessages'] !== null ? (int)$row['totalMessages'] : Craft::t('sms-manager', 'Unknown'),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
      * Export analytics data
      *
      * @return Response
@@ -864,10 +996,13 @@ class AnalyticsController extends Controller
             $this->getLanguageFilterOptions(),
         );
         $siteId = $this->resolveSiteId((string) $request->getBodyParam('siteId', 'all'));
+        $senderIdId = $this->resolveSenderIdFilter((string) $request->getBodyParam('senderId', 'all'));
+        $source = $this->resolveSourceFilter(
+            (string) $request->getBodyParam('source', 'all'),
+            $this->getSourceFilterOptions(),
+        );
 
-        if ($providerId !== 'all' && !is_numeric($providerId)) {
-            $providerId = 'all';
-        }
+        $providerId = $this->resolveProviderFilter($providerId);
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, SmsManager::$plugin->id)) {
@@ -883,34 +1018,11 @@ class AnalyticsController extends Controller
             ->from(AnalyticsRecord::tableName())
             ->orderBy(['date' => SORT_ASC]);
 
-        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language);
+        $this->applyAnalyticsFilters($query, $startDate, $endDate, $providerId, $siteId, $language, $senderIdId, $source);
 
         $data = $query->all();
 
-        $providersById = $this->providersByIdFromRows($data);
-        $senderIdsById = $this->senderIdsByIdFromRows($data);
-
-        $rows = [];
-        foreach ($data as $row) {
-            $provider = $providersById[$row['providerId']] ?? null;
-            $senderId = $senderIdsById[$row['senderIdId']] ?? null;
-            $site = $row['siteId'] ? Craft::$app->getSites()->getSiteById((int) $row['siteId']) : null;
-
-            $rows[] = [
-                'date' => $row['date'],
-                'site' => $site?->name ?? Craft::t('sms-manager', 'Unknown'),
-                'language' => $row['language'] ?: Craft::t('sms-manager', 'Unknown'),
-                'provider' => $provider ? $provider->name : 'Unknown',
-                'senderId' => $senderId ? $senderId->name : 'Unknown',
-                'totalSent' => (int)$row['totalSent'],
-                'totalDelivered' => (int)$row['totalDelivered'],
-                'totalFailed' => (int)$row['totalFailed'],
-                'totalPending' => (int)$row['totalPending'],
-                'english' => (int)$row['englishCount'],
-                'arabic' => (int)$row['arabicCount'],
-                'other' => (int)$row['otherCount'],
-            ];
-        }
+        $rows = $this->formatAnalyticsExportRows($data);
 
         // Check for empty data
         if (empty($rows)) {
@@ -922,15 +1034,16 @@ class AnalyticsController extends Controller
             'Date',
             Craft::t('sms-manager', 'Site'),
             Craft::t('sms-manager', 'Language'),
+            Craft::t('sms-manager', 'Encoding'),
+            Craft::t('sms-manager', 'Source'),
             'Provider',
             'Sender ID',
             'Total Sent',
             'Total Delivered',
             'Total Failed',
             'Total Pending',
-            'English',
-            'Arabic',
-            'Other',
+            Craft::t('sms-manager', 'Characters'),
+            Craft::t('sms-manager', 'SMS Segments'),
         ];
 
         // Build filename
