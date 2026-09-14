@@ -28,7 +28,7 @@ The config file supports Craft's multi-environment format — a `'*'` group for 
 > [!NOTE]
 > `defaultProviderHandle` and `defaultSenderIdHandle` fail loud: if a handle is set but doesn't resolve to an enabled record, the default is treated as unconfigured and sends that rely on it return an explicit error rather than silently routing through a different provider. Fix the handle to recover.
 
-The `defaultProviderId` and `defaultSenderIdId` settings still exist for backward compatibility but are **deprecated** — use the handle-based settings instead.
+After upgrading, remove any `defaultProviderId` or `defaultSenderIdId` entries from `config/sms-manager.php`. They are no longer settings and are ignored; use `defaultProviderHandle` and `defaultSenderIdHandle` instead.
 
 ### Analytics
 

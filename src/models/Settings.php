@@ -51,18 +51,6 @@ class Settings extends Model
     public string $pluginName = 'SMS Manager';
 
     /**
-     * @var int|null Default provider ID (deprecated, use defaultProviderHandle)
-     * @deprecated Use defaultProviderHandle instead
-     */
-    public ?int $defaultProviderId = null;
-
-    /**
-     * @var int|null Default sender ID (deprecated, use defaultSenderIdHandle)
-     * @deprecated Use defaultSenderIdHandle instead
-     */
-    public ?int $defaultSenderIdId = null;
-
-    /**
      * @var string|null Default provider handle
      */
     public ?string $defaultProviderHandle = null;
@@ -181,8 +169,6 @@ class Settings extends Model
     protected static function integerFields(): array
     {
         return [
-            'defaultProviderId',
-            'defaultSenderIdId',
             'analyticsLimit',
             'analyticsRetention',
             'smsLogsLimit',
@@ -233,7 +219,6 @@ class Settings extends Model
                 ],
                 'boolean',
             ],
-            [['defaultProviderId', 'defaultSenderIdId'], 'integer'],
             [['defaultProviderHandle', 'defaultSenderIdHandle'], 'string', 'max' => 64],
             ['analyticsLimit', 'required'],
             ['analyticsLimit', 'integer', 'min' => 1, 'max' => 100000],
@@ -258,8 +243,6 @@ class Settings extends Model
     public function attributeLabels(): array
     {
         return array_merge([
-            'defaultProviderId' => Craft::t('sms-manager', 'Default Provider'),
-            'defaultSenderIdId' => Craft::t('sms-manager', 'Default Sender ID'),
             'defaultProviderHandle' => Craft::t('sms-manager', 'Default Provider'),
             'defaultSenderIdHandle' => Craft::t('sms-manager', 'Default Sender ID'),
             'enableAnalytics' => Craft::t('sms-manager', 'Enable Analytics'),

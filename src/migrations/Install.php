@@ -63,8 +63,6 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             // Plugin settings
             'pluginName' => $this->string(255)->notNull()->defaultValue('SMS Manager'),
-            'defaultProviderId' => $this->integer()->null(),
-            'defaultSenderIdId' => $this->integer()->null(),
             // Handle-based defaults (for config file support)
             'defaultProviderHandle' => $this->string(64)->null(),
             'defaultSenderIdHandle' => $this->string(64)->null(),

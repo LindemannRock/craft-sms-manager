@@ -22,6 +22,17 @@ use PHPUnit\Framework\TestCase;
  */
 final class InstallSchemaContractTest extends TestCase
 {
+    public function testFreshInstallUsesOnlyHandleBasedDefaultSettings(): void
+    {
+        $source = file_get_contents(dirname(__DIR__, 2) . '/src/migrations/Install.php');
+        self::assertIsString($source);
+
+        self::assertStringContainsString("'defaultProviderHandle' => \$this->string(64)->null()", $source);
+        self::assertStringContainsString("'defaultSenderIdHandle' => \$this->string(64)->null()", $source);
+        self::assertStringNotContainsString("'defaultProviderId' =>", $source);
+        self::assertStringNotContainsString("'defaultSenderIdId' =>", $source);
+    }
+
     public function testFreshInstallDefinesTruthfulNullableFactsAndNoTemplateTable(): void
     {
         $source = file_get_contents(dirname(__DIR__, 2) . '/src/migrations/Install.php');

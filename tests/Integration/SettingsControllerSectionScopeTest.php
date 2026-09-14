@@ -29,8 +29,6 @@ final class SettingsControllerSectionScopeTest extends TestCase
         $expected = [
             'general' => [
                 'pluginName',
-                'defaultProviderId',
-                'defaultSenderIdId',
                 'defaultProviderHandle',
                 'defaultSenderIdHandle',
                 'logLevel',

@@ -344,8 +344,6 @@ class SettingsController extends Controller
         return match ($section) {
             'general' => [
                 'pluginName',
-                'defaultProviderId',
-                'defaultSenderIdId',
                 'defaultProviderHandle',
                 'defaultSenderIdHandle',
                 'logLevel',
