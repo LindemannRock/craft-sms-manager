@@ -95,7 +95,7 @@
                 instructions: 'Enter the message to send. Keep it short for testing.'|t('sms-manager'),
                 id: 'testMessage',
                 name: 'testMessage',
-                value: 'This is a test SMS from SMS Manager.',
+                value: 'This is a test SMS from SMS Manager.'|t('sms-manager'),
                 rows: 3,
             }) }}
 
@@ -170,6 +170,9 @@ const senderIdsByProvider = {{ senderIdsByProvider|json_encode|raw }};
 // Providers with dev API key configured
 const providersWithDevKey = {{ providersWithDevKey|json_encode|raw }};
 
+// Provider development-sender capabilities
+const providerDevelopmentCapabilities = {{ providerDevelopmentCapabilities|json_encode|raw }};
+
 // Provider API keys (masked)
 const providerApiKeys = {{ providerApiKeys|json_encode|raw }};
 
@@ -198,9 +201,9 @@ const testResultCopy = {
     messageId: '{{ 'Message ID'|t('sms-manager') }}',
     executionTime: '{{ 'Execution Time'|t('sms-manager') }}',
     providerResponse: '{{ 'Provider Response'|t('sms-manager') }}',
-    unknown: 'Unknown',
-    unknownError: 'Unknown error',
-    notAvailable: 'N/A',
+    unknown: '{{ 'Unknown'|t('sms-manager') }}',
+    unknownError: '{{ 'Unknown error'|t('sms-manager') }}',
+    notAvailable: '{{ 'N/A'|t('sms-manager') }}',
     usingDevelopmentApiKey: '{{ 'Using Development API Key'|t('sms-manager') }}',
     usingMainApiKey: '{{ 'Using Main API Key'|t('sms-manager') }}',
     noDevelopmentApiKey: '{{ 'No development API key configured'|t('sms-manager') }}',
@@ -234,6 +237,7 @@ function updateApiKeyInfo() {
     const senderIdHandle = testSenderIdSelect.value;
     const senderIds = senderIdsByProvider[providerHandle] || [];
     const selectedSenderId = senderIds.find(s => s.handle === senderIdHandle);
+    const supportsDevelopmentSenders = providerDevelopmentCapabilities[providerHandle] === true;
     const hasDevKey = providersWithDevKey[providerHandle] || false;
     const apiKeys = providerApiKeys[providerHandle] || { main: '', dev: '' };
     const allowedCountries = providerAllowedCountries[providerHandle] || [];
@@ -257,6 +261,7 @@ function updateApiKeyInfo() {
         }
 
         window.lrSmsTestResults.renderApiKeyInfo(apiKeyInfoMessage, {
+            supportsDevelopmentSenders: supportsDevelopmentSenders,
             isDevelopment: selectedSenderId.isDev,
             hasDevelopmentKey: hasDevKey,
             mainKey: apiKeys.main,

@@ -55,7 +55,7 @@ Country repair is supported for Kuwait, Saudi Arabia, the UAE, Bahrain, Qatar, O
 
 ## Development senders
 
-A sender ID can be marked **Development**. When an MPP-SMS provider has a **Development API Key** configured, messages from a development sender are sent with that key instead of the main one — useful for routing test traffic through a separate account that still delivers. Without a development key, development senders use the main key.
+A sender ID attached to MPP-SMS can be marked **Development**. When the provider has a **Development API Key** configured, messages from that sender are sent with the development key instead of the main one — useful for routing test traffic through a separate account that still delivers. Without a development key, development senders use the main key.
 
 ## Capabilities
 
@@ -64,6 +64,7 @@ A sender ID can be marked **Development**. When an MPP-SMS provider has a **Deve
 | Unicode (Arabic) | Yes |
 | Delivery reports | No |
 | Connection test | No |
+| Per-sender development routing | Yes |
 
 ## Responses and errors
 

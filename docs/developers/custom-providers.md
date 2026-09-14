@@ -61,6 +61,17 @@ class MyProvider extends BaseProvider
 }
 ```
 
+Development senders are disabled for custom providers by default. If your gateway has a real per-sender development credential or routing mode, opt in by overriding the optional capability:
+
+```php
+public static function supportsDevelopmentSenders(): bool
+{
+    return true;
+}
+```
+
+SMS Manager then exposes the sender's **Development** control and passes `isDev => true` in the provider settings for senders marked as development. Providers that implement `ProviderInterface` directly remain compatible: the capability is optional, and the safe default is `false`. A direct implementation can opt in by also implementing `DevelopmentSenderProviderInterface`.
+
 ## The interface
 
 These are the methods you can implement. `BaseProvider` provides defaults for everything except `handle()`, `displayName()`, `description()`, `validateSettings()`, and `send()`.
@@ -82,8 +93,9 @@ These are the methods you can implement. `BaseProvider` provides defaults for ev
 | `supportsDeliveryReports()` @since(5.10.0) | `false` | Whether the gateway exposes delivery reports |
 | `supportsConnectionTest()` | `false` | Whether `testConnection()` is implemented |
 | `testConnection(array)` | returns `true` | Credentials check without sending |
+| `supportsDevelopmentSenders()` @since(5.16.0) | `false` | Optional capability that enables per-sender development routing and exposes the Development control |
 
-`shortName()`, `website()`, `docsUrl()`, and `dashboardUrl()` are static.
+`shortName()`, `website()`, `docsUrl()`, `dashboardUrl()`, and `supportsDevelopmentSenders()` are static. The development capability is not part of `ProviderInterface`; direct implementations only need it when opting in.
 
 ### How the settings form is rendered
 

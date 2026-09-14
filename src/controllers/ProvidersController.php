@@ -444,7 +444,7 @@ class ProvidersController extends Controller
 
         $provider = ProviderRecord::findOne($providerId);
         if (!$provider) {
-            return $this->asJson(['success' => false, 'error' => 'Provider not found']);
+            return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Provider not found')]);
         }
 
         // Cannot toggle config providers
@@ -457,7 +457,7 @@ class ProvidersController extends Controller
             return $this->asJson(['success' => true]);
         }
 
-        return $this->asJson(['success' => false, 'error' => 'Could not update provider']);
+        return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Could not save provider.')]);
     }
 
     /**
@@ -482,12 +482,12 @@ class ProvidersController extends Controller
         }
 
         if (!$provider) {
-            return $this->asJson(['success' => false, 'error' => 'Provider not found']);
+            return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Provider not found')]);
         }
 
         $providerInstance = SmsManager::$plugin->providers->createProviderByType($provider->type);
         if (!$providerInstance) {
-            return $this->asJson(['success' => false, 'error' => 'Unknown provider type']);
+            return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Invalid provider type.')]);
         }
 
         $result = $providerInstance->testConnection($provider->getSettingsArray());

@@ -271,6 +271,7 @@ class AnalyticsController extends Controller
 
         if (empty($data)) {
             return [
+                'dates' => [],
                 'labels' => [],
                 'sent' => [],
                 'failed' => [],
@@ -312,7 +313,8 @@ class AnalyticsController extends Controller
             $dayData = $dataByDate[$dateStr] ?? null;
 
             $chartData[] = [
-                'date' => $date->format('M j'),
+                'date' => $dateStr,
+                'label' => $this->formatChartDate($date),
                 'sent' => (int)($dayData['sent'] ?? 0),
                 'failed' => (int)($dayData['failed'] ?? 0),
             ];
@@ -321,7 +323,8 @@ class AnalyticsController extends Controller
         }
 
         return [
-            'labels' => array_column($chartData, 'date'),
+            'dates' => array_column($chartData, 'date'),
+            'labels' => array_column($chartData, 'label'),
             'sent' => array_column($chartData, 'sent'),
             'failed' => array_column($chartData, 'failed'),
         ];
@@ -352,7 +355,7 @@ class AnalyticsController extends Controller
 
         foreach ($data as $row) {
             $provider = $providersById[$row['providerId']] ?? null;
-            $labels[] = $provider ? $provider->name : 'Unknown';
+            $labels[] = $provider ? $provider->name : Craft::t('sms-manager', 'Unknown');
             $values[] = (int)$row['sent'] + (int)$row['failed'];
         }
 
@@ -387,7 +390,7 @@ class AnalyticsController extends Controller
 
         foreach ($data as $row) {
             $senderId = $senderIdsById[$row['senderIdId']] ?? null;
-            $labels[] = $senderId ? $senderId->name : 'Unknown';
+            $labels[] = $senderId ? $senderId->name : Craft::t('sms-manager', 'Unknown');
             $sent[] = (int)$row['sent'];
             $failed[] = (int)$row['failed'];
         }
@@ -584,6 +587,7 @@ class AnalyticsController extends Controller
 
         if (empty($data)) {
             return [
+                'dates' => [],
                 'labels' => [],
                 'gsm7' => [],
                 'ucs2' => [],
@@ -626,7 +630,8 @@ class AnalyticsController extends Controller
             $dayData = $dataByDate[$dateStr] ?? null;
 
             $chartData[] = [
-                'date' => $date->format('M j'),
+                'date' => $dateStr,
+                'label' => $this->formatChartDate($date),
                 'gsm7' => (int)($dayData['gsm7'] ?? 0),
                 'ucs2' => (int)($dayData['ucs2'] ?? 0),
                 'unknown' => (int)($dayData['unknown'] ?? 0),
@@ -636,7 +641,8 @@ class AnalyticsController extends Controller
         }
 
         return [
-            'labels' => array_column($chartData, 'date'),
+            'dates' => array_column($chartData, 'date'),
+            'labels' => array_column($chartData, 'label'),
             'gsm7' => array_column($chartData, 'gsm7'),
             'ucs2' => array_column($chartData, 'ucs2'),
             'unknown' => array_column($chartData, 'unknown'),
@@ -1030,21 +1036,7 @@ class AnalyticsController extends Controller
             return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
-        $headers = [
-            'Date',
-            Craft::t('sms-manager', 'Site'),
-            Craft::t('sms-manager', 'Language'),
-            Craft::t('sms-manager', 'Encoding'),
-            Craft::t('sms-manager', 'Source'),
-            'Provider',
-            'Sender ID',
-            'Total Sent',
-            'Total Delivered',
-            'Total Failed',
-            'Total Pending',
-            Craft::t('sms-manager', 'Characters'),
-            Craft::t('sms-manager', 'SMS Segments'),
-        ];
+        $headers = $this->analyticsExportHeaders();
 
         // Build filename
         $settings = SmsManager::$plugin->getSettings();
@@ -1070,8 +1062,51 @@ class AnalyticsController extends Controller
             format: $format,
             filename: $filename,
             excelOptions: [
-                'sheetTitle' => 'Analytics',
+                'sheetTitle' => Craft::t('sms-manager', 'Analytics'),
             ],
         );
+    }
+
+    /**
+     * Format a chart-axis date through the plugin/Base settings cascade and
+     * Craft's locale-aware formatter.
+     */
+    private function formatChartDate(\DateTimeInterface $date): string
+    {
+        $pluginHandle = SmsManager::$plugin->id;
+        $order = DateFormatHelper::getDateOrder($pluginHandle);
+        $monthFormat = DateFormatHelper::getMonthFormat($pluginHandle);
+
+        if ($monthFormat === 'numeric') {
+            $separator = DateFormatHelper::getDateSeparator($pluginHandle);
+            $pattern = $order === 'dmy'
+                ? "dd{$separator}MM"
+                : "MM{$separator}dd";
+        } else {
+            $month = $monthFormat === 'long' ? 'MMMM' : 'MMM';
+            $pattern = $order === 'dmy' ? "d {$month}" : "{$month} d";
+        }
+
+        return Craft::$app->getFormatter()->asDate($date->getTimestamp(), $pattern);
+    }
+
+    /** @return list<string> */
+    private function analyticsExportHeaders(): array
+    {
+        return [
+            Craft::t('sms-manager', 'Date'),
+            Craft::t('sms-manager', 'Site'),
+            Craft::t('sms-manager', 'Language'),
+            Craft::t('sms-manager', 'Encoding'),
+            Craft::t('sms-manager', 'Source'),
+            Craft::t('sms-manager', 'Provider'),
+            Craft::t('sms-manager', 'Sender ID'),
+            Craft::t('sms-manager', 'Total Sent'),
+            Craft::t('sms-manager', 'Total Delivered'),
+            Craft::t('sms-manager', 'Total Failed'),
+            Craft::t('sms-manager', 'Total Pending'),
+            Craft::t('sms-manager', 'Characters'),
+            Craft::t('sms-manager', 'SMS Segments'),
+        ];
     }
 }

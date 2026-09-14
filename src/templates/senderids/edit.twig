@@ -146,6 +146,8 @@
 {% block details %}
     {% set isDefault = senderId and defaultSenderIdHandle == senderId.handle %}
     {% set isFirstSenderId = isNew and (senderIdCount ?? 0) == 0 %}
+    {% set selectedProviderHandle = senderId ? (senderId.providerHandle ?: '') : '' %}
+    {% set supportsDevelopmentSenders = providerDevelopmentCapabilities[selectedProviderHandle] ?? false %}
 
     <div class="meta">
         {# Enabled toggle #}
@@ -246,19 +248,21 @@
 
         {# Development toggle #}
         {% if canEdit %}
-            {{ forms.lightswitchField({
-                label: 'Development Sender ID'|t('sms-manager'),
-                instructions: 'Use this sender ID for messages in development mode.'|t('sms-manager'),
-                id: 'isDev',
-                name: 'isDev',
-                on: senderId.isDev ?? false
-            }) }}
-        {% else %}
+            <div id="development-sender-field"{% if not supportsDevelopmentSenders %} class="hidden"{% endif %}>
+                {{ forms.lightswitchField({
+                    label: 'Development Sender ID'|t('sms-manager'),
+                    instructions: 'Use this sender ID for messages in development mode.'|t('sms-manager'),
+                    id: 'isDev',
+                    name: 'isDev',
+                    on: effectiveIsDev ?? false
+                }) }}
+            </div>
+        {% elseif supportsDevelopmentSenders %}
             {{ forms.lightswitchField({
                 label: 'Development Sender ID'|t('sms-manager'),
                 instructions: 'Set via config/sms-manager.php. Edit the file to change.'|t('sms-manager'),
                 id: 'isDev',
-                on: senderId.isDev ?? false,
+                on: effectiveIsDev ?? false,
                 disabled: true
             }) }}
         {% endif %}
@@ -338,7 +342,7 @@
                     </dd>
                 </div>
             {% endif %}
-            {% if senderId.isDev %}
+            {% if effectiveIsDev ?? false %}
                 <div class="data">
                     <dt class="heading">{{ 'Development'|t('sms-manager') }}</dt>
                     <dd class="value">
@@ -370,6 +374,34 @@
 window.lrIdentifiers?.bindSlugHandle('#name', '#handle', {
     isNew: {{ isNew ? 'true' : 'false' }},
 });
+
+const providerDevelopmentCapabilities = {{ providerDevelopmentCapabilities|json_encode|raw }};
+const providerHandle = document.getElementById('providerHandle');
+const developmentSenderField = document.getElementById('development-sender-field');
+
+function updateDevelopmentSenderField() {
+    if (!providerHandle || !developmentSenderField) {
+        return;
+    }
+
+    const supported = providerDevelopmentCapabilities[providerHandle.value] === true;
+    developmentSenderField.classList.toggle('hidden', !supported);
+
+    if (!supported) {
+        const input = developmentSenderField.querySelector('input[name="isDev"]');
+        const lightswitch = developmentSenderField.querySelector('.lightswitch');
+        if (input) {
+            input.value = '0';
+        }
+        if (lightswitch) {
+            lightswitch.classList.remove('on');
+            lightswitch.setAttribute('aria-checked', 'false');
+        }
+    }
+}
+
+providerHandle?.addEventListener('change', updateDevelopmentSenderField);
+updateDevelopmentSenderField();
 
 // Set platform-specific keyboard shortcut
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;

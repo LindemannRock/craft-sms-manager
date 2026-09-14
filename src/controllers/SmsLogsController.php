@@ -373,9 +373,9 @@ class SmsLogsController extends Controller
                 $senderId = $senderIdsByHandle[$log['senderIdHandle']] ?? null;
             }
 
-            $log['providerName'] = $provider ? $provider->name : 'Unknown';
-            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
-            $log['senderIdValue'] = $senderId ? $senderId->senderId : 'Unknown';
+            $log['providerName'] = $provider ? $provider->name : Craft::t('sms-manager', 'Unknown');
+            $log['senderIdName'] = $senderId ? $senderId->name : Craft::t('sms-manager', 'Unknown');
+            $log['senderIdValue'] = $senderId ? $senderId->senderId : Craft::t('sms-manager', 'Unknown');
         }
     }
 
@@ -440,9 +440,9 @@ class SmsLogsController extends Controller
                 'message' => $log['message'],
                 'language' => $log['language'],
                 'status' => $log['status'],
-                'provider' => $provider ? $provider->name : 'Unknown',
-                'senderId' => $senderId ? $senderId->senderId : 'Unknown',
-                'source' => $log['sourcePlugin'] ?? 'Direct',
+                'provider' => $provider ? $provider->name : Craft::t('sms-manager', 'Unknown'),
+                'senderId' => $senderId ? $senderId->senderId : Craft::t('sms-manager', 'Unknown'),
+                'source' => $log['sourcePlugin'] ?: Craft::t('sms-manager', 'Direct'),
                 'messageId' => $log['providerMessageId'],
                 'error' => $log['errorMessage'],
                 'providerResponse' => $log['providerResponse'],
@@ -455,19 +455,7 @@ class SmsLogsController extends Controller
             return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
-        $headers = [
-            'Date',
-            'Recipient',
-            'Message',
-            'Language',
-            'Status',
-            'Provider',
-            'Sender ID',
-            'Source',
-            'Message ID',
-            'Error',
-            'Provider Response',
-        ];
+        $headers = $this->smsLogExportHeaders();
 
         // Build filename
         $settings = SmsManager::$plugin->getSettings();
@@ -484,7 +472,7 @@ class SmsLogsController extends Controller
             filename: $filename,
             dateColumns: $dateColumns,
             excelOptions: [
-                'sheetTitle' => 'SMS Logs',
+                'sheetTitle' => Craft::t('sms-manager', 'SMS Logs'),
             ],
         );
     }
@@ -507,7 +495,7 @@ class SmsLogsController extends Controller
             return $this->asJson(['success' => true]);
         }
 
-        return $this->asJson(['success' => false, 'error' => 'Could not delete log']);
+        return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Failed to delete log.')]);
     }
 
     /**
@@ -549,7 +537,10 @@ class SmsLogsController extends Controller
 
         $this->enrichLogsWithRelations($logs);
         foreach ($logs as &$log) {
-            $log['datetimeFormatted'] = DateFormatHelper::formatDatetime($log['dateCreated'], 'medium');
+            $log['datetimeFormatted'] = DateFormatHelper::formatDatetime(
+                $log['dateCreated'],
+                pluginHandle: SmsManager::$plugin->id,
+            );
         }
         unset($log);
 
@@ -675,5 +666,23 @@ class SmsLogsController extends Controller
                 'message' => Craft::t('sms-manager', 'Failed to delete logs.'),
             ]);
         }
+    }
+
+    /** @return list<string> */
+    private function smsLogExportHeaders(): array
+    {
+        return [
+            Craft::t('sms-manager', 'Date'),
+            Craft::t('sms-manager', 'Recipient'),
+            Craft::t('sms-manager', 'Message'),
+            Craft::t('sms-manager', 'Language'),
+            Craft::t('sms-manager', 'Status'),
+            Craft::t('sms-manager', 'Provider'),
+            Craft::t('sms-manager', 'Sender ID'),
+            Craft::t('sms-manager', 'Source'),
+            Craft::t('sms-manager', 'Message ID'),
+            Craft::t('sms-manager', 'Error'),
+            Craft::t('sms-manager', 'Provider Response'),
+        ];
     }
 }

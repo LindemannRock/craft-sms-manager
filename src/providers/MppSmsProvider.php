@@ -119,6 +119,14 @@ class MppSmsProvider extends BaseProvider
     /**
      * @inheritdoc
      */
+    public static function supportsDevelopmentSenders(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getSettingsHtml(?ProviderRecord $provider = null): string
     {
         $settings = $provider ? (json_decode((string)$provider->settings, true) ?: []) : [];

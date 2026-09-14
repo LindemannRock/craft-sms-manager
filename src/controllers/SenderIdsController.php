@@ -61,6 +61,11 @@ class SenderIdsController extends Controller
         $senderIds = SmsManager::$plugin->senderIds->getAllSenderIds();
         $providers = SmsManager::$plugin->providers->getAllProviders();
 
+        $developmentSenderStates = [];
+        foreach ($senderIds as $senderId) {
+            $developmentSenderStates[$senderId->handle] = SmsManager::$plugin->senderIds->isDevelopmentSender($senderId);
+        }
+
         // Index providers by handle so the template can do an O(1) lookup
         // per row instead of an inner `{% for p in providers %}` loop.
         $providersByHandle = [];
@@ -139,9 +144,15 @@ class SenderIdsController extends Controller
         }
 
         if ($testFilter === 'test') {
-            $senderIds = array_values(array_filter($senderIds, fn($s): bool => (bool) $s->isDev));
+            $senderIds = array_values(array_filter(
+                $senderIds,
+                fn($s): bool => $developmentSenderStates[$s->handle] ?? false,
+            ));
         } elseif ($testFilter === 'production') {
-            $senderIds = array_values(array_filter($senderIds, fn($s): bool => !$s->isDev));
+            $senderIds = array_values(array_filter(
+                $senderIds,
+                fn($s): bool => !($developmentSenderStates[$s->handle] ?? false),
+            ));
         }
 
         if ($providerFilter !== 'all') {
@@ -162,7 +173,7 @@ class SenderIdsController extends Controller
 
         // ---- Sort + paginate ----------------------------------------------
 
-        $senderIds = $this->sortSenderIds($senderIds, $sort, $dir);
+        $senderIds = $this->sortSenderIds($senderIds, $sort, $dir, $developmentSenderStates);
 
         // Total count reflects the filtered subset so the pager matches the
         // visible list — not the unfiltered sender ID list size.
@@ -185,6 +196,7 @@ class SenderIdsController extends Controller
             'hasAnySenderIds' => $hasAnySenderIds,
             'providers' => $providers,
             'providersByHandle' => $providersByHandle,
+            'developmentSenderStates' => $developmentSenderStates,
             'settings' => $settings,
             'statusFilter' => $statusFilter,
             'sourceFilter' => $sourceFilter,
@@ -212,19 +224,20 @@ class SenderIdsController extends Controller
      * land here, so the default branch is reached only on a logic bug.
      *
      * @param array<int, mixed> $senderIds
+     * @param array<string, bool> $developmentSenderStates
      * @return array<int, mixed>
      */
-    private function sortSenderIds(array $senderIds, string $sort, string $dir): array
+    private function sortSenderIds(array $senderIds, string $sort, string $dir, array $developmentSenderStates): array
     {
         $multiplier = $dir === 'desc' ? -1 : 1;
 
-        usort($senderIds, function($a, $b) use ($sort, $multiplier): int {
+        usort($senderIds, function($a, $b) use ($sort, $multiplier, $developmentSenderStates): int {
             $cmp = match ($sort) {
                 'handle' => strcasecmp((string) $a->handle, (string) $b->handle),
                 'senderId' => strcasecmp((string) $a->senderId, (string) $b->senderId),
                 'provider' => strcasecmp((string) ($a->providerHandle ?? ''), (string) ($b->providerHandle ?? '')),
                 'source' => strcmp((string) ($a->source ?? ''), (string) ($b->source ?? '')),
-                'isDev' => ((int) $a->isDev) <=> ((int) $b->isDev),
+                'isDev' => ((int)($developmentSenderStates[$a->handle] ?? false)) <=> ((int)($developmentSenderStates[$b->handle] ?? false)),
                 'enabled' => ((int) $a->enabled) <=> ((int) $b->enabled),
                 default => strcasecmp((string) $a->name, (string) $b->name),
             };
@@ -261,20 +274,15 @@ class SenderIdsController extends Controller
             throw new NotFoundHttpException(Craft::t('sms-manager', 'Sender ID not found'));
         }
 
-        $providers = SmsManager::$plugin->providers->getAllProviders(true);
-        $providerOptions = [['label' => Craft::t('sms-manager', 'Select a provider...'), 'value' => '']];
-        foreach ($providers as $provider) {
-            $providerOptions[] = [
-                'label' => $provider->name,
-                'value' => $provider->handle,
-            ];
-        }
+        [$providerOptions, $providerDevelopmentCapabilities] = $this->senderFormProviderData();
         $senderIdCount = SenderIdRecord::find()->count();
         $settings = SmsManager::$plugin->getSettings();
 
         return $this->renderTemplate('sms-manager/senderids/edit', [
             'senderId' => $senderId,
             'providerOptions' => $providerOptions,
+            'providerDevelopmentCapabilities' => $providerDevelopmentCapabilities,
+            'effectiveIsDev' => SmsManager::$plugin->senderIds->isDevelopmentSender($senderId),
             'isNew' => false,
             'senderIdCount' => $senderIdCount,
             'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
@@ -302,20 +310,16 @@ class SenderIdsController extends Controller
             }
         }
 
-        $providers = SmsManager::$plugin->providers->getAllProviders(true);
-        $providerOptions = [['label' => Craft::t('sms-manager', 'Select a provider...'), 'value' => '']];
-        foreach ($providers as $provider) {
-            $providerOptions[] = [
-                'label' => $provider->name,
-                'value' => $provider->handle,
-            ];
-        }
+        [$providerOptions, $providerDevelopmentCapabilities] = $this->senderFormProviderData();
         $senderIdCount = SenderIdRecord::find()->count();
         $settings = SmsManager::$plugin->getSettings();
 
         return $this->renderTemplate('sms-manager/senderids/edit', [
             'senderId' => $senderId,
             'providerOptions' => $providerOptions,
+            'providerDevelopmentCapabilities' => $providerDevelopmentCapabilities,
+            'effectiveIsDev' => $senderId !== null
+                && SmsManager::$plugin->senderIds->isDevelopmentSender($senderId),
             'isNew' => $senderId === null,
             'senderIdCount' => $senderIdCount,
             'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
@@ -375,20 +379,15 @@ class SenderIdsController extends Controller
         Craft::$app->getSession()->setError(Craft::t('sms-manager', 'Could not save sender ID.'));
 
         // Re-render edit form with submitted data
-        $providers = SmsManager::$plugin->providers->getAllProviders(true);
-        $providerOptions = [['label' => Craft::t('sms-manager', 'Select a provider...'), 'value' => '']];
-        foreach ($providers as $provider) {
-            $providerOptions[] = [
-                'label' => $provider->name,
-                'value' => $provider->handle,
-            ];
-        }
+        [$providerOptions, $providerDevelopmentCapabilities] = $this->senderFormProviderData();
         $senderIdCount = SenderIdRecord::find()->count();
         $settings = SmsManager::$plugin->getSettings();
 
         return $this->renderTemplate('sms-manager/senderids/edit', [
             'senderId' => $senderId,
             'providerOptions' => $providerOptions,
+            'providerDevelopmentCapabilities' => $providerDevelopmentCapabilities,
+            'effectiveIsDev' => SmsManager::$plugin->senderIds->isDevelopmentSender($senderId),
             'isNew' => !$senderIdId,
             'senderIdCount' => $senderIdCount,
             'defaultSenderIdHandle' => $settings->defaultSenderIdHandle,
@@ -440,7 +439,7 @@ class SenderIdsController extends Controller
 
         $senderId = SenderIdRecord::findOne($senderIdId);
         if (!$senderId) {
-            return $this->asJson(['success' => false, 'error' => 'Sender ID not found']);
+            return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Sender ID not found')]);
         }
 
         // Cannot toggle config sender IDs
@@ -453,7 +452,7 @@ class SenderIdsController extends Controller
             return $this->asJson(['success' => true]);
         }
 
-        return $this->asJson(['success' => false, 'error' => 'Could not update sender ID']);
+        return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Could not save sender ID.')]);
     }
 
     /**
@@ -536,10 +535,34 @@ class SenderIdsController extends Controller
                 'handle' => $senderId->handle,
                 'senderId' => $senderId->senderId,
                 'isDefault' => $senderId->handle === $defaultHandle,
+                'isDev' => SmsManager::$plugin->senderIds->isDevelopmentSender($senderId),
             ];
         }
 
         return $this->asJson(['senderIds' => $options]);
+    }
+
+    /**
+     * Build sender-form provider options and development capability flags.
+     *
+     * @return array{0: list<array{label: string, value: string}>, 1: array<string, bool>}
+     */
+    private function senderFormProviderData(): array
+    {
+        $providerOptions = [['label' => Craft::t('sms-manager', 'Select a provider...'), 'value' => '']];
+        $capabilities = ['' => false];
+
+        foreach (SmsManager::$plugin->providers->getAllProviders() as $provider) {
+            $capabilities[$provider->handle] = SmsManager::$plugin->providers->supportsDevelopmentSenders($provider->type);
+            if ($provider->enabled) {
+                $providerOptions[] = [
+                    'label' => $provider->name,
+                    'value' => $provider->handle,
+                ];
+            }
+        }
+
+        return [$providerOptions, $capabilities];
     }
 
     /**

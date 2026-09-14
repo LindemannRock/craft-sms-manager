@@ -148,7 +148,7 @@ class DashboardController extends Controller
             if (!$senderId && !empty($log['senderIdHandle'])) {
                 $senderId = $senderIdsByHandle[$log['senderIdHandle']] ?? null;
             }
-            $log['senderIdName'] = $senderId ? $senderId->name : 'Unknown';
+            $log['senderIdName'] = $senderId ? $senderId->name : Craft::t('sms-manager', 'Unknown');
         }
         unset($log);
 

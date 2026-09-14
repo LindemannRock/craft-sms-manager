@@ -309,6 +309,7 @@
     {# Provider for this sender ID — O(1) lookup against the controller-built
        providersByHandle map (replaces a per-row `{% for p in providers %}`). #}
     {% set provider = providersByHandle[item.providerHandle] ?? null %}
+    {% set isDevelopmentSender = developmentSenderStates[item.handle] ?? false %}
 
     {# Name #}
     <td>
@@ -349,8 +350,8 @@
     {# Type badge (Dev/Production) #}
     <td>
         {% include 'lindemannrock-base/_components/badge' with {
-            label: item.isDev ? 'Development'|t('sms-manager') : 'Production'|t('sms-manager'),
-            value: item.isDev ? 'development' : 'production',
+            label: isDevelopmentSender ? 'Development'|t('sms-manager') : 'Production'|t('sms-manager'),
+            value: isDevelopmentSender ? 'development' : 'production',
             colorSet: 'environmentType',
         } only %}
     </td>

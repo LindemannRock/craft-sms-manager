@@ -270,7 +270,9 @@ return [
          * - senderId: The actual sender ID string (alphanumeric, max 11 chars)
          * - description: Optional description
          * - enabled: Whether the sender ID is active
-         * - isDev: Mark as development-only sender ID
+         * - isDev: Use development routing when the provider supports it
+         *   (supported by MPP-SMS; ignored for Twilio and providers that do not
+         *   explicitly opt in)
          */
         'senderIds' => [
             // Example: Main production sender

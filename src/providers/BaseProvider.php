@@ -24,7 +24,7 @@ use lindemannrock\smsmanager\SmsManager;
  * @package   SmsManager
  * @since     5.0.0
  */
-abstract class BaseProvider implements ProviderInterface
+abstract class BaseProvider implements ProviderInterface, DevelopmentSenderProviderInterface
 {
     use LoggingTrait;
 
@@ -106,6 +106,15 @@ abstract class BaseProvider implements ProviderInterface
      * @inheritdoc
      */
     public static function supportsConnectionTest(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 5.16.0
+     */
+    public static function supportsDevelopmentSenders(): bool
     {
         return false;
     }

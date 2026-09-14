@@ -15,6 +15,7 @@ use craft\helpers\StringHelper;
 use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\events\RegisterProvidersEvent;
+use lindemannrock\smsmanager\providers\DevelopmentSenderProviderInterface;
 use lindemannrock\smsmanager\providers\MppSmsProvider;
 use lindemannrock\smsmanager\providers\ProviderInterface;
 use lindemannrock\smsmanager\providers\TwilioProvider;
@@ -148,7 +149,7 @@ class ProvidersService extends Component
      * Get static metadata for a provider type
      *
      * @param string $type Provider type handle
-     * @return array{shortName: string, website: string|null, docsUrl: string|null, dashboardUrl: string|null, supportsUnicode: bool, supportsDeliveryReports: bool, supportsConnectionTest: bool}|null
+     * @return array{shortName: string, website: string|null, docsUrl: string|null, dashboardUrl: string|null, supportsUnicode: bool, supportsDeliveryReports: bool, supportsConnectionTest: bool, supportsDevelopmentSenders: bool}|null
      * @since 5.10.0
      */
     public function getProviderTypeMetadata(string $type): ?array
@@ -168,7 +169,27 @@ class ProvidersService extends Component
             'supportsUnicode' => $class::supportsUnicode(),
             'supportsDeliveryReports' => $class::supportsDeliveryReports(),
             'supportsConnectionTest' => $class::supportsConnectionTest(),
+            'supportsDevelopmentSenders' => $this->supportsDevelopmentSenders($type),
         ];
+    }
+
+    /**
+     * Whether a registered provider type supports development sender IDs.
+     *
+     * This is intentionally an optional capability. Direct implementations of
+     * {@see ProviderInterface} remain compatible and receive the conservative
+     * false fallback unless they also implement
+     * {@see DevelopmentSenderProviderInterface}.
+     *
+     * @since 5.16.0
+     */
+    public function supportsDevelopmentSenders(string $type): bool
+    {
+        $class = $this->getProviderTypes()[$type] ?? null;
+
+        return $class !== null
+            && is_subclass_of($class, DevelopmentSenderProviderInterface::class)
+            && $class::supportsDevelopmentSenders();
     }
 
     /**

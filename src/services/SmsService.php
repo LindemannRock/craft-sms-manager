@@ -127,7 +127,7 @@ class SmsService extends Component
                 'success' => false,
                 'messageId' => null,
                 'response' => null,
-                'error' => 'No provider configured',
+                'error' => Craft::t('sms-manager', 'No provider configured'),
                 'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
                 'providerName' => null,
                 'senderIdName' => null,
@@ -146,7 +146,7 @@ class SmsService extends Component
                 'success' => false,
                 'messageId' => null,
                 'response' => null,
-                'error' => 'No sender ID configured',
+                'error' => Craft::t('sms-manager', 'No sender ID configured'),
                 'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
                 'providerName' => $provider->name,
                 'senderIdName' => null,
@@ -247,7 +247,7 @@ class SmsService extends Component
                 'success' => false,
                 'messageId' => null,
                 'response' => null,
-                'error' => 'Sender ID not found: ' . $senderIdHandle,
+                'error' => Craft::t('sms-manager', 'Sender ID not found: {handle}', ['handle' => $senderIdHandle]),
                 'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
                 'providerName' => null,
                 'senderIdName' => null,
@@ -269,7 +269,7 @@ class SmsService extends Component
                 'success' => false,
                 'messageId' => null,
                 'response' => null,
-                'error' => 'Provider not found for sender ID handle: ' . $senderIdHandle,
+                'error' => Craft::t('sms-manager', 'Provider not found for sender ID: {handle}', ['handle' => $senderIdHandle]),
                 'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
                 'providerName' => null,
                 'senderIdName' => $senderId->name,
@@ -316,7 +316,7 @@ class SmsService extends Component
                 'success' => false,
                 'messageId' => null,
                 'response' => null,
-                'error' => 'Provider is disabled',
+                'error' => Craft::t('sms-manager', 'Provider is disabled'),
                 'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
                 'providerName' => $provider->name,
                 'senderIdName' => $senderId->name,
@@ -331,7 +331,7 @@ class SmsService extends Component
                 'success' => false,
                 'messageId' => null,
                 'response' => null,
-                'error' => 'Sender ID is disabled',
+                'error' => Craft::t('sms-manager', 'Sender ID is disabled'),
                 'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
                 'providerName' => $provider->name,
                 'senderIdName' => $senderId->name,
@@ -384,7 +384,7 @@ class SmsService extends Component
                 'success' => false,
                 'messageId' => null,
                 'response' => null,
-                'error' => 'Unknown provider type: ' . $provider->type,
+                'error' => Craft::t('sms-manager', 'Unknown provider type: {type}', ['type' => $provider->type]),
                 'executionTime' => (int)round((microtime(true) - $startTime) * 1000),
                 'providerName' => $provider->name,
                 'senderIdName' => $senderId->name,
@@ -394,7 +394,7 @@ class SmsService extends Component
         }
 
         $providerSettings = $provider->getSettingsArray();
-        $providerSettings['isDev'] = (bool)$senderId->isDev;
+        $providerSettings['isDev'] = $plugin->senderIds->isDevelopmentSender($senderId);
 
         try {
             $result = $providerInstance->send(

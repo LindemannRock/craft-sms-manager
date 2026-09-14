@@ -83,6 +83,9 @@ return [
     'Loading...' => 'Laden...',
     'No data available' => 'Geen gegevens beschikbaar',
     'Unknown' => 'Onbekend',
+    'Unknown error' => 'Onbekende fout',
+    'N/A' => 'Niet beschikbaar',
+    'Date' => 'Datum',
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: Oude SMS-logboeken opruimen',
@@ -121,6 +124,13 @@ return [
     'Sender ID not found' => 'Afzender-ID niet gevonden',
     'User does not have permission to access this area.' => 'De gebruiker heeft geen toestemming om toegang te krijgen tot dit gebied.',
     'User does not have permission to view analytics for this site.' => 'De gebruiker heeft geen toestemming om analyses voor deze site te bekijken.',
+    'No provider configured' => 'Geen provider geconfigureerd',
+    'No sender ID configured' => 'Geen afzender-ID geconfigureerd',
+    'Sender ID not found: {handle}' => 'Afzender-ID niet gevonden: {handle}',
+    'Provider not found for sender ID: {handle}' => 'Provider voor afzender-ID niet gevonden: {handle}',
+    'Provider is disabled' => 'De provider is uitgeschakeld',
+    'Sender ID is disabled' => 'De afzender-ID is uitgeschakeld',
+    'Unknown provider type: {type}' => 'Onbekend providertype: {type}',
 
     // Validation messages
     'API Key is required.' => 'API-sleutel is verplicht.',
@@ -185,6 +195,7 @@ return [
     'Test SMS' => 'Test-SMS',
     'Test SMS Sending' => 'SMS-verzending testen',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'Test uw SMS-providerconfiguratie door een testbericht te verzenden. Dit maakt gebruik van de daadwerkelijke provider-API en kan kosten met zich meebrengen.',
+    'This is a test SMS from SMS Manager.' => 'Dit is een test-sms van SMS Manager.',
     'SMS Configuration' => 'SMS-configuratie',
     'No providers configured.' => 'Geen providers geconfigureerd.',
     'Please configure at least one provider before testing.' => 'Configureer minimaal één provider voordat u test.',
@@ -367,6 +378,10 @@ return [
     'Total Messages' => 'Totaal berichten',
     'Sent Successfully' => 'Succesvol verzonden',
     'Failed' => 'Mislukt',
+    'Total Sent' => 'Totaal verzonden',
+    'Total Delivered' => 'Totaal afgeleverd',
+    'Total Failed' => 'Totaal mislukt',
+    'Total Pending' => 'Totaal in behandeling',
     'Daily SMS Volume' => 'Dagelijks SMS-volume',
     'By Provider' => 'Per provider',
     'By Language' => 'Per taal',

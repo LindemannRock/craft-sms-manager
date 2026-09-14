@@ -44,6 +44,7 @@ final class TestSmsResultRenderingTest extends TestCase
         self::assertTrue($result['normalFailurePresentation']);
         self::assertTrue($result['caughtErrorPresentation']);
         self::assertTrue($result['apiKeyPresentation']);
+        self::assertTrue($result['unsupportedProviderOmitsDevelopmentCopy']);
     }
 
     public function testTestSmsTemplateHasNoDynamicInnerHtmlSink(): void
@@ -174,6 +175,7 @@ window.lrSmsTestResults.renderCaughtError(caughtTitle, caughtContent, payload, c
 
 const apiKeyContent = document.createElement('span');
 window.lrSmsTestResults.renderApiKeyInfo(apiKeyContent, {
+    supportsDevelopmentSenders: true,
     isDevelopment: true,
     hasDevelopmentKey: true,
     mainKey: 'MAIN-' + payload,
@@ -181,7 +183,17 @@ window.lrSmsTestResults.renderApiKeyInfo(apiKeyContent, {
     countries: ['AE ' + payload, 'KW'],
 }, copy);
 
-const roots = [successTitle, successContent, failureTitle, failureContent, caughtTitle, caughtContent, apiKeyContent];
+const unsupportedApiKeyContent = document.createElement('span');
+window.lrSmsTestResults.renderApiKeyInfo(unsupportedApiKeyContent, {
+    supportsDevelopmentSenders: false,
+    isDevelopment: false,
+    hasDevelopmentKey: false,
+    mainKey: '',
+    developmentKey: '',
+    countries: 'All Countries',
+}, copy);
+
+const roots = [successTitle, successContent, failureTitle, failureContent, caughtTitle, caughtContent, apiKeyContent, unsupportedApiKeyContent];
 const unexpectedElements = [];
 const eventHandlers = [];
 let staticSpanCount = 0;
@@ -190,7 +202,7 @@ for (const root of roots) {
         if (['SCRIPT', 'IMG', 'SECTION', 'SVG'].includes(node.tagName)) {
             unexpectedElements.push(node.tagName);
         }
-        if (node.tagName === 'SPAN' && node !== apiKeyContent) {
+        if (node.tagName === 'SPAN' && node !== apiKeyContent && node !== unsupportedApiKeyContent) {
             staticSpanCount++;
         }
         for (const name of Object.keys(node.attributes || {})) {
@@ -231,6 +243,10 @@ const output = {
     apiKeyPresentation:
         apiKeyContent.textContent.includes(copy.usingDevelopmentApiKey + ':') &&
         apiKeyContent.textContent.includes(copy.allowedCountries + ':'),
+    unsupportedProviderOmitsDevelopmentCopy:
+        !unsupportedApiKeyContent.textContent.includes(copy.usingDevelopmentApiKey) &&
+        !unsupportedApiKeyContent.textContent.includes(copy.noDevelopmentApiKey) &&
+        unsupportedApiKeyContent.textContent.includes(copy.allowedCountries + ':'),
 };
 
 process.stdout.write(JSON.stringify(output));

@@ -83,6 +83,9 @@ return [
     'Loading...' => 'Laddar...',
     'No data available' => 'Inga data tillgängliga',
     'Unknown' => 'Okänt',
+    'Unknown error' => 'Okänt fel',
+    'N/A' => 'Inte tillgängligt',
+    'Date' => 'Datum',
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: Rensar gamla SMS-loggar',
@@ -121,6 +124,13 @@ return [
     'Sender ID not found' => 'Avsändar-ID:t hittades inte',
     'User does not have permission to access this area.' => 'Användaren har inte behörighet att komma åt detta område.',
     'User does not have permission to view analytics for this site.' => 'Användaren har inte behörighet att visa analys för den här webbplatsen.',
+    'No provider configured' => 'Ingen leverantör är konfigurerad',
+    'No sender ID configured' => 'Inget avsändar-ID är konfigurerat',
+    'Sender ID not found: {handle}' => 'Avsändar-ID hittades inte: {handle}',
+    'Provider not found for sender ID: {handle}' => 'Leverantören för avsändar-ID hittades inte: {handle}',
+    'Provider is disabled' => 'Leverantören är inaktiverad',
+    'Sender ID is disabled' => 'Avsändar-ID:t är inaktiverat',
+    'Unknown provider type: {type}' => 'Okänd leverantörstyp: {type}',
 
     // Validation messages
     'API Key is required.' => 'API-nyckel krävs.',
@@ -185,6 +195,7 @@ return [
     'Test SMS' => 'Test-SMS',
     'Test SMS Sending' => 'Testa SMS-sändning',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'Testa din SMS-leverantörskonfiguration genom att skicka ett testmeddelande. Detta använder den faktiska leverantörens API och kan medföra kostnader.',
+    'This is a test SMS from SMS Manager.' => 'Detta är ett test-SMS från SMS Manager.',
     'SMS Configuration' => 'SMS-konfiguration',
     'No providers configured.' => 'Inga leverantörer konfigurerade.',
     'Please configure at least one provider before testing.' => 'Konfigurera minst en leverantör innan du testar.',
@@ -367,6 +378,10 @@ return [
     'Total Messages' => 'Totalt antal meddelanden',
     'Sent Successfully' => 'Skickat',
     'Failed' => 'Misslyckade',
+    'Total Sent' => 'Totalt skickade',
+    'Total Delivered' => 'Totalt levererade',
+    'Total Failed' => 'Totalt misslyckade',
+    'Total Pending' => 'Totalt väntande',
     'Daily SMS Volume' => 'Daglig SMS-volym',
     'By Provider' => 'Per leverantör',
     'By Language' => 'Per språk',

@@ -116,22 +116,26 @@
     function renderApiKeyInfo(content, data, copy) {
         content.replaceChildren();
 
-        let label = copy.usingMainApiKey;
-        let key = data.mainKey;
-        if (data.isDevelopment && data.hasDevelopmentKey) {
-            label = copy.usingDevelopmentApiKey;
-            key = data.developmentKey;
-        }
+        if (data.supportsDevelopmentSenders) {
+            let label = copy.usingMainApiKey;
+            let key = data.mainKey;
+            if (data.isDevelopment && data.hasDevelopmentKey) {
+                label = copy.usingDevelopmentApiKey;
+                key = data.developmentKey;
+            }
 
-        content.appendChild(createElement('strong', label + ':'));
-        content.appendChild(document.createTextNode(' '));
-        content.appendChild(createElement('code', key));
-        if (data.isDevelopment && !data.hasDevelopmentKey) {
-            content.appendChild(document.createTextNode(' — ' + copy.noDevelopmentApiKey));
+            content.appendChild(createElement('strong', label + ':'));
+            content.appendChild(document.createTextNode(' '));
+            content.appendChild(createElement('code', key));
+            if (data.isDevelopment && !data.hasDevelopmentKey) {
+                content.appendChild(document.createTextNode(' — ' + copy.noDevelopmentApiKey));
+            }
         }
 
         if (data.countries !== null) {
-            content.appendChild(createElement('br'));
+            if (content.children.length > 0) {
+                content.appendChild(createElement('br'));
+            }
             content.appendChild(createElement('strong', copy.allowedCountries + ':'));
             content.appendChild(document.createTextNode(' ' + data.countries));
         }

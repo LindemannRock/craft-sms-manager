@@ -110,6 +110,7 @@ class SettingsController extends Controller
         $providersWithDevKey = [];
         $providerApiKeys = [];
         $providerAllowedCountries = [];
+        $providerDevelopmentCapabilities = [];
         $defaultProviderHandle = $settings->defaultProviderHandle;
         foreach ($providers as $provider) {
             $isDefault = $provider->handle === $defaultProviderHandle;
@@ -118,9 +119,13 @@ class SettingsController extends Controller
                 'value' => $provider->handle,
             ];
             $providerSettings = $provider->getSettingsArray();
+            $supportsDevelopmentSenders = $plugin->providers->supportsDevelopmentSenders($provider->type);
             $mainKey = App::parseEnv($providerSettings['apiKey'] ?? '');
-            $devKey = App::parseEnv($providerSettings['devApiKey'] ?? '');
-            $providersWithDevKey[$provider->handle] = !empty($devKey);
+            $devKey = $supportsDevelopmentSenders
+                ? App::parseEnv($providerSettings['devApiKey'] ?? '')
+                : '';
+            $providerDevelopmentCapabilities[$provider->handle] = $supportsDevelopmentSenders;
+            $providersWithDevKey[$provider->handle] = $supportsDevelopmentSenders && !empty($devKey);
             $providerApiKeys[$provider->handle] = [
                 'main' => $this->maskApiKey($mainKey),
                 'dev' => $this->maskApiKey($devKey),
@@ -156,7 +161,7 @@ class SettingsController extends Controller
                         'name' => $senderId->name,
                         'senderId' => $senderId->senderId,
                         'isDefault' => $senderId->handle === $defaultSenderIdHandle,
-                        'isDev' => $senderId->isDev,
+                        'isDev' => $plugin->senderIds->isDevelopmentSender($senderId),
                     ];
                 }
             }
@@ -200,6 +205,7 @@ class SettingsController extends Controller
             'providersWithDevKey' => $providersWithDevKey,
             'providerApiKeys' => $providerApiKeys,
             'providerAllowedCountries' => $providerAllowedCountries,
+            'providerDevelopmentCapabilities' => $providerDevelopmentCapabilities,
             'initialProviderHandle' => $initialProviderHandle,
             'initialSenderIdHandle' => $initialSenderIdHandle,
         ]);

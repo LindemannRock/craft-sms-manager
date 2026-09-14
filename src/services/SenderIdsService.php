@@ -226,6 +226,10 @@ class SenderIdsService extends Component
             $senderId->handle = SlugHandleHelper::makeUnique(SenderIdRecord::tableName(), 'handle', $senderId->handle);
         }
 
+        // Saving is the explicit normalization boundary for stale or forged
+        // affirmative state. Read-only paths leave stored/config values alone.
+        $senderId->isDev = $this->isDevelopmentSender($senderId);
+
         if ($runValidation && !$senderId->validate()) {
             $this->logError('Sender ID validation failed', ['errors' => $senderId->getErrors()]);
             return false;
@@ -249,6 +253,26 @@ class SenderIdsService extends Component
         }
 
         return $saved;
+    }
+
+    /**
+     * Resolve the operational development state for a sender ID.
+     *
+     * Stored/config `isDev=true` is effective only when the resolved provider
+     * explicitly supports the capability. This method is read-only.
+     *
+     * @since 5.16.0
+     */
+    public function isDevelopmentSender(SenderIdRecord $senderId): bool
+    {
+        if (!(bool)$senderId->isDev || !$senderId->providerHandle) {
+            return false;
+        }
+
+        $provider = SmsManager::$plugin->providers->getProviderByHandle($senderId->providerHandle);
+
+        return $provider !== null
+            && SmsManager::$plugin->providers->supportsDevelopmentSenders($provider->type);
     }
 
     /**

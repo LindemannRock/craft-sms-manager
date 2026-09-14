@@ -65,6 +65,8 @@ Both cleanup families preserve the canonical daily Craft-timezone target. Queue 
 
 These cascade from the base plugin (`config/lindemannrock-base.php`). Leave them unset to inherit the global default, or override per-plugin in `config/sms-manager.php`.
 
+SMS Manager applies this cascade to Control Panel dates, chart-axis labels, AJAX date values, and export dates. Human-facing month names use the active Craft locale; machine dates in chart data remain stable `YYYY-MM-DD` values.
+
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `timeFormat` | `string` | inherits | `'12'` (AM/PM) or `'24'` |
@@ -155,6 +157,8 @@ return [
 ```
 
 Available provider `type` values are `'mpp-sms'` and `'twilio'`. See [Providers](../feature-tour/providers.md) for each provider's settings keys, and [Sender IDs](../feature-tour/sender-ids.md) for the full sender ID options.
+
+`isDev` is effective only when the referenced provider explicitly supports per-sender development routing. MPP-SMS supports it; Twilio does not. Unsupported `isDev: true` config values are treated as inactive without modifying the config file.
 
 ## Outbound request security
 

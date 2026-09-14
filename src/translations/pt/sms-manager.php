@@ -83,6 +83,9 @@ return [
     'Loading...' => 'A carregar...',
     'No data available' => 'Nenhum dado disponível',
     'Unknown' => 'Desconhecido',
+    'Unknown error' => 'Erro desconhecido',
+    'N/A' => 'Não disponível',
+    'Date' => 'Data',
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: A limpar registos de SMS antigos',
@@ -121,6 +124,13 @@ return [
     'Sender ID not found' => 'ID de remetente não encontrado',
     'User does not have permission to access this area.' => 'O utilizador não tem permissão para aceder a esta área.',
     'User does not have permission to view analytics for this site.' => 'O utilizador não tem permissão para ver as análises deste site.',
+    'No provider configured' => 'Nenhum fornecedor configurado',
+    'No sender ID configured' => 'Nenhum ID de remetente configurado',
+    'Sender ID not found: {handle}' => 'ID de remetente não encontrado: {handle}',
+    'Provider not found for sender ID: {handle}' => 'Fornecedor não encontrado para o ID de remetente: {handle}',
+    'Provider is disabled' => 'O fornecedor está desativado',
+    'Sender ID is disabled' => 'O ID de remetente está desativado',
+    'Unknown provider type: {type}' => 'Tipo de fornecedor desconhecido: {type}',
 
     // Validation messages
     'API Key is required.' => 'A chave API é obrigatória.',
@@ -185,6 +195,7 @@ return [
     'Test SMS' => 'SMS de teste',
     'Test SMS Sending' => 'Testar envio de SMS',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'Teste a configuração do seu fornecedor SMS enviando uma mensagem de teste. Isto utilizará a API real do fornecedor e pode gerar custos.',
+    'This is a test SMS from SMS Manager.' => 'Este é um SMS de teste do SMS Manager.',
     'SMS Configuration' => 'Configuração SMS',
     'No providers configured.' => 'Nenhum fornecedor configurado.',
     'Please configure at least one provider before testing.' => 'Configure pelo menos um fornecedor antes de testar.',
@@ -367,6 +378,10 @@ return [
     'Total Messages' => 'Total de mensagens',
     'Sent Successfully' => 'Enviado com sucesso',
     'Failed' => 'Falhados',
+    'Total Sent' => 'Total enviados',
+    'Total Delivered' => 'Total entregues',
+    'Total Failed' => 'Total falhados',
+    'Total Pending' => 'Total pendentes',
     'Daily SMS Volume' => 'Volume diário de SMS',
     'By Provider' => 'Por fornecedor',
     'By Language' => 'Por idioma',

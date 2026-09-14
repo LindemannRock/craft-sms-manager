@@ -83,6 +83,9 @@ return [
     'Loading...' => '読み込み中...',
     'No data available' => 'データがありません',
     'Unknown' => '不明',
+    'Unknown error' => '不明なエラー',
+    'N/A' => '利用不可',
+    'Date' => '日付',
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: 古い SMS ログを削除しています',
@@ -121,6 +124,13 @@ return [
     'Sender ID not found' => '送信者 ID が見つかりません',
     'User does not have permission to access this area.' => 'ユーザーにこの領域へアクセスする権限がありません。',
     'User does not have permission to view analytics for this site.' => 'ユーザーにこのサイトのアナリティクスを表示する権限がありません。',
+    'No provider configured' => 'プロバイダーが設定されていません',
+    'No sender ID configured' => '送信者 ID が設定されていません',
+    'Sender ID not found: {handle}' => '送信者 ID が見つかりません: {handle}',
+    'Provider not found for sender ID: {handle}' => '送信者 ID のプロバイダーが見つかりません: {handle}',
+    'Provider is disabled' => 'プロバイダーは無効です',
+    'Sender ID is disabled' => '送信者 ID は無効です',
+    'Unknown provider type: {type}' => '不明なプロバイダータイプ: {type}',
 
     // Validation messages
     'API Key is required.' => 'API キーは必須です。',
@@ -185,6 +195,7 @@ return [
     'Test SMS' => 'テスト SMS',
     'Test SMS Sending' => 'SMS 送信テスト',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'テストメッセージを送信して SMS プロバイダーの設定をテストします。実際のプロバイダー API を使用するため、費用が発生する場合があります。',
+    'This is a test SMS from SMS Manager.' => 'これは SMS Manager からのテスト SMS です。',
     'SMS Configuration' => 'SMS 設定',
     'No providers configured.' => 'プロバイダーが設定されていません。',
     'Please configure at least one provider before testing.' => 'テストを行う前に、少なくとも 1 つのプロバイダーを設定してください。',
@@ -367,6 +378,10 @@ return [
     'Total Messages' => '総メッセージ数',
     'Sent Successfully' => '正常に送信されました',
     'Failed' => '失敗',
+    'Total Sent' => '送信合計',
+    'Total Delivered' => '配信合計',
+    'Total Failed' => '失敗合計',
+    'Total Pending' => '保留合計',
     'Daily SMS Volume' => '日別 SMS 送信数',
     'By Provider' => 'プロバイダー別',
     'By Language' => '言語別',

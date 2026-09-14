@@ -90,6 +90,11 @@ final class StubProvider extends BaseProvider
         return 'In-suite stub used by sms-manager integration tests.';
     }
 
+    public static function supportsDevelopmentSenders(): bool
+    {
+        return true;
+    }
+
     public function getSettingsHtml(?ProviderRecord $provider = null): string
     {
         return '';

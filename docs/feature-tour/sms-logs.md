@@ -37,7 +37,7 @@ Sort by date, recipient, status, language, or provider. The list paginates at yo
 
 ## Exporting
 
-Click **Export** to download logs as CSV, JSON, or Excel (whichever formats are enabled). The export honors your current date range, or — if you've selected specific rows — exports just those. Columns: Date, Recipient, Message, Language, Status, Provider, Sender ID, Source, Message ID, Error, and Provider Response. Exporting requires the **Export SMS logs** permission.
+Click **Export** to download logs as CSV, JSON, or Excel (whichever formats are enabled). The export honors your current date range, or — if you've selected specific rows — exports just those. Column headings and fallback values use the active Control Panel language. Columns: Date, Recipient, Message, Language, Status, Provider, Sender ID, Source, Message ID, Error, and Provider Response. Exporting requires the **Export SMS logs** permission.
 
 ## Deleting logs
 

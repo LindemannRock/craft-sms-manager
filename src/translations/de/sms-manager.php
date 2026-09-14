@@ -83,6 +83,9 @@ return [
     'Loading...' => 'Wird geladen...',
     'No data available' => 'Keine Daten verfügbar',
     'Unknown' => 'Unbekannt',
+    'Unknown error' => 'Unbekannter Fehler',
+    'N/A' => 'Nicht verfügbar',
+    'Date' => 'Datum',
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: Alte SMS-Protokolle werden bereinigt',
@@ -121,6 +124,13 @@ return [
     'Sender ID not found' => 'Absender-ID nicht gefunden',
     'User does not have permission to access this area.' => 'Der Benutzer hat keine Berechtigung, auf diesen Bereich zuzugreifen.',
     'User does not have permission to view analytics for this site.' => 'Der Benutzer hat keine Berechtigung, Analytics für diese Website anzuzeigen.',
+    'No provider configured' => 'Kein Anbieter konfiguriert',
+    'No sender ID configured' => 'Keine Absender-ID konfiguriert',
+    'Sender ID not found: {handle}' => 'Absender-ID nicht gefunden: {handle}',
+    'Provider not found for sender ID: {handle}' => 'Anbieter für Absender-ID nicht gefunden: {handle}',
+    'Provider is disabled' => 'Der Anbieter ist deaktiviert',
+    'Sender ID is disabled' => 'Die Absender-ID ist deaktiviert',
+    'Unknown provider type: {type}' => 'Unbekannter Anbietertyp: {type}',
 
     // Validation messages
     'API Key is required.' => 'API-Schlüssel ist erforderlich.',
@@ -185,6 +195,7 @@ return [
     'Test SMS' => 'Test-SMS',
     'Test SMS Sending' => 'SMS-Versand testen',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'Testen Sie Ihre SMS-Anbieterkonfiguration, indem Sie eine Testnachricht senden. Dabei wird die tatsächliche Anbieter-API verwendet, was Kosten verursachen kann.',
+    'This is a test SMS from SMS Manager.' => 'Dies ist eine Test-SMS von SMS Manager.',
     'SMS Configuration' => 'SMS-Konfiguration',
     'No providers configured.' => 'Keine Anbieter konfiguriert.',
     'Please configure at least one provider before testing.' => 'Bitte konfigurieren Sie mindestens einen Anbieter, bevor Sie testen.',
@@ -367,6 +378,10 @@ return [
     'Total Messages' => 'Nachrichten gesamt',
     'Sent Successfully' => 'Erfolgreich gesendet',
     'Failed' => 'Fehlgeschlagen',
+    'Total Sent' => 'Gesendet gesamt',
+    'Total Delivered' => 'Zugestellt gesamt',
+    'Total Failed' => 'Fehlgeschlagen gesamt',
+    'Total Pending' => 'Ausstehend gesamt',
     'Daily SMS Volume' => 'Tägliches SMS-Volumen',
     'By Provider' => 'Nach Anbieter',
     'By Language' => 'Nach Sprache',

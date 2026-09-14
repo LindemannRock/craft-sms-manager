@@ -34,7 +34,7 @@ In the Control Panel — no code:
 | Sender ID | Yes | The value registered with your provider — an alphanumeric ID (typically up to 11 characters) or a phone number |
 | Provider | Yes | The provider this sender belongs to |
 | Description | No | Optional notes |
-| Development | No | Marks this sender as development-only (see below) |
+| Development | No | Marks this sender for provider-supported development routing. Shown only when the selected provider supports it (see below) |
 
 ## Enabled vs disabled
 
@@ -48,10 +48,12 @@ Like the default provider, the default sender is referenced by handle and fails 
 
 ## Development senders
 
-Switching a sender's **Development** flag on tells providers to treat its traffic as test traffic. What that does depends on the provider:
+Switching a sender's **Development** flag on tells a provider that explicitly supports development senders to use its development routing. The control appears only for supporting providers:
 
 - **MPP-SMS** — sends with the provider's **Development API Key** when one is configured, so test messages route through a separate account that still delivers.
-- **Twilio** — has no effect; Twilio's test mode is account-level. Use a separate provider with Test Credentials instead.
+- **Twilio** — does not support the flag, so the control and Development badge are not shown. Use a separate provider with Test Credentials instead.
+
+If an older database row or config entry sets `isDev` for an unsupported provider, SMS Manager treats it as inactive: it is not shown as a development sender and normal provider settings are used. Saving an editable sender under an unsupported provider clears that stale flag. Config files remain unchanged; correct the value in config if you want the declaration to match its effective behavior.
 
 See [MPP-SMS](provider-mpp-sms.md#development-senders) and [Twilio](provider-twilio.md#development-senders).
 

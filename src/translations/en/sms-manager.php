@@ -83,6 +83,9 @@ return [
     'Loading...' => 'Loading...',
     'No data available' => 'No data available',
     'Unknown' => 'Unknown',
+    'Unknown error' => 'Unknown error',
+    'N/A' => 'N/A',
+    'Date' => 'Date',
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: Cleaning up old SMS logs',
@@ -121,6 +124,13 @@ return [
     'Sender ID not found' => 'Sender ID not found',
     'User does not have permission to access this area.' => 'User does not have permission to access this area.',
     'User does not have permission to view analytics for this site.' => 'User does not have permission to view analytics for this site.',
+    'No provider configured' => 'No provider configured',
+    'No sender ID configured' => 'No sender ID configured',
+    'Sender ID not found: {handle}' => 'Sender ID not found: {handle}',
+    'Provider not found for sender ID: {handle}' => 'Provider not found for sender ID: {handle}',
+    'Provider is disabled' => 'Provider is disabled',
+    'Sender ID is disabled' => 'Sender ID is disabled',
+    'Unknown provider type: {type}' => 'Unknown provider type: {type}',
 
     // Validation messages
     'API Key is required.' => 'API Key is required.',
@@ -185,6 +195,7 @@ return [
     'Test SMS' => 'Test SMS',
     'Test SMS Sending' => 'Test SMS Sending',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.',
+    'This is a test SMS from SMS Manager.' => 'This is a test SMS from SMS Manager.',
     'SMS Configuration' => 'SMS Configuration',
     'No providers configured.' => 'No providers configured.',
     'Please configure at least one provider before testing.' => 'Please configure at least one provider before testing.',
@@ -367,6 +378,10 @@ return [
     'Total Messages' => 'Total Messages',
     'Sent Successfully' => 'Sent Successfully',
     'Failed' => 'Failed',
+    'Total Sent' => 'Total Sent',
+    'Total Delivered' => 'Total Delivered',
+    'Total Failed' => 'Total Failed',
+    'Total Pending' => 'Total Pending',
     'Daily SMS Volume' => 'Daily SMS Volume',
     'By Provider' => 'By Provider',
     'By Language' => 'By Language',

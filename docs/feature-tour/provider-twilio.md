@@ -45,13 +45,14 @@ A send is successful when Twilio returns a 2xx response with a message `sid` and
 | Unicode | Yes |
 | Delivery reports | Yes (capability) |
 | Connection test | No |
+| Per-sender development routing | No |
 
 > [!NOTE]
 > Twilio's delivery support is reported as a capability. SMS Manager marks a message `sent` once Twilio accepts it; advancing the status from Twilio's delivery callbacks is not part of the current release.
 
 ## Development senders
 
-Twilio's test mode is account-level (Test Credentials with magic numbers) rather than per-message, so the per-sender **Development** flag has no effect for Twilio senders. To test against Twilio without real delivery, configure a separate provider with your Twilio Test Credentials.
+Twilio's test mode is account-level (Test Credentials with magic numbers) rather than per-message, so SMS Manager does not expose or honor the per-sender **Development** flag for Twilio senders. To test against Twilio without real delivery, configure a separate provider with your Twilio Test Credentials. A stale `isDev: true` database or config value is treated as inactive and never changes Twilio's send settings.
 
 ## Next steps
 

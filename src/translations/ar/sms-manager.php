@@ -83,6 +83,9 @@ return [
     'Loading...' => 'جارٍ التحميل...',
     'No data available' => 'لا توجد بيانات متاحة',
     'Unknown' => 'غير معروف',
+    'Unknown error' => 'خطأ غير معروف',
+    'N/A' => 'غير متاح',
+    'Date' => 'التاريخ',
 
     // Jobs
     '{pluginName}: Cleaning up old SMS logs' => '{pluginName}: تنظيف سجلات SMS القديمة',
@@ -121,6 +124,13 @@ return [
     'Sender ID not found' => 'لم يتم العثور على معرّف المُرسِل',
     'User does not have permission to access this area.' => 'ليس لدى المستخدم صلاحية للوصول إلى هذه المنطقة.',
     'User does not have permission to view analytics for this site.' => 'ليس لدى المستخدم صلاحية لعرض تحليلات هذا الموقع.',
+    'No provider configured' => 'لم يتم تكوين أي مزود خدمة',
+    'No sender ID configured' => 'لم يتم تكوين أي معرّف مُرسِل',
+    'Sender ID not found: {handle}' => 'لم يتم العثور على معرّف المُرسِل: {handle}',
+    'Provider not found for sender ID: {handle}' => 'لم يتم العثور على مزود الخدمة لمعرّف المُرسِل: {handle}',
+    'Provider is disabled' => 'مزود الخدمة معطّل',
+    'Sender ID is disabled' => 'معرّف المُرسِل معطّل',
+    'Unknown provider type: {type}' => 'نوع مزود الخدمة غير معروف: {type}',
 
     // Validation messages
     'API Key is required.' => 'مفتاح API مطلوب.',
@@ -185,6 +195,7 @@ return [
     'Test SMS' => 'SMS اختباري',
     'Test SMS Sending' => 'اختبار إرسال SMS',
     'Test your SMS provider configuration by sending a test message. This will use the actual provider API and may incur costs.' => 'اختبر تكوين مزود SMS لديك عن طريق إرسال رسالة اختبار. سيستخدم هذا API المزود الفعلي وقد يتكبد تكاليف.',
+    'This is a test SMS from SMS Manager.' => 'هذه رسالة SMS تجريبية من SMS Manager.',
     'SMS Configuration' => 'تكوين SMS',
     'No providers configured.' => 'لا يوجد مزودو خدمة مُكوَّنون.',
     'Please configure at least one provider before testing.' => 'يرجى تكوين مزود خدمة واحد على الأقل قبل الاختبار.',
@@ -367,6 +378,10 @@ return [
     'Total Messages' => 'إجمالي الرسائل',
     'Sent Successfully' => 'أُرسِل بنجاح',
     'Failed' => 'فشل',
+    'Total Sent' => 'إجمالي الرسائل المرسلة',
+    'Total Delivered' => 'إجمالي الرسائل المسلّمة',
+    'Total Failed' => 'إجمالي الرسائل الفاشلة',
+    'Total Pending' => 'إجمالي الرسائل قيد الانتظار',
     'Daily SMS Volume' => 'حجم SMS اليومي',
     'By Provider' => 'حسب مزود الخدمة',
     'By Language' => 'حسب اللغة',
