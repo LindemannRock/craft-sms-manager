@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -u
+
+PACKAGE_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+AUDIT_ROOT=""
+ACTIVE_CHILD_PID=""
+CLEANUP_DONE=0
+
+cleanup_owned_root() {
+    if [ "$CLEANUP_DONE" -eq 1 ]; then
+        return 0
+    fi
+    CLEANUP_DONE=1
+    cleanup_status=0
+    if [ -n "$AUDIT_ROOT" ] && [ -e "$AUDIT_ROOT" ]; then
+        case "$AUDIT_ROOT" in
+            "${TMPDIR:-/tmp}"/sms-manager-composer-audit.*)
+                rm -rf -- "$AUDIT_ROOT" || cleanup_status=$?
+                ;;
+            *)
+                echo "Refusing to remove unexpected Composer audit path: $AUDIT_ROOT" >&2
+                cleanup_status=1
+                ;;
+        esac
+    fi
+    return "$cleanup_status"
+}
+
+finish() {
+    original_status=$?
+    trap - EXIT HUP INT TERM
+    cleanup_owned_root
+    cleanup_status=$?
+    if [ "$original_status" -ne 0 ]; then
+        [ "$cleanup_status" -eq 0 ] || echo "Composer audit cleanup also failed (exit $cleanup_status)." >&2
+        exit "$original_status"
+    fi
+    exit "$cleanup_status"
+}
+
+forward_signal() {
+    signal="$1"
+    status="$2"
+    trap - HUP INT TERM
+    if [ -n "$ACTIVE_CHILD_PID" ]; then
+        child_pid="$ACTIVE_CHILD_PID"
+        kill -s "$signal" -- "-$ACTIVE_CHILD_PID" 2>/dev/null || kill -s "$signal" "$ACTIVE_CHILD_PID" 2>/dev/null || true
+        wait "$ACTIVE_CHILD_PID" 2>/dev/null || true
+        while kill -0 -- "-$child_pid" 2>/dev/null; do
+            sleep 0.01
+        done
+        ACTIVE_CHILD_PID=""
+    fi
+    exit "$status"
+}
+
+run_composer() {
+    composer "$@" &
+    ACTIVE_CHILD_PID=$!
+    wait "$ACTIVE_CHILD_PID"
+    status=$?
+    ACTIVE_CHILD_PID=""
+    return "$status"
+}
+
+trap finish EXIT
+trap 'forward_signal HUP 129' HUP
+trap 'forward_signal INT 130' INT
+trap 'forward_signal TERM 143' TERM
+
+# Each Composer invocation owns a distinct process group so signals can be
+# forwarded to that child and only its descendants.
+set -m
+
+cd "$PACKAGE_ROOT" || exit 1
+if [ -f composer.lock ] || [ -f vendor/composer/installed.json ]; then
+    run_composer audit --abandoned=report
+    exit $?
+fi
+
+AUDIT_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/sms-manager-composer-audit.XXXXXX")" || exit $?
+cp composer.json "$AUDIT_ROOT/composer.json" || exit $?
+run_composer update --no-install --no-scripts --no-interaction --prefer-dist --working-dir="$AUDIT_ROOT" || exit $?
+run_composer audit --abandoned=report --locked --working-dir="$AUDIT_ROOT"
+exit $?

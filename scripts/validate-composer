@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -u
+
+PACKAGE_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+PACKAGE_VENDOR_ROOT="$PACKAGE_ROOT/vendor"
+cd "$PACKAGE_ROOT" || exit 1
+
+COMPOSER_VENDOR_DIR="$PACKAGE_VENDOR_ROOT" composer --no-plugins validate --strict --no-check-publish --no-check-version --no-interaction
+status=$?
+if [ "$status" -ne 0 ]; then
+    exit "$status"
+fi
+
+if [ -f "vendor/composer/installed.php" ]; then
+    COMPOSER_VENDOR_DIR="$PACKAGE_VENDOR_ROOT" composer --no-plugins check-platform-reqs --no-interaction
+    exit $?
+fi
+
+if [ "${IS_DDEV_PROJECT:-}" = "true" ] \
+    && [ -n "${DDEV_COMPOSER_ROOT:-}" ] \
+    && [ -f "${DDEV_COMPOSER_ROOT}/vendor/composer/installed.php" ]; then
+    COMPOSER_VENDOR_DIR="$DDEV_COMPOSER_ROOT/vendor" composer --no-plugins --working-dir="$DDEV_COMPOSER_ROOT" check-platform-reqs --no-interaction
+    exit $?
+fi
+
+echo "Installed Composer metadata is unavailable; run composer install before the quality gate." >&2
+exit 2

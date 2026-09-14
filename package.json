@@ -5,7 +5,10 @@
   "scripts": {
     "build": "cd src/web/assets && npm run build",
     "build:analytics": "cd src/web/assets && npm run build:analytics",
-    "test:encoding": "node tests/js/sms-encoding.test.js"
+    "test:encoding": "node tests/js/sms-encoding.test.js",
+    "test:build-parity": "node scripts/check-build-parity.mjs",
+    "test:hook": "node --test tests/js/pre-commit-hook.test.mjs",
+    "test:orchestration": "node --test tests/js/quality-gate-orchestration.test.mjs"
   },
   "author": {
     "name": "Bilal Harry Lindemann",

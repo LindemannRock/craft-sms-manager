@@ -33,14 +33,24 @@ if (!function_exists('craft_modify_app_config')) {
     }
 }
 
-$baseBootstrap = dirname(__DIR__, 3) . '/vendor/lindemannrock/craft-plugin-base/src/testing/bootstrap.php';
+$baseBootstrap = null;
+foreach ([
+    dirname(__DIR__) . '/vendor/lindemannrock/craft-plugin-base/src/testing/bootstrap.php',
+    dirname(__DIR__, 3) . '/vendor/lindemannrock/craft-plugin-base/src/testing/bootstrap.php',
+] as $candidate) {
+    if (file_exists($candidate)) {
+        $baseBootstrap = $candidate;
+        break;
+    }
+}
 
-if (!file_exists($baseBootstrap)) {
-    fwrite(STDERR, "Base plugin testing bootstrap not found at {$baseBootstrap}\n");
+if ($baseBootstrap === null) {
+    fwrite(STDERR, "Base plugin testing bootstrap not found in the package or workspace vendor.\n");
     fwrite(STDERR, "Run `composer install` and ensure lindemannrock/craft-plugin-base ^5.38.2 is present.\n");
     exit(1);
 }
 
 require_once $baseBootstrap;
 
-\lindemannrock\base\testing\bootstrap();
+$projectRoot = $_SERVER['CRAFT_TEST_PROJECT_ROOT'] ?? null;
+\lindemannrock\base\testing\bootstrap(is_string($projectRoot) && $projectRoot !== '' ? $projectRoot : null);

@@ -59,6 +59,10 @@
             "@ci",
             "@test"
         ],
+        "quality-gate": [
+            "Composer\\Config::disableProcessTimeout",
+            "node scripts/quality-gate.mjs"
+        ],
         "install-hooks": "git config core.hooksPath .githooks 2>/dev/null || true",
         "post-install-cmd": "@install-hooks",
         "post-update-cmd": "@install-hooks"

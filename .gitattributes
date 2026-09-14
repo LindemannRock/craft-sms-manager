@@ -1,8 +1,18 @@
 # Exclude dev/build files from Packagist distribution
+.gitattributes export-ignore
+.gitignore export-ignore
+.DS_Store export-ignore
+**/.DS_Store export-ignore
+CLAUDE.md export-ignore
+.internal/ export-ignore
+.phpunit.cache/ export-ignore
+vendor/ export-ignore
 ecs.php export-ignore
 phpstan.neon export-ignore
 phpunit.xml.dist export-ignore
 tests/ export-ignore
+package.json export-ignore
+composer.lock export-ignore
 
 # Shared asset tooling: analytics build package
 src/web/assets/node_modules/ export-ignore
@@ -11,6 +21,9 @@ src/web/assets/package-lock.json export-ignore
 
 # Analytics: only dist/ is needed
 src/web/assets/analytics/src/ export-ignore
+
+# Encoding: only dist/ is needed
+src/web/assets/encoding/src/ export-ignore
 
 # Docs are available on the website
 docs/ export-ignore

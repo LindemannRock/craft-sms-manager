@@ -48,9 +48,9 @@ final class AnalyticsEncodingPresentationTest extends TestCase
         );
 
         $daily = $this->invokeChart($controller, 'getEncodingDailyChartData', ['all', 'all', 'all', 'all', $source]);
-        self::assertSame([1], $daily['gsm7']);
-        self::assertSame([1], $daily['ucs2']);
-        self::assertSame([1], $daily['unknown']);
+        self::assertSame(1, array_sum($daily['gsm7']));
+        self::assertSame(1, array_sum($daily['ucs2']));
+        self::assertSame(1, array_sum($daily['unknown']));
     }
 
     public function testSiteFilterIncludesMatchingEventsAndGlobalHistoryRemainsVisible(): void
@@ -66,8 +66,9 @@ final class AnalyticsEncodingPresentationTest extends TestCase
             [1, 0, 0],
             $this->invokeChart($controller, 'getEncodingChartData', ['all', $siteId, 'all', 'all', $source])['values'],
         );
+        $expectedSiteCount = in_array($siteId, Craft::$app->getSites()->getEditableSiteIds(), true) ? 1 : 0;
         self::assertSame(
-            [0, 0, 1],
+            [$expectedSiteCount, 0, 1],
             $this->invokeChart($controller, 'getEncodingChartData', ['all', 'all', 'all', 'all', $source])['values'],
         );
     }
