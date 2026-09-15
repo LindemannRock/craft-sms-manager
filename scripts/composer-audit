@@ -45,10 +45,20 @@ forward_signal() {
     if [ -n "$ACTIVE_CHILD_PID" ]; then
         child_pid="$ACTIVE_CHILD_PID"
         kill -s "$signal" -- "-$ACTIVE_CHILD_PID" 2>/dev/null || kill -s "$signal" "$ACTIVE_CHILD_PID" 2>/dev/null || true
+
+        # Bound graceful shutdown. The watchdog targets only the Composer
+        # process group and is cancelled as soon as the direct child closes.
+        (
+            sleep 2
+            kill -s KILL -- "-$child_pid" 2>/dev/null || kill -s KILL "$child_pid" 2>/dev/null || true
+        ) &
+        watchdog_pid=$!
         wait "$ACTIVE_CHILD_PID" 2>/dev/null || true
-        while kill -0 -- "-$child_pid" 2>/dev/null; do
-            sleep 0.01
-        done
+        kill -s TERM -- "-$watchdog_pid" 2>/dev/null || kill "$watchdog_pid" 2>/dev/null || true
+        wait "$watchdog_pid" 2>/dev/null || true
+        # The process-group leader is reaped above. Ensure no live descendant
+        # survives, but do not poll forever for container PID 1 to reap zombies.
+        kill -s KILL -- "-$child_pid" 2>/dev/null || true
         ACTIVE_CHILD_PID=""
     fi
     exit "$status"

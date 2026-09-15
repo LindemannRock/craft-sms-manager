@@ -25,6 +25,7 @@ const signals = [
     ['SIGINT', 130],
     ['SIGTERM', 143],
 ];
+const childCloseTimedOut = Symbol('child close timed out');
 
 function delay(milliseconds) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -53,6 +54,20 @@ function completion(child) {
     });
 }
 
+async function waitForCompletion(childClosed, timeout = 6000) {
+    let timeoutId;
+    try {
+        return await Promise.race([
+            childClosed,
+            new Promise((resolve) => {
+                timeoutId = setTimeout(() => resolve(childCloseTimedOut), timeout);
+            }),
+        ]);
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 function conventionalStatus(result) {
     if (result.code !== null) {
         return result.code;
@@ -60,15 +75,24 @@ function conventionalStatus(result) {
     return new Map(signals).get(result.signal) ?? 1;
 }
 
-function processExists(pid) {
+function processIsActive(pid) {
     if (!Number.isInteger(pid) || pid < 1) {
         return false;
     }
     try {
         process.kill(pid, 0);
-        return true;
     } catch (error) {
         return error.code === 'EPERM';
+    }
+
+    // A zombie has terminated and cannot execute or retain resources. Some
+    // container PID 1 implementations reap it later, so kill(pid, 0) alone is
+    // not a portable liveness assertion.
+    try {
+        const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
+        return !/^\d+ \(.+\) Z(?: |$)/.test(stat);
+    } catch {
+        return true;
     }
 }
 
@@ -132,7 +156,7 @@ exit 0
     };
 }
 
-function signalFixture(kind) {
+function signalFixture(kind, ignoreGracefulSignals = false) {
     const root = mkdtempSync(path.join(os.tmpdir(), `sms-manager-${kind}-signal-`));
     const bin = path.join(root, 'bin');
     const temporaryRoot = path.join(root, 'temporary');
@@ -150,10 +174,12 @@ function signalFixture(kind) {
     writeFileSync(unrelatedSentinel, 'survive\n');
     writeFileSync(descendantScript, `import {writeFileSync} from 'node:fs';
 for (const [signal, status] of [['SIGHUP', 129], ['SIGINT', 130], ['SIGTERM', 143]]) {
-    process.once(signal, () => process.exit(status));
+    process.once(signal, () => {
+        if (process.env.SMS_MANAGER_SIGNAL_IGNORE_GRACEFUL !== '1') process.exit(status);
+    });
 }
 writeFileSync(process.env.SMS_MANAGER_SIGNAL_DESCENDANT_PID, String(process.pid));
-setTimeout(() => writeFileSync(process.env.SMS_MANAGER_SIGNAL_DELAYED_COMPLETION, 'completed'), 1000);
+setTimeout(() => writeFileSync(process.env.SMS_MANAGER_SIGNAL_DELAYED_COMPLETION, 'completed'), 10000);
 `);
 
     const childBody = `#!/usr/bin/env bash
@@ -161,9 +187,13 @@ set -u
 owned="$SMS_MANAGER_SIGNAL_RESOURCE_ROOT/owned"
 mkdir "$owned" || exit $?
 cleanup() { rm -rf -- "$owned"; }
-trap 'cleanup; exit 129' HUP
-trap 'cleanup; exit 130' INT
-trap 'cleanup; exit 143' TERM
+if [ "\${SMS_MANAGER_SIGNAL_IGNORE_GRACEFUL:-0}" = "1" ]; then
+    trap '' HUP INT TERM
+else
+    trap 'cleanup; exit 129' HUP
+    trap 'cleanup; exit 130' INT
+    trap 'cleanup; exit 143' TERM
+fi
 trap cleanup EXIT
 if [ -n "\${SMS_MANAGER_SIGNAL_CONSTITUENT_LOG:-}" ]; then
     printf '%s\\n' "$1" >> "$SMS_MANAGER_SIGNAL_CONSTITUENT_LOG"
@@ -186,6 +216,7 @@ wait "$descendant"
         SMS_MANAGER_SIGNAL_DELAYED_COMPLETION: delayedCompletion,
         SMS_MANAGER_SIGNAL_DESCENDANT_SCRIPT: descendantScript,
         SMS_MANAGER_SIGNAL_NODE: process.execPath,
+        SMS_MANAGER_SIGNAL_IGNORE_GRACEFUL: ignoreGracefulSignals ? '1' : '0',
     };
     if (kind === 'composer') {
         const packageRoot = path.join(root, 'package');
@@ -306,16 +337,16 @@ test('Composer security wrapper forwards operating-system signals and awaits its
                 await waitFor(() => existsSync(current.childPid) && existsSync(current.descendantPid), 'the Composer process records');
                 const child = recordedPid(current.childPid);
                 const descendant = recordedPid(current.descendantPid);
-                assert.equal(processExists(child), true);
-                assert.equal(processExists(descendant), true);
+                assert.equal(processIsActive(child), true);
+                assert.equal(processIsActive(descendant), true);
 
                 process.kill(parent.pid, signal);
-                const result = await resultPromise;
+                const result = await waitForCompletion(resultPromise);
+                assert.notEqual(result, childCloseTimedOut, 'the Composer wrapper exceeded its signal deadline');
                 assert.equal(conventionalStatus(result), expectedStatus);
                 assert.equal(result.signal, null, 'the wrapper must return its conventional signal status after waiting');
-                await waitFor(() => !processExists(child), 'the Composer child to terminate');
-                await waitFor(() => !processExists(descendant), 'the Composer descendant to terminate');
-                await delay(1100);
+                await waitFor(() => !processIsActive(child), 'the Composer child to terminate');
+                await waitFor(() => !processIsActive(descendant), 'the Composer descendant to terminate');
 
                 assert.equal(existsSync(current.delayedCompletion), false);
                 assert.deepEqual(readdirSync(current.temporaryRoot), []);
@@ -339,21 +370,51 @@ test('aggregate forwards operating-system signals and awaits its active constitu
                 await waitFor(() => existsSync(current.childPid) && existsSync(current.descendantPid), 'the probe process records');
                 const child = recordedPid(current.childPid);
                 const descendant = recordedPid(current.descendantPid);
-                assert.equal(processExists(child), true);
-                assert.equal(processExists(descendant), true);
+                assert.equal(processIsActive(child), true);
+                assert.equal(processIsActive(descendant), true);
 
                 process.kill(parent.pid, signal);
-                const result = await resultPromise;
+                const result = await waitForCompletion(resultPromise);
+                assert.notEqual(result, childCloseTimedOut, 'the aggregate exceeded its signal deadline');
                 assert.equal(conventionalStatus(result), expectedStatus);
                 assert.equal(result.signal, null, 'the aggregate must return its conventional signal status after waiting');
-                await waitFor(() => !processExists(child), 'the probe constituent to terminate');
-                await waitFor(() => !processExists(descendant), 'the probe descendant to terminate');
-                await delay(1100);
+                await waitFor(() => !processIsActive(child), 'the probe constituent to terminate');
+                await waitFor(() => !processIsActive(descendant), 'the probe descendant to terminate');
 
                 assert.equal(existsSync(current.delayedCompletion), false);
                 assert.deepEqual(readFileSync(current.constituentLog, 'utf8').trim().split('\n'), [expectedIds[0]]);
                 assert.deepEqual(readdirSync(current.resources), ['unrelated-owner-resource']);
                 assert.equal(readFileSync(current.unrelatedSentinel, 'utf8'), 'survive\n');
+            } finally {
+                current.cleanup();
+            }
+        });
+    }
+});
+
+test('signal escalation is bounded when the active process tree ignores graceful termination', async (context) => {
+    for (const kind of ['composer', 'gate']) {
+        await context.test(kind, async () => {
+            const current = signalFixture(kind, true);
+            try {
+                const parent = current.run();
+                const resultPromise = completion(parent);
+                await waitFor(() => existsSync(current.started), `${kind} resistant child to start`);
+                await waitFor(() => existsSync(current.childPid) && existsSync(current.descendantPid), `${kind} resistant process records`);
+                const child = recordedPid(current.childPid);
+                const descendant = recordedPid(current.descendantPid);
+
+                process.kill(parent.pid, 'SIGTERM');
+                const result = await waitForCompletion(resultPromise);
+                assert.notEqual(result, childCloseTimedOut, `${kind} exceeded its forced-termination deadline`);
+                assert.equal(conventionalStatus(result), 143);
+                await waitFor(() => !processIsActive(child), `${kind} resistant child to terminate`);
+                await waitFor(() => !processIsActive(descendant), `${kind} resistant descendant to terminate`);
+                assert.equal(existsSync(current.delayedCompletion), false);
+                assert.equal(readFileSync(current.unrelatedSentinel, 'utf8'), 'survive\n');
+                if (kind === 'composer') {
+                    assert.deepEqual(readdirSync(current.temporaryRoot), []);
+                }
             } finally {
                 current.cleanup();
             }

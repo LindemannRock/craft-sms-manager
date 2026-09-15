@@ -108,8 +108,20 @@ const signalStatuses = new Map([
     ['SIGINT', 130],
     ['SIGTERM', 143],
 ]);
+const signalGracePeriodMs = 2000;
 let receivedSignal = null;
 let activeChild = null;
+let forceKillTimer = null;
+
+function signalProcessGroup(pid, signal) {
+    try {
+        process.kill(-pid, signal);
+    } catch (error) {
+        if (error.code !== 'ESRCH') {
+            console.error(`Unable to send ${signal} to the active constituent process group: ${error.message}`);
+        }
+    }
+}
 
 function forwardSignal(signal) {
     if (receivedSignal !== null) {
@@ -117,33 +129,14 @@ function forwardSignal(signal) {
     }
     receivedSignal = signal;
     if (activeChild?.pid) {
-        try {
-            process.kill(-activeChild.pid, signal);
-        } catch (error) {
-            if (error.code !== 'ESRCH') {
-                console.error(`Unable to forward ${signal} to the active constituent process group: ${error.message}`);
-            }
-        }
+        const pid = activeChild.pid;
+        signalProcessGroup(pid, signal);
+        forceKillTimer = setTimeout(() => signalProcessGroup(pid, 'SIGKILL'), signalGracePeriodMs);
     }
 }
 
 for (const signal of signalStatuses.keys()) {
     process.once(signal, () => forwardSignal(signal));
-}
-
-function processGroupExists(pid) {
-    try {
-        process.kill(-pid, 0);
-        return true;
-    } catch (error) {
-        return error.code === 'EPERM';
-    }
-}
-
-async function awaitProcessGroup(pid) {
-    while (processGroupExists(pid)) {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-    }
 }
 
 function runConstituent(command, commandArguments, cwd, environment) {
@@ -160,6 +153,10 @@ function runConstituent(command, commandArguments, cwd, environment) {
             startError = error;
         });
         child.once('close', (status, signal) => {
+            if (forceKillTimer !== null) {
+                clearTimeout(forceKillTimer);
+                forceKillTimer = null;
+            }
             activeChild = null;
             resolve({status, signal, error: startError, pid: child.pid});
         });
@@ -190,7 +187,9 @@ for (const constituent of constituents) {
     const result = await runConstituent(command, commandArguments, cwd, environment);
     if (receivedSignal !== null) {
         if (result.pid) {
-            await awaitProcessGroup(result.pid);
+            // The direct child has closed. Kill any surviving descendants in its
+            // exact process group without waiting on zombie reaping by container PID 1.
+            signalProcessGroup(result.pid, 'SIGKILL');
         }
         process.exitCode = signalStatuses.get(receivedSignal);
         break;
