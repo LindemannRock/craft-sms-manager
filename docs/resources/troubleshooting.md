@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and how to resolve them. For failed sends, check **SMS Manager → SMS Logs** for a safe failure category, optional HTTP status, and correlation reference. **SMS Manager → System Logs** carries the matching reference without storing the full recipient or message.
+Common issues and how to resolve them. For failed sends, check **SMS Manager → Logs → SMS** for a safe failure category, optional HTTP status, and correlation reference. **SMS Manager → Logs → System** carries the matching reference without storing the full recipient or message. See [Logging](logging.md) for log levels, files, and access permissions.
 
 ## Messages aren't sending
 
@@ -10,7 +10,7 @@ Work through these in order:
 2. **Sender ID enabled?** **SMS Manager → Sender IDs** — the sender must be enabled too.
 3. **Credentials correct?** Re-check the provider's API key (MPP-SMS) or Account SID and Auth Token (Twilio). If you used an environment variable, confirm it's set.
 4. **Check the SMS log.** Match the provider, category, status, and correlation reference to the failed attempt.
-5. **Check system logs.** **SMS Manager → System Logs** carries the same failure reference plus an irreversible recipient reference.
+5. **Check system logs.** **SMS Manager → Logs → System** carries the same failure reference plus an irreversible recipient reference.
 6. **Check the provider dashboard.** Raw gateway error text is deliberately not copied into Craft because it can contain credentials, request URLs, or message data. Use the time and correlation details to compare the attempt with the provider's own dashboard.
 
 ## "No provider configured" or "No sender ID configured"

@@ -17,11 +17,11 @@ In the Control Panel — no code:
 
 1. Go to **SMS Manager → Sender IDs** and click **New Sender ID**.
 
-   ![Sender IDs list](images/sender-ids-index.webp)
+   ![Sender IDs list](../images/sender-ids-index.webp)
 
 2. Fill in the fields:
 
-   ![Sender ID edit screen](images/sender-ids-edit.webp)
+   ![Sender ID edit screen](../images/sender-ids-edit.webp)
 
 3. Turn on **Enabled** and **Save**.
 

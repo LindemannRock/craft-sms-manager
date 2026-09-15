@@ -1,20 +1,16 @@
 # Quickstart
 
-Get SMS Manager running in under 5 minutes. By the end you'll have a provider connected, a sender ID registered, and a test message sent — all from the Control Panel, no code.
+Connect a provider, register a sender ID, and send a real test message from the Control Panel — no code required.
 
-## 1. Install the plugin
+## Before you start
 
-See [Installation](installation.md) for full details.
+Complete [Installation & Setup](installation.md#post-install-setup) first. You should have:
 
-```bash title="Composer"
-composer require lindemannrock/craft-sms-manager && php craft plugin/install sms-manager
-```
+- SMS Manager installed and enabled
+- Credentials for an MPP-SMS or Twilio account
+- A sender name, phone number, or Messaging Service SID approved by that provider
 
-```bash title="DDEV"
-ddev composer require lindemannrock/craft-sms-manager && ddev craft plugin/install sms-manager
-```
-
-## 2. Add a provider
+## 1. Add a provider
 
 A provider is your connection to an SMS gateway.
 
@@ -27,7 +23,7 @@ A provider is your connection to an SMS gateway.
 
 See [Providers](../feature-tour/providers.md) for every setting.
 
-## 3. Add a sender ID
+## 2. Add a sender ID
 
 A sender ID is the name or number recipients see a message come from.
 
@@ -38,20 +34,21 @@ A sender ID is the name or number recipients see a message come from.
    - **Provider** — the provider you just created.
 3. Enable it and save.
 
-## 4. Set your defaults
+## 3. Set your defaults
 
 Go to **SMS Manager → Settings → General** and pick your **Default Provider** and **Default Sender ID**. Sends that don't name a provider or sender will use these.
 
-## 5. Send a test message
+## 4. Send a test message
 
 1. Go to **SMS Manager → Settings → Test SMS**.
-2. Pick the sender ID, enter a recipient number and a short message, then click **Send**.
-3. You'll see the result inline — success with a provider message ID, or the exact error if it failed.
+2. Pick the provider and sender ID, enter a recipient number and a short message, then click **Send Test SMS**.
+3. You'll see the result inline — success with a provider message ID, or safe diagnostic details if it failed.
 
-Open **SMS Manager** (the dashboard) or **SMS Manager → SMS Logs** to confirm the message was recorded.
+Open **SMS Manager** (the dashboard) or **SMS Manager → Logs → SMS** to confirm the message was recorded.
 
 ## What's next
 
 - [Configuration](configuration.md) — customize behavior and lock settings per environment
 - [Sending SMS](../developers/sending-sms.md) — trigger sends from your own code
+- [Logging](../resources/logging.md) — inspect plugin-level diagnostics
 - [Feature tour](../feature-tour/overview.md) — explore everything SMS Manager can do

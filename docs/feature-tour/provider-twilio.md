@@ -20,7 +20,7 @@ When you choose **Twilio** as the provider type, these settings appear:
 
 The sender itself is not a provider setting — it comes from the [Sender ID](sender-ids.md) record per message (a Twilio number in E.164, an alphanumeric sender ID, or a Messaging Service SID), so provider settings only hold account credentials.
 
-![Twilio provider settings](images/provider-twilio-settings.webp)
+![Twilio provider settings](../images/provider-twilio-settings.webp)
 
 ### Environment variables
 
@@ -36,7 +36,7 @@ Reference them in the Account SID and Auth Token fields with `$TWILIO_ACCOUNT_SI
 
 SMS Manager sends through Twilio's Programmable Messaging API (`POST https://api.twilio.com/2010-04-01/Accounts/{SID}/Messages.json`) using HTTP Basic authentication. The recipient is normalized to E.164 (with a leading `+`), and the message body is sent as-is — Twilio auto-detects encoding and sends non-GSM text as UCS-2.
 
-A send is successful when Twilio returns a 2xx response with a message `sid` and no error code; SMS Manager stores that `sid` as the provider message ID. Errors surface Twilio's own message (for example, an invalid `To`/`From` number or unverified trial recipient).
+A send is successful when Twilio returns a 2xx response with a message `sid` and no error code; SMS Manager stores that `sid` as the provider message ID. Failed sends discard raw gateway and transport text, then expose a bounded category, optional HTTP status, and correlation reference. Use that reference and the send time to investigate the attempt in the Twilio console.
 
 ## Capabilities
 

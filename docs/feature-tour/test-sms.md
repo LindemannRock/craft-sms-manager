@@ -13,7 +13,7 @@ Test SMS sends a real one-off message from the Control Panel so you can confirm 
 
 Go to **SMS Manager → Settings → Test SMS**.
 
-![Test SMS page](images/test-sms-page.webp)
+![Test SMS page](../images/test-sms-page.webp)
 
 1. **Provider** — choose which gateway to send through. The default provider is pre-selected.
 2. **Sender ID** — choose the sender. The list updates to the senders available for the chosen provider, and the default sender is pre-selected. Development senders are marked only when their provider supports per-sender development routing.

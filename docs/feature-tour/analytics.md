@@ -26,7 +26,7 @@ Go to **SMS Manager → Analytics**. The screen shows:
 
 Daily chart feeds keep machine dates separate from their display labels. Axis labels use the active Craft locale and SMS Manager's inherited or overridden `monthFormat`, `dateOrder`, and `dateSeparator` settings, so localized month names and configured numeric formats are preserved.
 
-![SMS Manager analytics](images/analytics-overview.webp)
+![SMS Manager analytics](../images/analytics-overview.webp)
 
 ## Filters
 
@@ -53,7 +53,7 @@ When a message is sent with a source plugin handle, SMS Manager records it on th
 
 ## Exporting
 
-Click **Export** to download the current filtered view as CSV, JSON, or Excel (whichever formats are enabled in [Configuration](../get-started/configuration.md#date-time-and-export-formatting)). Export headings and presentation values use the active Control Panel language. Exports include language, content-derived encoding, source, Unicode character count, and SMS segment count. Historical unavailable facts are written as the localized **Unknown** value. Exporting requires the **Export analytics** permission.
+Click **Export** to download the current filtered view as CSV, JSON, or Excel (whichever formats are enabled in [Configuration](../get-started/configuration.md#base-display-and-export-overrides)). Export headings and presentation values use the active Control Panel language. Exports include language, content-derived encoding, source, Unicode character count, and SMS segment count. Historical unavailable facts are written as the localized **Unknown** value. Exporting requires the **Export analytics** permission.
 
 ## Turning analytics on or off
 

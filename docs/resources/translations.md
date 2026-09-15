@@ -1,6 +1,6 @@
 # Translations
 
-SMS Manager includes full translations for 12 languages out of the box.
+Use SMS Manager in the Control Panel language your team already works in, or override individual labels with Craft's normal static-translation mechanism. The plugin ships the same interface keys in 12 languages.
 
 ## Supported languages
 

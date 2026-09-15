@@ -21,7 +21,7 @@ When you choose **MPP-SMS** as the provider type, these settings appear:
 
 Set credentials in the Control Panel under **SMS Manager → Providers**, or declare them in `config/sms-manager.php`.
 
-![MPP-SMS provider settings](images/provider-mpp-sms-settings.webp)
+![MPP-SMS provider settings](../images/provider-mpp-sms-settings.webp)
 
 ### Environment variables
 
@@ -68,7 +68,7 @@ A sender ID attached to MPP-SMS can be marked **Development**. When the provider
 
 ## Responses and errors
 
-A send is treated as successful when the gateway response contains `OK`; SMS Manager extracts the provider message ID from the response and stores it on the log. Failures store the raw response and surface common gateway errors — invalid API key, unregistered sender ID, invalid mobile number, or insufficient balance. See [Troubleshooting](../resources/troubleshooting.md).
+A send is treated as successful when the gateway response contains `OK`; SMS Manager extracts the provider message ID from the response and stores it on the log. Failed sends discard raw gateway and transport text, then expose a bounded category, optional HTTP status, and correlation reference. Use that reference with the MPP-SMS dashboard and [Troubleshooting](../resources/troubleshooting.md).
 
 ## Next steps
 

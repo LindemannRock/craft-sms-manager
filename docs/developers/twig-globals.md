@@ -1,6 +1,6 @@
-# Twig Globals
+# Twig globals
 
-SMS Manager provides the following global variables in your Twig templates.
+Use SMS Manager's configured display name in your own Control Panel Twig without hard-coding it. The `smsHelper` global is a naming helper only; sending SMS is available through the [PHP API](sending-sms.md), not Twig.
 
 ## `smsHelper`
 
@@ -14,7 +14,7 @@ SMS Manager provides the following global variables in your Twig templates.
 | `smsHelper.lowerDisplayName` | Lowercase display name (singular) |
 | `smsHelper.pluralLowerDisplayName` | Lowercase plural display name |
 
-### Examples
+### Choose the label you need
 
 ```twig
 {{ smsHelper.displayName }}
@@ -23,6 +23,3 @@ SMS Manager provides the following global variables in your Twig templates.
 {{ smsHelper.lowerDisplayName }}
 {{ smsHelper.pluralLowerDisplayName }}
 ```
-
----
-

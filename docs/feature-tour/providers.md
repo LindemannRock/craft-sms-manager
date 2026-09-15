@@ -29,13 +29,13 @@ In the Control Panel — no code:
 
 1. Go to **SMS Manager → Providers** and click **New Provider**.
 
-   ![Providers list](images/providers-index.webp)
+   ![Providers list](../images/providers-index.webp)
 
 2. Choose a **Provider type** (MPP-SMS or Twilio). The settings below change to match.
 3. Give it a **Name** (shown throughout the Control Panel) and a **Handle** (a stable identifier used by config files and the API).
 4. Enter the provider's credentials. Each field accepts an environment variable, so you can store secrets in `.env`:
 
-   ![Provider edit screen](images/providers-edit.webp)
+   ![Provider edit screen](../images/providers-edit.webp)
 
 5. Optionally restrict **Allowed countries** — leave it empty (or `*`) to allow all, or pick specific countries.
 6. Turn on **Enabled** and **Save**.

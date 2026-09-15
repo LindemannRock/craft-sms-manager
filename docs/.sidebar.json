@@ -15,6 +15,7 @@
         "open": true,
         "children": [
             "feature-tour/overview",
+            "feature-tour/dashboard-widgets",
             "feature-tour/providers",
             "feature-tour/provider-mpp-sms",
             "feature-tour/provider-twilio",
@@ -30,6 +31,7 @@
         "open": false,
         "children": [
             "developers/sending-sms",
+            "developers/service-api",
             "developers/permissions",
             "developers/events",
             "developers/integrations",
@@ -43,6 +45,7 @@
         "collapsable": true,
         "open": false,
         "children": [
+            "resources/logging",
             "resources/troubleshooting",
             "resources/translations"
         ]

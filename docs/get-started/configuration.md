@@ -59,9 +59,9 @@ Both cleanup families preserve the canonical daily Craft-timezone target. Queue 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `itemsPerPage` | `int` | `100` | Rows per page in Control Panel list views |
-| `refreshIntervalSecs` | `int` | `null` | Auto-refresh interval (seconds) for the dashboard and logs. `null` disables auto-refresh |
+| `refreshIntervalSecs` | `int\|null` | `null` | Auto-refresh interval (seconds) for the dashboard and logs. `null` or `0` disables auto-refresh; the CP offers 15, 30, 60, and 120 seconds |
 
-### Date, time, and export formatting
+### Base display and export overrides
 
 These cascade from the base plugin (`config/lindemannrock-base.php`). Leave them unset to inherit the global default, or override per-plugin in `config/sms-manager.php`.
 
@@ -69,92 +69,17 @@ SMS Manager applies this cascade to Control Panel dates, chart-axis labels, AJAX
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `timeFormat` | `string` | inherits | `'12'` (AM/PM) or `'24'` |
-| `monthFormat` | `string` | inherits | `'numeric'`, `'short'`, or `'long'` |
-| `dateOrder` | `string` | inherits | `'dmy'`, `'mdy'`, or `'ymd'` |
-| `dateSeparator` | `string` | inherits | `'/'`, `'-'`, or `'.'` |
-| `showSeconds` | `bool` | inherits | Show seconds in time displays |
-| `defaultDateRange` | `string` | inherits | Default range for analytics, logs, and dashboard (e.g. `'last7days'`, `'last30days'`, `'all'`) |
-| `exportsCsv` | `bool` | inherits | Offer CSV export |
-| `exportsJson` | `bool` | inherits | Offer JSON export |
-| `exportsExcel` | `bool` | inherits | Offer Excel export |
-
-## Example config file
-
-```php
-// config/sms-manager.php
-use craft\helpers\App;
-
-return [
-    '*' => [
-        'pluginName' => 'SMS Manager',
-        'logLevel' => 'error',
-
-        // Default provider & sender ID (by handle)
-        'defaultProviderHandle' => 'production-provider',
-        'defaultSenderIdHandle' => 'main-sender',
-
-        // Analytics
-        'enableAnalytics' => true,
-        'analyticsLimit' => 1000,
-        'analyticsRetention' => 30,
-        'autoTrimAnalytics' => true,
-
-        // SMS logs
-        'enableSmsLogs' => true,
-        'smsLogsLimit' => 10000,
-        'smsLogsRetention' => 30,
-        'autoTrimSmsLogs' => true,
-
-        // Interface
-        'itemsPerPage' => 100,
-        'refreshIntervalSecs' => 30,
-    ],
-
-    'dev' => [
-        'logLevel' => 'debug',
-    ],
-
-    'production' => [
-        'logLevel' => 'error',
-    ],
-];
-```
+| `timeFormat` | `string\|null` | `null` | `'12'` (AM/PM) or `'24'`; `null` inherits |
+| `monthFormat` | `string\|null` | `null` | `'numeric'`, `'short'`, or `'long'`; `null` inherits |
+| `dateOrder` | `string\|null` | `null` | `'dmy'`, `'mdy'`, or `'ymd'`; `null` inherits |
+| `dateSeparator` | `string\|null` | `null` | `'/'`, `'-'`, or `'.'`; `null` inherits |
+| `showSeconds` | `bool\|null` | `null` | Whether timestamps include seconds; `null` inherits |
+| `defaultDateRange` | `string\|null` | `null` | Default range for analytics, logs, and dashboard; `null` inherits |
+| `exports` | `array\|null` | `null` | Export format overrides, for example `['csv' => true, 'json' => false, 'excel' => true]` |
 
 ## Defining providers and sender IDs in config
 
 You can declare providers and sender IDs in the config file instead of creating them in the Control Panel. Config-defined items show a **Config** badge and are read-only in the CP — they can only be changed in the file. A config item takes precedence over a database item with the same handle.
-
-```php
-// config/sms-manager.php
-use craft\helpers\App;
-
-return [
-    '*' => [
-        'providers' => [
-            'production-provider' => [
-                'name' => 'Production MPP-SMS',
-                'type' => 'mpp-sms',
-                'enabled' => true,
-                'settings' => [
-                    'apiUrl' => App::env('MPP_SMS_API_URL'),
-                    'apiKey' => App::env('MPP_SMS_API_KEY'),
-                    'allowedCountries' => ['*'], // ['*'] for all, or ['KW', 'SA', 'AE']
-                ],
-            ],
-        ],
-        'senderIds' => [
-            'main-sender' => [
-                'name' => 'Main Sender',
-                'provider' => 'production-provider', // provider handle
-                'senderId' => 'MYCOMPANY',
-                'enabled' => true,
-                'isDev' => false,
-            ],
-        ],
-    ],
-];
-```
 
 Available provider `type` values are `'mpp-sms'` and `'twilio'`. See [Providers](../feature-tour/providers.md) for each provider's settings keys, and [Sender IDs](../feature-tour/sender-ids.md) for the full sender ID options.
 
@@ -164,27 +89,99 @@ Available provider `type` values are `'mpp-sms'` and `'twilio'`. See [Providers]
 
 SMS Manager validates every provider API endpoint before making a request. The defaults are strict: HTTPS required, private and loopback networks blocked, redirects disabled, and only port 443 allowed. You can tune this globally or allowlist specific hosts.
 
+If `allowedApiHosts` is empty, any public host over HTTPS is allowed. A per-provider allowlist (`providers.*.settings.allowedApiHosts`) is merged with the global list. See [Providers](../feature-tour/providers.md#outbound-request-security) for details.
+
+## Complete config example
+
+This example includes every public scalar setting and nested config block. Leave optional base overrides commented to inherit from `config/lindemannrock-base.php`.
+
 ```php
 // config/sms-manager.php
+use craft\helpers\App;
+
 return [
     '*' => [
+        'pluginName' => 'SMS Manager',
+        'logLevel' => 'error',
+        'itemsPerPage' => 100,
+        'refreshIntervalSecs' => 30,
+
+        'enableAnalytics' => true,
+        'analyticsLimit' => 1000,
+        'analyticsRetention' => 30,
+        'autoTrimAnalytics' => true,
+
+        'enableSmsLogs' => true,
+        'smsLogsLimit' => 10000,
+        'smsLogsRetention' => 30,
+        'autoTrimSmsLogs' => true,
+
+        'defaultProviderHandle' => 'production-provider',
+        'defaultSenderIdHandle' => 'main-sender',
+
+        // Optional base-setting overrides for this plugin only.
+        // 'timeFormat' => '24',
+        // 'monthFormat' => 'short',
+        // 'dateOrder' => 'dmy',
+        // 'dateSeparator' => '/',
+        // 'showSeconds' => false,
+        // 'defaultDateRange' => 'last30days',
+        // 'exports' => [
+        //     'csv' => true,
+        //     'json' => false,
+        //     'excel' => true,
+        // ],
+
         'security' => [
             'requireHttps' => true,
             'blockPrivateNetworks' => true,
             'allowRedirects' => false,
             'allowedPorts' => [443],
-            'allowedApiHosts' => [
-                'api.mpp-sms.com',
+            'allowedApiHosts' => ['api.mpp-sms.com'],
+        ],
+
+        'providers' => [
+            'production-provider' => [
+                'name' => 'Production MPP-SMS',
+                'type' => 'mpp-sms',
+                'enabled' => true,
+                'settings' => [
+                    'apiUrl' => App::env('MPP_SMS_API_URL'),
+                    'apiKey' => App::env('MPP_SMS_API_KEY'),
+                    'devApiKey' => App::env('MPP_SMS_DEV_API_KEY'),
+                    'allowedCountries' => ['*'],
+                    'allowedApiHosts' => ['api.mpp-sms.com'],
+                ],
+            ],
+        ],
+
+        'senderIds' => [
+            'main-sender' => [
+                'name' => 'Main Sender',
+                'provider' => 'production-provider',
+                'senderId' => 'MYCOMPANY',
+                'description' => 'Primary production sender ID',
+                'enabled' => true,
+                'isDev' => false,
             ],
         ],
     ],
+
+    'dev' => [
+        'logLevel' => 'debug',
+    ],
+    'staging' => [
+        'logLevel' => 'info',
+    ],
+    'production' => [
+        'logLevel' => 'error',
+    ],
 ];
 ```
-
-If `allowedApiHosts` is empty, any public host over HTTPS is allowed. A per-provider allowlist (`providers.*.settings.allowedApiHosts`) is merged with the global list. See [Providers](../feature-tour/providers.md#outbound-request-security) for details.
 
 ## Next steps
 
 - [Providers](../feature-tour/providers.md) — connect an SMS gateway
 - [Sender IDs](../feature-tour/sender-ids.md) — register the names messages are sent from
+- [Logging](../resources/logging.md) — configure and inspect plugin-level diagnostics
 - [Sending SMS](../developers/sending-sms.md) — the PHP API

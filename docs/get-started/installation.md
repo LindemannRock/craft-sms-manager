@@ -1,7 +1,7 @@
 # Installation & Setup
 
 > [!NOTE]
-> Pre-Release: SMS Manager is in active development and not yet available on the Craft Plugin Store. Install via Composer for now.
+> SMS Manager is in active development and not yet available on the Craft Plugin Store. Install via Composer for now.
 
 ## Composer
 
@@ -26,7 +26,7 @@ ddev composer require lindemannrock/craft-sms-manager && ddev craft plugin/insta
 3. **Optional** — Enable [Logging Library](https://github.com/LindemannRock/craft-logging-library) for log viewing:
 
 > [!NOTE]
-> Logging Library is included as a Composer dependency and downloaded automatically. Activate it in Craft to enable log viewing.
+> Logging Library is required by Composer. Install or activate it in Craft to enable log viewing.
 
 ```bash title="PHP"
 php craft plugin/install logging-library
@@ -38,24 +38,20 @@ ddev craft plugin/install logging-library
 
 Or via the Control Panel: **Settings → Plugins → Logging Library → Install**
 
+See [Logging](../resources/logging.md) for log levels, files, and viewer permissions.
+
 ## Post-Install Setup
 
-After installing, connect a gateway so SMS Manager can send:
+After installing, connect a gateway so SMS Manager can send.
 
-### 1. Add a Provider and Sender ID
+### Add a provider and sender ID
 
 Set up a provider under **SMS Manager → Providers**, add at least one sender ID under **SMS Manager → Sender IDs**, then choose your defaults in **SMS Manager → Settings → General**. See [Quickstart](quickstart.md) for the step-by-step.
 
-### 2. Copy the Config File (Optional)
-
-For advanced configuration — locking settings per environment, or declaring providers and sender IDs in code — copy the config file to your project:
-
-```bash
-cp vendor/lindemannrock/craft-sms-manager/src/config.php config/sms-manager.php
-```
-
-This gives you full control over plugin settings, providers, sender IDs, and outbound request security. See [Configuration](configuration.md) for details.
-
-### 3. Review Configuration
+### Review configuration
 
 See [Configuration](configuration.md) for all available settings. Most can be managed from **SMS Manager → Settings** without a config file.
+
+## Quick Start
+
+See [Quickstart](quickstart.md) for the fastest path from install to first result.

@@ -12,9 +12,9 @@ SMS logs are the governed per-message record of everything SMS Manager has sent 
 
 ## Viewing logs
 
-Go to **SMS Manager → SMS Logs**. Each row shows the date, recipient, message, language, provider, sender ID, status, and source. Expand a row to see the full message, the provider message ID and response for a successful send, or sanitized failure metadata for a failed send.
+Go to **SMS Manager → Logs → SMS**. Each row shows the date, recipient, message, language, provider, sender ID, status, and source. Expand a row to see the full message, the provider message ID and response for a successful send, or sanitized failure metadata for a failed send.
 
-![SMS logs](images/sms-logs-index.webp)
+![SMS logs](../images/sms-logs-index.webp)
 
 ## Statuses
 

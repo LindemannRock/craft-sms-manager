@@ -66,6 +66,7 @@ The integrations service exposes the same lookups SMS Manager uses internally:
 $integrations = SmsManager::$plugin->integrations;
 
 $integrations->getRegisteredIntegrations();        // all registered integrations
+$integrations->getIntegration('my-plugin');        // one integration instance or null
 $integrations->getProviderUsages($providerId);     // usages across all integrations
 $integrations->getSenderIdUsages($senderIdId);
 $integrations->isProviderInUse($providerId);       // bool
