@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.16.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.15.0...v5.16.0) (2026-09-16)
+
+
+### Fixed
+
+* **analytics:** derive encoding from message content ([27dd928](https://github.com/LindemannRock/craft-sms-manager/commit/27dd9287760d741ad5460113cd94ecf1ef8fc2c1))
+* **analytics:** use Composer alias for asset delivery ([b7f38e4](https://github.com/LindemannRock/craft-sms-manager/commit/b7f38e465a318079c2ca8a359f992d78cfd013c5))
+* **analytics:** use parameterized queries for total counts in analytics ([2a97dad](https://github.com/LindemannRock/craft-sms-manager/commit/2a97dad23355c87e843838078990fdb93b9a1ee1))
+* **config:** default export formats to CSV and Excel enabled, JSON disabled ([df5493f](https://github.com/LindemannRock/craft-sms-manager/commit/df5493f01bb77b9f3734610247efe60da3bd8855))
+* **cp:** localize dates and sender capabilities ([e2dc6ed](https://github.com/LindemannRock/craft-sms-manager/commit/e2dc6ed70213deee06bbb27aa04763dd8ee28ace))
+* **deps:** align scheduler compatibility floor ([22cff6a](https://github.com/LindemannRock/craft-sms-manager/commit/22cff6a8b92d5940308c0ce5f993ad9f4c7e707e))
+* **logs:** apply case-insensitive search and order by nulls last for providerId ([c56f699](https://github.com/LindemannRock/craft-sms-manager/commit/c56f699130787f77bcab9c22ee8af59e46534d5b))
+* **logs:** use row toggle function from base ([d81926a](https://github.com/LindemannRock/craft-sms-manager/commit/d81926a053b9aa5e0e0cdf8a6be6006af56094cb))
+* **providers:** enforce max length for handle and type fields ([9cd80fd](https://github.com/LindemannRock/craft-sms-manager/commit/9cd80fd672088c2c3c9757bba8722d33df3721fb))
+* **providers:** enforce settings render permissions ([731c4b2](https://github.com/LindemannRock/craft-sms-manager/commit/731c4b2e2b46c788b08faf74ea1dcdf5be7c7e9f))
+* **providers:** harden control panel boundaries ([0af79ca](https://github.com/LindemannRock/craft-sms-manager/commit/0af79ca6abdd168b27e4d00969d92c800580c998))
+* **providers:** protect credential actions ([454095e](https://github.com/LindemannRock/craft-sms-manager/commit/454095e5bc48c42b88349f4bc105350a57d11b95))
+* **queue:** defer busy bootstrap reconciliation ([897eded](https://github.com/LindemannRock/craft-sms-manager/commit/897eded80dff18b72c2e46bd18f78d9c33a2a8db))
+* **queue:** support portable cleanup schedules ([8c351ec](https://github.com/LindemannRock/craft-sms-manager/commit/8c351ec8d4441aaad1107c32e7723997cf8a36a1))
+* remove unused linkMode parameter from error summary ([8f05b46](https://github.com/LindemannRock/craft-sms-manager/commit/8f05b46a348c14bf974ec42a74662ea6500898f6))
+* **sms:** sanitize provider failures ([e61e4a2](https://github.com/LindemannRock/craft-sms-manager/commit/e61e4a27fdb13839f7c97112103c2b3b5a99b6b0))
+
+
+### Documentation
+
+* finalize 5.16.0 documentation ([f88cf86](https://github.com/LindemannRock/craft-sms-manager/commit/f88cf8628ca8964c43eb82803b5b20a778408005))
+
 ## [5.15.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.14.1...v5.15.0) - 2026-07-01
 
 
