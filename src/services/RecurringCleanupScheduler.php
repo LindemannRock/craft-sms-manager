@@ -464,7 +464,7 @@ final class RecurringCleanupScheduler extends Component
 
     private function logBootstrapContention(string $familyLabel, string $lockType): void
     {
-        Craft::warning(
+        Craft::debug(
             "Skipped {$familyLabel} bootstrap reconciliation because its {$lockType} lock is busy; a later bootstrap will retry.",
             'sms-manager',
         );

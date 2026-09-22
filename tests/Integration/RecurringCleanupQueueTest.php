@@ -55,6 +55,7 @@ final class RecurringCleanupQueueTest extends TestCase
 
     private ?RecordingCleanupSqsQueue $proxyQueue = null;
     private bool $timePaused = false;
+    private ?int $originalLogFlushInterval = null;
     private ?object $originalRequest = null;
     private ?object $originalResponse = null;
     private ?string $originalRequestMethod = null;
@@ -63,6 +64,8 @@ final class RecurringCleanupQueueTest extends TestCase
     {
         parent::setUp();
         Craft::$app->set('config', new SmsManagerConfigStub());
+        $this->originalLogFlushInterval = Craft::getLogger()->flushInterval;
+        Craft::getLogger()->flushInterval = PHP_INT_MAX;
     }
 
     protected function tearDown(): void
@@ -74,6 +77,9 @@ final class RecurringCleanupQueueTest extends TestCase
                 $this->timePaused = false;
             }
         } finally {
+            if ($this->originalLogFlushInterval !== null) {
+                Craft::getLogger()->flushInterval = $this->originalLogFlushInterval;
+            }
             parent::tearDown();
         }
     }
@@ -413,6 +419,7 @@ final class RecurringCleanupQueueTest extends TestCase
             $this->insertPayload($this->serializeJob($this->legacyJob($family))),
             $this->insertPayload($this->serializeJob($this->recurringJob($family))),
         ];
+        $before = (new Query())->from('{{%queue}}')->where(['id' => $ids])->orderBy(['id' => SORT_ASC])->all();
         $mutex = new RecordingCleanupMutex([$this->lifecycleMutex($family)]);
         Craft::$app->set('mutex', $mutex);
         $messageOffset = count(Craft::getLogger()->messages);
@@ -420,11 +427,13 @@ final class RecurringCleanupQueueTest extends TestCase
         $this->scheduler()->synchronize($settings);
 
         self::assertSame($ids, $this->existingIds($ids));
+        self::assertSame($before, (new Query())->from('{{%queue}}')->where(['id' => $ids])->orderBy(['id' => SORT_ASC])->all());
         self::assertSame(1, $this->countOwnerRows($family));
         self::assertSame(1, $this->countOwnerRows($otherFamily));
         self::assertContains($this->lifecycleMutex($otherFamily), $mutex->acquisitions);
         self::assertSame(array_fill(0, count($mutex->timeouts), 0), $mutex->timeouts);
-        $this->assertBootstrapWarningSince($messageOffset, $family, 'lifecycle');
+        self::assertNotContains($this->lifecycleMutex($family), $mutex->releases);
+        $this->assertBootstrapDebugSince($messageOffset, $family, 'lifecycle');
     }
 
     #[DataProvider('familyProvider')]
@@ -441,6 +450,7 @@ final class RecurringCleanupQueueTest extends TestCase
             $this->insertPayload($this->serializeJob($this->legacyJob($family))),
             $this->insertPayload($this->serializeJob($this->recurringJob($family))),
         ];
+        $before = (new Query())->from('{{%queue}}')->where(['id' => $ids])->orderBy(['id' => SORT_ASC])->all();
         $mutex = new RecordingCleanupMutex([$this->portableMutex($family)]);
         Craft::$app->set('mutex', $mutex);
         $messageOffset = count(Craft::getLogger()->messages);
@@ -448,12 +458,13 @@ final class RecurringCleanupQueueTest extends TestCase
         $this->scheduler()->synchronize($settings);
 
         self::assertSame($ids, $this->existingIds($ids));
+        self::assertSame($before, (new Query())->from('{{%queue}}')->where(['id' => $ids])->orderBy(['id' => SORT_ASC])->all());
         self::assertSame(1, $this->countOwnerRows($family));
         self::assertSame(1, $this->countOwnerRows($otherFamily));
         self::assertContains($this->lifecycleMutex($family), $mutex->releases);
         self::assertNotContains($this->portableMutex($family), $mutex->releases);
         self::assertSame(array_fill(0, count($mutex->timeouts), 0), $mutex->timeouts);
-        $this->assertBootstrapWarningSince($messageOffset, $family, 'portable');
+        $this->assertBootstrapDebugSince($messageOffset, $family, 'portable');
     }
 
     #[DataProvider('familyProvider')]
@@ -1332,20 +1343,18 @@ final class RecurringCleanupQueueTest extends TestCase
         }
     }
 
-    private function assertBootstrapWarningSince(int $messageOffset, string $family, string $lockType): void
+    private function assertBootstrapDebugSince(int $messageOffset, string $family, string $lockType): void
     {
         $familyLabel = $family === 'analytics' ? 'analytics cleanup' : 'SMS-log cleanup';
-        $messages = array_slice(Craft::getLogger()->messages, $messageOffset);
-        $matches = array_filter(
-            $messages,
-            static fn(array $message): bool => $message[1] === Logger::LEVEL_WARNING
-                && $message[2] === 'sms-manager'
-                && str_contains((string)$message[0], $familyLabel)
-                && str_contains((string)$message[0], "$lockType lock is busy")
-                && str_contains((string)$message[0], 'later bootstrap will retry'),
+        $expectedMessage = "Skipped {$familyLabel} bootstrap reconciliation because its {$lockType} lock is busy; a later bootstrap will retry.";
+        $matching = array_filter(
+            array_slice(Craft::getLogger()->messages, $messageOffset),
+            static fn(array $message): bool => $message[0] === $expectedMessage
+                && $message[2] === 'sms-manager',
         );
 
-        self::assertCount(1, $matches);
+        self::assertSame([Logger::LEVEL_TRACE], array_values(array_column($matching, 1)));
+        self::assertNotContains(Logger::LEVEL_WARNING, array_column($matching, 1));
     }
 }
 

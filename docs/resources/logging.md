@@ -97,7 +97,6 @@ The level of detail depends on your configured `logLevel`.
 
 - Attempts to change config-controlled defaults or config-backed records
 - Invalid integration registrations
-- Cleanup-scheduler lock contention during bootstrap
 - Debug fallback when `logLevel` is set to `debug` without `devMode`
 
 ### Info (`info`)
@@ -109,6 +108,7 @@ The level of detail depends on your configured `logLevel`.
 
 ### Debug (`debug`)
 
+- Analytics or SMS-log cleanup bootstrap reconciliation deferred because a lifecycle or portable queue lock is busy; a later request retries automatically
 - Detailed diagnostics emitted by the sending and cleanup workflows when debug logging is active
 
 Provider failures use bounded categories and correlation references. Plugin-level logs do not store the full message and use an irreversible recipient reference; the governed per-message content remains in [SMS logs](../feature-tour/sms-logs.md) only when delivery logging is enabled.

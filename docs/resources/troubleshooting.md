@@ -48,7 +48,7 @@ SMS Manager schedules daily cleanup jobs for analytics and SMS logs. If one isn'
 
 Each cleanup family is independent. Saving settings or handling a normal web request reconciles the analytics and log schedules independently; console and migration bootstrap do not create or cancel cleanup rows. Disabling a family or setting its retention to `0` cancels future recurring cleanup for that family.
 
-If a cleanup occurrence is already holding one family's scheduling lock, bootstrap skips that family immediately, writes an `sms-manager` warning, and still attempts the other family. It does not inspect or change the busy family's queue rows. A later normal web request retries the skipped reconciliation, including cancellation for a family that has since been disabled.
+If a cleanup occurrence is already holding one family's scheduling lock, bootstrap skips that family immediately, emits an `sms-manager` debug diagnostic, and still attempts the other family. It does not inspect or change the busy family's queue rows. A later normal web request retries the skipped reconciliation, including cancellation for a family that has since been disabled. These diagnostics require Craft’s `devMode` and debug logging; expected contention does not produce a warning.
 
 During bootstrap, SMS Manager recognizes its earlier recurring cleanup rows, keeps the earliest healthy row, and removes only true duplicates from the same family. Failed rows do not block recovery, and unrelated or one-shot queue jobs are left alone. If duplicates keep returning after a deployment, confirm all web workers are running the same plugin version and old queue workers have been restarted.
 
