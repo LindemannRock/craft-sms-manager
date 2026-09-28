@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.16.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.16.0...v5.16.1) - 2026-09-28
+
+
+### Fixed
+
+* **jobs:** log routine cleanup contention at debug level ([a9cff7d](https://github.com/LindemannRock/craft-sms-manager/commit/a9cff7daa706eac2e3ea205ac54af798cd939d1d))
+
 ## [5.16.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.15.0...v5.16.0) - 2026-09-16
 
 
