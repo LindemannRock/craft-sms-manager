@@ -7,10 +7,10 @@ Usage:
   scripts/test-craft-compat <craft-constraint> [package-version] [--install] [--php-version <major.minor>] [--smoke-command <command>] [--keep-project-dev] [--allow-insecure-floor]
 
 Examples:
-  scripts/test-craft-compat '^5.10'
-  scripts/test-craft-compat '^5.10' dev-main
-  scripts/test-craft-compat '^5.10' dev-main --install --php-version 8.2
-  scripts/test-craft-compat '^5.10' dev-main --install --php-version 8.5
+  scripts/test-craft-compat '^5.11'
+  scripts/test-craft-compat '^5.11' dev-main
+  scripts/test-craft-compat '^5.11' dev-main --install --php-version 8.2
+  scripts/test-craft-compat '^5.11' dev-main --install --php-version 8.5
   scripts/test-craft-compat '5.10.0' dev-main --allow-insecure-floor
 
 What it does:

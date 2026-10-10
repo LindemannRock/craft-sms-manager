@@ -3,7 +3,7 @@
 # SMS Manager for Craft CMS
 
 [![Latest Version](https://img.shields.io/packagist/v/lindemannrock/craft-sms-manager.svg)](https://packagist.org/packages/lindemannrock/craft-sms-manager)
-[![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.10%2B-orange.svg)](https://craftcms.com/)
+[![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.11%2B-orange.svg)](https://craftcms.com/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net/)
 [![Logging Library](https://img.shields.io/badge/Logging%20Library-5.19.0%2B-green.svg)](https://github.com/LindemannRock/craft-logging-library)
 [![License](https://img.shields.io/packagist/l/lindemannrock/craft-sms-manager.svg)](LICENSE.md)
@@ -35,9 +35,9 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 ## Requirements
 
-- Craft CMS 5.10+
+- Craft CMS 5.11+
 - PHP 8.2+
-- [Base](https://github.com/LindemannRock/craft-plugin-base) 5.38.2+ (required)
+- [Base](https://github.com/LindemannRock/craft-plugin-base) 5.39.0+ (required)
 - [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.19.0+ (required by Composer; install in CP for log viewing)
 
 ## Installation

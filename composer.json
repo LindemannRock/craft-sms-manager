@@ -30,9 +30,9 @@
     },
     "require": {
         "php": "^8.2",
-        "craftcms/cms": "^5.10",
+        "craftcms/cms": "^5.11",
         "lindemannrock/craft-logging-library": "^5.19.0",
-        "lindemannrock/craft-plugin-base": "^5.38.2"
+        "lindemannrock/craft-plugin-base": "^5.39.0"
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",

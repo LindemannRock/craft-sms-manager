@@ -46,7 +46,7 @@ foreach ([
 
 if ($baseBootstrap === null) {
     fwrite(STDERR, "Base plugin testing bootstrap not found in the package or workspace vendor.\n");
-    fwrite(STDERR, "Run `composer install` and ensure lindemannrock/craft-plugin-base ^5.38.2 is present.\n");
+    fwrite(STDERR, "Run `composer install` and ensure lindemannrock/craft-plugin-base ^5.39.0 is present.\n");
     exit(1);
 }
 

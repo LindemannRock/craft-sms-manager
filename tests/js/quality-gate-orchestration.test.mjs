@@ -298,9 +298,12 @@ exit 73
 
 test('aggregate declares every package constituent exactly once', () => {
     const declared = definitions();
+    const composer = JSON.parse(readFileSync(path.join(pluginRoot, 'composer.json'), 'utf8'));
     assert.deepEqual(declared.map(({id}) => id), expectedIds);
     assert.equal(new Set(declared.map(({family}) => family)).size, expectedIds.length);
     assert.doesNotMatch(JSON.stringify(declared), /php-8[245]|postgres|browser|live-provider/i);
+    assert.equal(composer.require['craftcms/cms'], '^5.11');
+    assert.equal(composer.require['lindemannrock/craft-plugin-base'], '^5.39.0');
 });
 
 test('an active DDEV runtime executes constituents locally without recursive DDEV calls', () => {
