@@ -299,11 +299,18 @@ exit 73
 test('aggregate declares every package constituent exactly once', () => {
     const declared = definitions();
     const composer = JSON.parse(readFileSync(path.join(pluginRoot, 'composer.json'), 'utf8'));
+    const runner = readFileSync(path.join(pluginRoot, 'scripts/run-tests'), 'utf8');
+
     assert.deepEqual(declared.map(({id}) => id), expectedIds);
     assert.equal(new Set(declared.map(({family}) => family)).size, expectedIds.length);
     assert.doesNotMatch(JSON.stringify(declared), /php-8[245]|postgres|browser|live-provider/i);
     assert.equal(composer.require['craftcms/cms'], '^5.11');
     assert.equal(composer.require['lindemannrock/craft-plugin-base'], '^5.39.0');
+    assert.equal(composer.scripts.test, 'bash scripts/run-tests');
+    assert.equal(composer.scripts['test:direct'], 'phpunit --colors=always');
+    assert.deepEqual(composer.scripts['ci:full'], ['@ci', '@test']);
+    assert.match(runner, /SMS_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT/);
+    assert.match(runner, /tests\/Fixtures\/Project\/run\.php/);
 });
 
 test('an active DDEV runtime executes constituents locally without recursive DDEV calls', () => {

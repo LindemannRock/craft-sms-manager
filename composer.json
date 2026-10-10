@@ -50,7 +50,8 @@
         "phpstan": "phpstan --ansi --memory-limit=1G",
         "check-cs": "ecs check --ansi",
         "fix-cs": "ecs check --fix --ansi",
-        "test": "phpunit --colors=always",
+        "test": "bash scripts/run-tests",
+        "test:direct": "phpunit --colors=always",
         "ci": [
             "@phpstan",
             "@check-cs"

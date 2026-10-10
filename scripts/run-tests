@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PACKAGE_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+WORKSPACE_ROOT="$(CDPATH= cd -- "$PACKAGE_ROOT/../.." 2>/dev/null && pwd -P)"
+
+cd "$PACKAGE_ROOT"
+if [ "$PACKAGE_ROOT" = "$WORKSPACE_ROOT/plugins/sms-manager" ] \
+    && [ -f "$WORKSPACE_ROOT/bootstrap.php" ] \
+    && [ -f "$WORKSPACE_ROOT/vendor/autoload.php" ]; then
+    export SMS_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT="$WORKSPACE_ROOT/vendor"
+    exec php tests/Fixtures/Project/run.php "$@"
+fi
+
+if [ ! -f "$PACKAGE_ROOT/vendor/autoload.php" ]; then
+    echo "Standalone PHPUnit requires package dependencies. Run composer install first." >&2
+    exit 2
+fi
+
+export SMS_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT="$PACKAGE_ROOT/vendor"
+exec php tests/Fixtures/Project/run.php "$@"
