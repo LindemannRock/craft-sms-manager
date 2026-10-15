@@ -11,7 +11,9 @@ namespace lindemannrock\smsmanager\providers;
 use Craft;
 use craft\helpers\App;
 use lindemannrock\base\helpers\GeoHelper;
+use lindemannrock\smsmanager\helpers\SmsPrivacyHelper;
 use lindemannrock\smsmanager\records\ProviderRecord;
+use lindemannrock\smsmanager\SmsManager;
 
 /**
  * MPP-SMS Provider
@@ -250,57 +252,66 @@ class MppSmsProvider extends BaseProvider
             'message=' . $encodedMessage,
         ]);
 
-        // Send request
-        try {
-            $client = Craft::createGuzzleClient([
-                'timeout' => 60,
-                'connect_timeout' => 60,
-                'allow_redirects' => $this->getRedirectPolicy(),
-            ]);
-
-            $response = $client->get($url);
-            $content = $response->getBody()->getContents();
-
-            $success = str_contains($content, 'OK');
-
-            // Parse message ID from response (format: "OK,smsid:645-40bee68af,mobiles:1,time:...")
-            $messageId = null;
-            if (preg_match('/smsid:([^,]+)/', $content, $matches)) {
-                $messageId = $matches[1];
-            }
-
-            if ($success) {
-                $this->logInfo('MPP-SMS: Message sent successfully', [
+        return SmsManager::$plugin->mppTransport->send($apiKey, function() use ($url, $to, $language): array {
+            try {
+                $client = Craft::createGuzzleClient([
+                    'timeout' => 60,
+                    'connect_timeout' => 60,
+                    'allow_redirects' => false,
+                    'http_errors' => false,
+                ]);
+                $response = $client->get($url);
+                $content = $response->getBody()->getContents();
+                $status = $response->getStatusCode();
+                $result = $this->parseResponse($content, $status);
+                $context = [
                     'recipient' => $this->recipientReference($to),
                     'language' => $language,
-                    'messageId' => $messageId,
-                ]);
-
-                return [
-                    'success' => true,
-                    'messageId' => $messageId,
-                    'response' => $content,
-                    'error' => null,
+                    'failure' => $result['error'],
                 ];
+                if ($result['success']) {
+                    $this->logInfo('MPP-SMS: Message sent successfully', $context);
+                } else {
+                    $this->logError('MPP-SMS: Message failed', $context);
+                }
+                return $result;
+            } catch (\Throwable $exception) {
+                $result = $this->failureResultFromThrowable($exception);
+                $this->logError('MPP-SMS: Request failed', [
+                    'recipient' => $this->recipientReference($to),
+                    'failure' => $result['error'],
+                ]);
+                return $result;
             }
+        });
+    }
 
-            $result = $this->failureResult($content === '' ? 'malformed-response' : 'provider-response');
-            $this->logError('MPP-SMS: Message failed', [
-                'recipient' => $this->recipientReference($to),
-                'language' => $language,
-                'failure' => $result['error'],
+    /** Classify complete gateway tokens before privacy sanitization discards text. */
+    private function parseResponse(string $content, int $status): array
+    {
+        $text = trim($content, " \t\n\r\0\x0B");
+        if ($text === 'error,user is inactive') {
+            return array_replace($this->failureResult('provider-response'), [
+                'failureCode' => 'account-unavailable', 'failureScope' => 'account',
             ]);
-
-            return $result;
-        } catch (\Throwable $e) {
-            $result = $this->failureResultFromThrowable($e);
-            $this->logError('MPP-SMS: Request failed', [
-                'recipient' => $this->recipientReference($to),
-                'failure' => $result['error'],
-            ]);
-
-            return $result;
         }
+        if (strlen($text) <= 512 && preg_match('/\Aerror,your ip is blocked until next (?<minutes>[0-9]+) minute\(s\): (?<address>[^\r\n]+)\z/', $text, $matches)
+            && filter_var($matches['address'], FILTER_VALIDATE_IP) !== false) {
+            // Bound before integer conversion, including oversized decimal input.
+            $minutes = ltrim($matches['minutes'], '0');
+            $valid = strlen($minutes) <= 3 && (int)$minutes <= 120;
+            return array_replace($this->failureResult('provider-response'), [
+                'failureCode' => 'ip-blocked', 'failureScope' => 'transport',
+                'retryAfterSeconds' => $valid ? max(60, (int)$minutes * 60) + 60 : null,
+            ]);
+        }
+        if ($status >= 200 && $status < 300 && preg_match('/\AOK(?:,|$)/', $text)) {
+            $messageId = preg_match('/(?:^|,)smsid:([^,]+)/', $text, $matches) ? $matches[1] : null;
+            return SmsPrivacyHelper::sanitizeProviderResult([
+                'success' => true, 'messageId' => $messageId, 'response' => $content, 'error' => null,
+            ], self::handle());
+        }
+        return $this->failureResult($text === '' ? 'malformed-response' : ($status >= 400 ? 'http' : 'provider-response'), $status >= 400 ? $status : null);
     }
 
     /**

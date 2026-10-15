@@ -43,6 +43,7 @@ use yii\base\Event;
  * @package   SmsManager
  * @since     5.0.0
  *
+ * @property-read \lindemannrock\smsmanager\services\MppTransportService $mppTransport
  * @property-read SmsService $sms
  * @property-read ProvidersService $providers
  * @property-read SenderIdsService $senderIds
@@ -134,6 +135,7 @@ class SmsManager extends Plugin
         // Register services
         $this->setComponents([
             'sms' => SmsService::class,
+            'mppTransport' => \lindemannrock\smsmanager\services\MppTransportService::class,
             'providers' => ProvidersService::class,
             'senderIds' => SenderIdsService::class,
             'integrations' => IntegrationsService::class,

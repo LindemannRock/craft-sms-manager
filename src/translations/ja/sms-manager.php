@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: 古いアナリティクスを整理しています',
 
     // Controller messages
+    'Confirm the hold release.' => '送信停止の解除を確認してください。',
+    'Hold released' => '送信停止を解除しました',
+    'The hold could not be released. Refresh the page and try again.' => '送信停止を解除できませんでした。ページを更新して再試行してください。',
     'Settings saved.' => '設定を保存しました。',
     'Couldn\'t save settings.' => '設定を保存できませんでした。',
     'Provider saved.' => 'プロバイダーを保存しました。',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Twilio の Auth Token です。',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => '送信者は送信者 ID レコードから取得されます — E.164 形式の Twilio 番号、英数字の送信者 ID、または Messaging Service SID です。受信者番号は E.164 形式で送信されます。',
+
+    // Providers: Transport Status
+    'Transport Status' => '通信ステータス',
+    'Account' => 'アカウント',
+    'Account unavailable' => 'アカウントを利用できません',
+    'IP blocked' => 'IP ブロック',
+    'In-flight or interrupted request' => '処理中または中断されたリクエスト',
+    'Main account' => 'メインアカウント',
+    'Development account' => '開発用アカウント',
+    'All MPP accounts' => 'すべての MPP アカウント',
+    'Hold type' => '送信停止の種類',
+    'Activated at' => '開始日時',
+    'Automatic recovery' => '自動復旧',
+    'Manual release required' => '手動解除が必要',
+    'No active holds' => '有効な送信停止はありません',
+    'Release hold' => '送信停止を解除する',
+    'Expired' => '期限切れ',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'アカウントの送信停止は手動で解除する必要があります。復旧時刻が表示されている IP ブロックは自動的に期限切れになります。送信停止を解除しても、メッセージの送信や再試行は行われません。',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => '通信ステータスを取得できません。送信停止の保存先が利用可能になるまで、MPP の送信は停止されたままになります。',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'この送信停止を解除しますか？アカウントの問題が解決されていることを確認してください。リクエストが中断されている場合は、先にすべての送信プロセスを停止してください。この操作では何も送信されません。',
 
     // Sender IDs: Index
     'New Sender ID' => '新規送信者 ID',

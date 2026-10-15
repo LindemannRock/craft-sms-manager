@@ -22,6 +22,8 @@ final class IsolatedPersistenceQueue extends Queue
 {
     private const EMPTY_SHADOWS = [
         '{{%queue}}',
+        '{{%smsmanager_transportguards}}',
+        '{{%smsmanager_transportreleases}}',
         '{{%smsmanager_analytics}}',
         '{{%smsmanager_logs}}',
     ];

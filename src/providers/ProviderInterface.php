@@ -132,12 +132,16 @@ interface ProviderInterface
     /**
      * Send an SMS message
      *
+     * Optional bounded failure metadata is normalized by SmsPrivacyHelper.
+     * Existing three/four-key providers remain supported. A retry delay is
+     * an admission hint, never permission to replay a message.
+     *
      * @param string $to Recipient phone number
      * @param string $message Message content
      * @param string $senderId Sender ID to use
      * @param string $language Message language ('en', 'ar', etc.)
      * @param array $settings Provider settings
-     * @return array{success: bool, messageId: string|null, response: string|null, error?: string|null}
+     * @return array{success: bool, messageId: string|null, response: string|null, error?: string|null, failureCode?: string|null, failureScope?: string|null, retryAfterSeconds?: int|null}
      */
     public function send(string $to, string $message, string $senderId, string $language, array $settings): array;
 }

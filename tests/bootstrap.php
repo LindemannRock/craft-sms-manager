@@ -19,6 +19,7 @@ if (!function_exists('craft_modify_app_config')) {
     /** Install the persistence shadows before Craft bootstraps enabled plugins. */
     function craft_modify_app_config(array &$config, string $appType): void
     {
+        \lindemannrock\smsmanager\tests\Support\TransportIsolation::install();
         if ($appType !== 'console') {
             throw new \RuntimeException('SMS Manager tests require Craft\'s console application.');
         }

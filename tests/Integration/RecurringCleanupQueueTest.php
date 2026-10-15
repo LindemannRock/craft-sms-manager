@@ -90,7 +90,7 @@ final class RecurringCleanupQueueTest extends TestCase
         self::assertSame(0, (int)(new Query())->from('{{%queue}}')->count());
         self::assertSame(0, (int)(new Query())->from('{{%smsmanager_analytics}}')->count());
         self::assertSame(0, (int)(new Query())->from('{{%smsmanager_logs}}')->count());
-        self::assertCount(4, $this->isolatedPersistence()->rawShadowTables());
+        self::assertCount(6, $this->isolatedPersistence()->rawShadowTables());
     }
 
     public function testRunnerFallbackRestoresComponentsAndClearsEveryShadowRow(): void

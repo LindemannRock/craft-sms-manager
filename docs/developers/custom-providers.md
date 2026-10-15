@@ -115,7 +115,7 @@ Every settings template also receives a `countryOptions` variable — the dial-c
 
 ### The `send()` result shape
 
-`send()` must return `success`, `messageId`, and `response`. On a successful result, `error` is optional; returning `error => null` is recommended so the shape stays consistent. SMS Manager normalizes either successful form to include `error => null`.
+`send()` must return `success`, `messageId`, and `response`. On a successful result, `error` is optional; returning `error => null` is recommended so the shape stays consistent. SMS Manager normalizes either successful form to include `error => null` and null `failureCode`, `failureScope` and `retryAfterSeconds`. No interface method or required provider return key was added.
 
 | Key | Type | Description |
 |-----|------|-------------|
@@ -123,6 +123,8 @@ Every settings template also receives a `countryOptions` variable — the dial-c
 | `messageId` | `string\|null` | Gateway message ID, if any |
 | `response` | `string\|null` | Raw gateway response on success |
 | `error` | `string\|null` | Optional on success and must be `null` when present. Use the safe failure helper for failures; the service replaces other free text with bounded metadata before returning or persisting it |
+
+Providers may optionally return the bounded [failure metadata](sending-sms.md#failure-metadata-and-queue-ownership). SMS Manager validates code/scope combinations and delay bounds, discarding arbitrary values. A custom provider reporting an account scope does not acquire an MPP hold: durable admission is specific to MPP.
 
 Treat failure data as untrusted. Transport exception messages and gateway bodies can contain request URLs, authorization headers, credentials, recipients, sender IDs, or complete message text. Catch provider-call failures inside `send()` and classify them without inspecting their free-text payload:
 

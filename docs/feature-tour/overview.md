@@ -7,7 +7,7 @@ SMS Manager is the SMS gateway layer for Craft CMS: connect a provider, register
 
 ## What it does
 
-SMS Manager handles the plumbing of sending SMS: it talks to an SMS gateway, picks the right provider and sender ID, normalizes the recipient's phone number, sends the message, and records the result. Your code (or another plugin) calls one method; SMS Manager does the rest and gives you a delivery log and analytics for every message.
+SMS Manager handles the plumbing of sending SMS: it talks to an SMS gateway, picks the right provider and sender ID, normalizes the recipient's phone number, sends the message, and records the result. Your code (or another plugin) calls one method; SMS Manager does the rest and records attempted dispatches in delivery logs and analytics when enabled. MPP calls suppressed by transport admission are not counted as delivery attempts.
 
 It's an infrastructure plugin — there's no campaign builder or contact list here. It gives you a clean, permission-gated place to manage gateways and a single PHP entry point for sending.
 
@@ -22,6 +22,8 @@ It's an infrastructure plugin — there's no campaign builder or contact list he
 ## Core capabilities
 
 - **[Providers](providers.md)** — Connect an SMS gateway. Ships with [MPP-SMS](provider-mpp-sms.md) (Kuwait, Arabic + English) and [Twilio](provider-twilio.md) (global). Each provider has its own credentials and an optional country allowlist.
+
+- **[MPP Transport Status](provider-mpp-sms.md#transport-status-and-recovery)** — Stop account and IP failures from producing repeated gateway requests. Inspect holds and release selected state without sending or retrying messages.
 
 - **[Sender IDs](sender-ids.md)** — Register the names or numbers messages are sent from. Enable or disable each one, mark senders as development-only, and set a default.
 

@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: A limpar análises antigas',
 
     // Controller messages
+    'Confirm the hold release.' => 'Confirme o desbloqueio.',
+    'Hold released' => 'Bloqueio removido',
+    'The hold could not be released. Refresh the page and try again.' => 'Não foi possível remover o bloqueio. Atualize a página e tente novamente.',
     'Settings saved.' => 'Definições guardadas.',
     'Couldn\'t save settings.' => 'Não foi possível guardar as definições.',
     'Provider saved.' => 'Fornecedor guardado.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'O seu Auth Token do Twilio.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'O remetente provém do registo de ID de remetente — um número Twilio em formato E.164, um ID de remetente alfanumérico ou um Messaging Service SID. Os números dos destinatários são enviados em formato E.164.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Estado do transporte',
+    'Account' => 'Conta',
+    'Account unavailable' => 'Conta indisponível',
+    'IP blocked' => 'IP bloqueado',
+    'In-flight or interrupted request' => 'Pedido em curso ou interrompido',
+    'Main account' => 'Conta principal',
+    'Development account' => 'Conta de desenvolvimento',
+    'All MPP accounts' => 'Todas as contas MPP',
+    'Hold type' => 'Tipo de bloqueio',
+    'Activated at' => 'Ativado em',
+    'Automatic recovery' => 'Recuperação automática',
+    'Manual release required' => 'Desbloqueio manual necessário',
+    'No active holds' => 'Sem bloqueios ativos',
+    'Release hold' => 'Desbloquear',
+    'Expired' => 'Expirado',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Os bloqueios de conta exigem desbloqueio manual. Os bloqueios IP expiram automaticamente quando é apresentada uma hora de recuperação. O desbloqueio não envia mensagens nem repete envios.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'O estado do transporte está indisponível. Os envios MPP permanecem bloqueados até que o armazenamento de bloqueios esteja disponível.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Remover este bloqueio? Confirme que o problema da conta foi resolvido. Para um pedido interrompido, pare primeiro todos os processos de envio. Esta ação não envia nada.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Novo ID de remetente',

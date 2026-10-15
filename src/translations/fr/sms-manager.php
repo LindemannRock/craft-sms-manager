@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName} : Nettoyage des anciennes analytiques',
 
     // Controller messages
+    'Confirm the hold release.' => 'Confirmez la levée du blocage.',
+    'Hold released' => 'Blocage levé',
+    'The hold could not be released. Refresh the page and try again.' => 'Le blocage n\'a pas pu être levé. Actualisez la page et réessayez.',
     'Settings saved.' => 'Paramètres enregistrés.',
     'Couldn\'t save settings.' => 'Impossible d\'enregistrer les paramètres.',
     'Provider saved.' => 'Fournisseur enregistré.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Votre Auth Token Twilio.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'L\'expéditeur provient de l\'enregistrement d\'identifiant d\'expéditeur — un numéro Twilio au format E.164, un identifiant d\'expéditeur alphanumérique ou un Messaging Service SID. Les numéros des destinataires sont envoyés au format E.164.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Statut du transport',
+    'Account' => 'Compte',
+    'Account unavailable' => 'Compte indisponible',
+    'IP blocked' => 'IP bloquée',
+    'In-flight or interrupted request' => 'Requête en cours ou interrompue',
+    'Main account' => 'Compte principal',
+    'Development account' => 'Compte de développement',
+    'All MPP accounts' => 'Tous les comptes MPP',
+    'Hold type' => 'Type de blocage',
+    'Activated at' => 'Activé le',
+    'Automatic recovery' => 'Rétablissement automatique',
+    'Manual release required' => 'Levée manuelle requise',
+    'No active holds' => 'Aucun blocage actif',
+    'Release hold' => 'Lever le blocage',
+    'Expired' => 'A expiré',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Les blocages de compte doivent être levés manuellement. Les blocages IP expirent automatiquement lorsqu\'une heure de rétablissement est indiquée. Lever un blocage n\'envoie aucun message et ne relance aucun envoi.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'Le statut du transport est indisponible. Les envois MPP restent bloqués jusqu\'à ce que le stockage des blocages soit disponible.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Lever ce blocage ? Confirmez que le problème du compte est résolu. Pour une requête interrompue, arrêtez d\'abord tous les processus d\'envoi. Cette action n\'envoie rien.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nouvel identifiant d\'expéditeur',

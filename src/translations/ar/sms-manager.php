@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: تنظيف التحليلات القديمة',
 
     // Controller messages
+    'Confirm the hold release.' => 'يرجى تأكيد رفع الحظر.',
+    'Hold released' => 'تم رفع الحظر',
+    'The hold could not be released. Refresh the page and try again.' => 'تعذّر رفع الحظر. يرجى تحديث الصفحة والمحاولة مجدداً.',
     'Settings saved.' => 'تم حفظ الإعدادات.',
     'Couldn\'t save settings.' => 'تعذّر حفظ الإعدادات.',
     'Provider saved.' => 'تم حفظ مزود الخدمة.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Auth Token الخاص بك في Twilio.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'يأتي المُرسِل من سجل معرّف المُرسِل — رقم Twilio بتنسيق E.164، أو معرّف مُرسِل أبجدي رقمي، أو Messaging Service SID. تُرسَل أرقام المستلمين بتنسيق E.164.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'حالة النقل',
+    'Account' => 'الحساب',
+    'Account unavailable' => 'الحساب غير متاح',
+    'IP blocked' => 'IP محظور',
+    'In-flight or interrupted request' => 'طلب جارٍ أو متوقف',
+    'Main account' => 'الحساب الرئيسي',
+    'Development account' => 'حساب التطوير',
+    'All MPP accounts' => 'كل حسابات MPP',
+    'Hold type' => 'نوع الحظر',
+    'Activated at' => 'وقت التفعيل',
+    'Automatic recovery' => 'الاستعادة التلقائية',
+    'Manual release required' => 'يلزم رفع الحظر يدوياً',
+    'No active holds' => 'لا توجد حالات حظر نشطة',
+    'Release hold' => 'رفع الحظر',
+    'Expired' => 'منتهي',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'يتطلب حظر الحساب رفعه يدوياً. ينتهي حظر IP تلقائياً عند عرض وقت للاستعادة. لا يؤدي رفع الحظر إلى إرسال الرسائل أو إعادة محاولة إرسالها.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'حالة النقل غير متاحة. يظل إرسال MPP محظوراً حتى يتاح تخزين حالات الحظر.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'هل تريد رفع هذا الحظر؟ يرجى التأكد من حل مشكلة الحساب. في حالة وجود طلب متوقف، أوقف كل عمليات الإرسال أولاً. لا يرسل هذا الإجراء أي شيء.',
 
     // Sender IDs: Index
     'New Sender ID' => 'معرّف مُرسِل جديد',

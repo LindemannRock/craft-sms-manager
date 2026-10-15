@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: Oude analyses opruimen',
 
     // Controller messages
+    'Confirm the hold release.' => 'Bevestig het opheffen van de blokkering.',
+    'Hold released' => 'Blokkering opgeheven',
+    'The hold could not be released. Refresh the page and try again.' => 'De blokkering kon niet worden opgeheven. Vernieuw de pagina en probeer het opnieuw.',
     'Settings saved.' => 'Instellingen opgeslagen.',
     'Couldn\'t save settings.' => 'Kon instellingen niet opslaan.',
     'Provider saved.' => 'Provider opgeslagen.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Uw Twilio Auth Token.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'De afzender komt uit het afzender-ID-record — een Twilio-nummer in E.164-formaat, een alfanumerieke afzender-ID of een Messaging Service SID. Ontvangersnummers worden verzonden in E.164-formaat.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Transportstatus',
+    'Account' => 'Account',
+    'Account unavailable' => 'Account niet beschikbaar',
+    'IP blocked' => 'IP geblokkeerd',
+    'In-flight or interrupted request' => 'Lopend of onderbroken verzoek',
+    'Main account' => 'Hoofdaccount',
+    'Development account' => 'Ontwikkelaccount',
+    'All MPP accounts' => 'Alle MPP-accounts',
+    'Hold type' => 'Type blokkering',
+    'Activated at' => 'Geactiveerd op',
+    'Automatic recovery' => 'Automatisch herstel',
+    'Manual release required' => 'Handmatige opheffing vereist',
+    'No active holds' => 'Geen actieve blokkeringen',
+    'Release hold' => 'Blokkering opheffen',
+    'Expired' => 'Verlopen',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Accountblokkeringen moeten handmatig worden opgeheven. IP-blokkeringen verlopen automatisch wanneer een hersteltijd wordt weergegeven. Het opheffen van een blokkering verzendt geen berichten en herhaalt geen verzendingen.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'De transportstatus is niet beschikbaar. MPP-verzending blijft geblokkeerd totdat de opslag voor blokkeringen beschikbaar is.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Deze blokkering opheffen? Bevestig dat het accountprobleem is opgelost. Stop bij een onderbroken verzoek eerst alle verzendprocessen. Deze actie verzendt niets.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nieuwe afzender-ID',

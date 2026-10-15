@@ -10,7 +10,7 @@ SMS Manager registers granular permissions that can be assigned to user groups v
 |------------|-------------|
 | **`smsManager:manageProviders`** | Parent — access the Providers section |
 | └─ `smsManager:createProviders` | Create providers |
-| └─ `smsManager:editProviders` | Edit providers |
+| └─ `smsManager:editProviders` | Edit providers and release selected MPP transport/account holds through a confirmed, CSRF-protected POST |
 | └─ `smsManager:deleteProviders` | Delete providers |
 
 ### Sender IDs

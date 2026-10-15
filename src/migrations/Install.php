@@ -31,6 +31,7 @@ class Install extends Migration
         $this->createSenderIdsTable();
         $this->createLogsTable();
         $this->createAnalyticsTable();
+        $this->createTransportTables();
 
         return true;
     }
@@ -41,6 +42,8 @@ class Install extends Migration
     public function safeDown(): bool
     {
         // Drop tables in reverse order (respecting foreign keys)
+        $this->dropTableIfExists('{{%smsmanager_transportreleases}}');
+        $this->dropTableIfExists('{{%smsmanager_transportguards}}');
         $this->dropTableIfExists('{{%smsmanager_analytics}}');
         $this->dropTableIfExists('{{%smsmanager_logs}}');
         $this->dropTableIfExists('{{%smsmanager_senderids}}');
@@ -48,6 +51,31 @@ class Install extends Migration
         $this->dropTableIfExists('{{%smsmanager_settings}}');
 
         return true;
+    }
+
+    /** Create durable MPP admission and privacy-safe administrative history. */
+    private function createTransportTables(): void
+    {
+        if (!$this->db->tableExists('{{%smsmanager_transportguards}}')) {
+            $this->createTable('{{%smsmanager_transportguards}}', [
+                'scopeKey' => $this->string(80)->notNull(),
+                'failureCode' => $this->string(32)->notNull(),
+                'activatedAt' => $this->bigInteger()->notNull(),
+                'blockedUntil' => $this->bigInteger()->null(),
+                'token' => $this->string(36)->notNull(),
+            ]);
+            $this->addPrimaryKey(null, '{{%smsmanager_transportguards}}', 'scopeKey');
+        }
+        if (!$this->db->tableExists('{{%smsmanager_transportreleases}}')) {
+            $this->createTable('{{%smsmanager_transportreleases}}', [
+                'id' => $this->primaryKey(),
+                'scope' => $this->string(16)->notNull(),
+                'lane' => $this->string(16)->notNull(),
+                'failureCode' => $this->string(32)->notNull(),
+                'releasedBy' => $this->integer()->notNull(),
+                'releasedAt' => $this->bigInteger()->notNull(),
+            ]);
+        }
     }
 
     /**

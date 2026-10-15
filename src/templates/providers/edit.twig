@@ -129,6 +129,13 @@
     {% endif %}
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
+    {% if transportStatus ?? null %}
+        {% include 'sms-manager/providers/_transport-status' with {
+            transportStatus: transportStatus,
+            providerHandle: provider.handle,
+            canRelease: currentUser.can('smsManager:editProviders'),
+        } only %}
+    {% endif %}
 {% endblock %}
 
 {% block details %}

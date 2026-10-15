@@ -19,3 +19,9 @@ Tests never truncate owner tables, flush shared caches or Redis, drain persisten
 ## Package authority
 
 `composer ci` is the fast read-only PHPStan and ECS check. `composer ci:full` adds the complete PHPUnit suite. `composer quality-gate` is the package-owned authority used by CI and Act; it covers Composer validation and audit, static/style checks, test conventions, disposable PHPUnit, JavaScript encoding vectors, generated asset parity, customer archive installation/bootstrap, the pre-commit contract, and orchestration failure propagation. PHP compatibility matrices, PostgreSQL runtime checks, real-browser smoke, and live-provider tests remain separate release authorities.
+
+### MPP transport isolation and shared admission
+
+`TransportIsolation` replaces Craft's Guzzle client factory before enabled plugins bootstrap. Only an explicitly installed `MockHandler` can handle a request; every intercepted request is counted. A missing/non-mock handler terminates the test process with exit 90 before transport, so provider exception handling cannot swallow a forbidden fallback. A subprocess regression verifies this boundary. Fixture installation and archive bootstrap also deny HTTP; their expected Craft license refresh is intercepted and rejected locally. No SMS provider request or queue-worker command is part of these checks.
+
+MPP guard/release tables join the connection-local empty shadows. Concurrency tests additionally require the runner-owned `sms_manager_qg_<random>` database, use a separate connection and independent PHP process against its real guard tables, synchronize through pipes, and kill the admitted process to prove durable fail-closed recovery. They delete exact fixture-owned keys and close processes/connections in failure cleanup. No client SQL package is executed by tests. Timed recovery uses an overridden clock, with no sleeping or provider recovery probe.

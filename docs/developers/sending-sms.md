@@ -136,6 +136,9 @@ public function sendWithHandleDetails(
 | `messageId` | `string\|null` | Provider message ID on success; `null` for a provider failure |
 | `response` | `string\|null` | Raw provider response on success; `null` for a provider failure |
 | `error` | `string\|null` | Service validation error, or bounded provider failure metadata with provider, category, optional HTTP status, and correlation reference |
+| `failureCode` | `string\|null` | Bounded failure reason; `null` on success |
+| `failureScope` | `string\|null` | `recipient`, `account`, `transport`, or `unknown`; `null` on success |
+| `retryAfterSeconds` | `int\|null` | Earliest admission reconsideration delay, never an instruction to replay a message |
 | `executionTime` | `int` | Time taken, in milliseconds |
 | `providerName` | `string\|null` | Resolved provider name |
 | `senderIdName` | `string\|null` | Resolved sender ID name |
@@ -149,6 +152,35 @@ SMS provider failure [provider=mpp-sms; category=http; status=503; reference=…
 ```
 
 Use the category and reference when correlating the API result, SMS log, and plugin-level log. SMS Manager never forwards transport exception messages, request URLs, authorization headers, or free-text gateway failures through this result.
+
+## Failure metadata and queue ownership
+
+Detailed results add three bounded fields without changing the existing Boolean APIs or their arguments. On success all three are `null`. Existing custom providers need no new methods; missing or invalid metadata becomes `provider-error` / `unknown`, with no automatic retry hint.
+
+| Code | Scope | Meaning |
+|------|-------|---------|
+| `invalid-recipient` | `recipient` | The provider rejected recipient validation |
+| `account-unavailable` | `account` | MPP rejected the account; a manual account hold is now active |
+| `ip-blocked` | `transport` | MPP reported an IP block; an installation-wide hold is now active |
+| `cooldown-active` | `account` or `transport` | Transport was not attempted because that scope is held |
+| `guard-busy` | `transport` | Another process owns MPP admission; no transport attempt, one-second reconsideration hint |
+| `guard-unavailable` | `transport` | Admission could not be established; no transport attempt |
+| `transport-uncertain` | `transport` | A request may have happened but guard completion failed; reconcile delivery before any retry |
+| `provider-error` | `unknown` | No more specific supported classification is available |
+
+`retryAfterSeconds` is a nonnegative integer or `null`. Account holds and uncertain outcomes have no automatic recovery. A timed IP delay is bounded to 7,260 seconds. A zero delay means only that the hold time has elapsed; it does not prove a message is safe to resend. Unknown MPP text is discarded and does not create an account/IP hold. MPP redirects are disabled so one admitted attempt cannot follow a second gateway request.
+
+A consumer can use the classification to stop its own SMS loop and preserve unattempted work:
+
+```php
+$result = $sms->sendWithHandleDetails($phoneNumber, $message, $senderHandle);
+if (!$result['success'] && in_array($result['failureScope'], ['account', 'transport'], true)) {
+    // Persist your own paused state and leave unattempted recipients pending.
+    // Reconcile the current message separately; do not blindly replay it.
+}
+```
+
+SMS Manager never manages the consumer's queue. An account release, timed expiry or administrative transport release does not resume a campaign or retry a failed job. Boolean consumers remain compatible but cannot distinguish a hold from other failures; they must adopt detailed results before implementing scope-aware pause/resume behavior.
 
 ## Source plugin tracking
 
@@ -170,7 +202,7 @@ If your plugin participates in resource usage tracking (so providers and senders
 
 ## What happens on send
 
-Every send resolves a provider and sender ID, checks both are enabled, writes a delivery log row (when logging is enabled), invokes the provider, then records the outcome on the log and in analytics. A send fails early — with a specific error — when no provider or sender resolves, when either is disabled, or when the provider type is unknown.
+Every send resolves a provider and sender ID and checks both are enabled. Provider dispatches record their outcome in delivery logs and analytics when enabled. MPP persists its delivery log after the guarded result: calls suppressed by a hold, busy admission or unavailable guard storage create neither a delivery log nor an analytics failure. The first account/IP failure remains a recorded attempt. An abrupt process death can leave a transport hold without a completed delivery log. A send fails early — with a specific error — when no provider or sender resolves, when either is disabled, or when the provider type is unknown.
 
 For each attempted provider dispatch, analytics classifies the actual message content as GSM-7 or UCS-2. GSM-7 has a 160-septet single-segment limit and a 153-septet multipart limit; characters from the GSM extension table consume two septets. UCS-2 has a 70 UTF-16-code-unit single-segment limit and a 67-unit multipart limit; emoji and other astral characters consume two UTF-16 code units. The stored character total is the number of Unicode code points, while the SMS total is the calculated segment count. An empty message has zero characters and zero segments.
 

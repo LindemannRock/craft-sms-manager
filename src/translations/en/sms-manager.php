@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: Cleaning up old analytics',
 
     // Controller messages
+    'Confirm the hold release.' => 'Confirm the hold release.',
+    'Hold released' => 'Hold released',
+    'The hold could not be released. Refresh the page and try again.' => 'The hold could not be released. Refresh the page and try again.',
     'Settings saved.' => 'Settings saved.',
     'Couldn\'t save settings.' => 'Couldn\'t save settings.',
     'Provider saved.' => 'Provider saved.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Your Twilio Auth Token.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Transport Status',
+    'Account' => 'Account',
+    'Account unavailable' => 'Account unavailable',
+    'IP blocked' => 'IP blocked',
+    'In-flight or interrupted request' => 'In-flight or interrupted request',
+    'Main account' => 'Main account',
+    'Development account' => 'Development account',
+    'All MPP accounts' => 'All MPP accounts',
+    'Hold type' => 'Hold type',
+    'Activated at' => 'Activated at',
+    'Automatic recovery' => 'Automatic recovery',
+    'Manual release required' => 'Manual release required',
+    'No active holds' => 'No active holds',
+    'Release hold' => 'Release hold',
+    'Expired' => 'Expired',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'Transport status is unavailable. MPP sending remains blocked until guard storage is available.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.',
 
     // Sender IDs: Index
     'New Sender ID' => 'New Sender ID',

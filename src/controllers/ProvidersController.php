@@ -241,6 +241,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
+            'transportStatus' => $provider->type === 'mpp-sms' ? SmsManager::$plugin->mppTransport->status($provider->getSettingsArray()) : null,
             'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($provider->type),
         ]);
     }
@@ -290,6 +291,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
+            'transportStatus' => $provider && $provider->type === 'mpp-sms' ? SmsManager::$plugin->mppTransport->status($provider->getSettingsArray()) : null,
             'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($providerType),
         ]);
     }
@@ -396,6 +398,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
+            'transportStatus' => $provider && $provider->type === 'mpp-sms' ? SmsManager::$plugin->mppTransport->status($provider->getSettingsArray()) : null,
             'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($provider->type),
         ]);
     }
@@ -458,6 +461,41 @@ class ProvidersController extends Controller
         }
 
         return $this->asJson(['success' => false, 'error' => Craft::t('sms-manager', 'Could not save provider.')]);
+    }
+
+    /**
+     * Release a selected MPP hold after explicit administrator confirmation.
+     *
+     * @since 5.18.0
+     */
+    public function actionReleaseTransportHold(): Response
+    {
+        $this->requirePostRequest();
+        $this->requirePermission('smsManager:editProviders');
+        $this->requireAcceptsJson();
+        $request = Craft::$app->getRequest();
+        // Require a valid token even for request modes where Craft skips its
+        // ordinary controller CSRF filter (for example Live Preview).
+        if (!$request->validateCsrfToken()) {
+            throw new BadRequestHttpException();
+        }
+        if ($request->getBodyParam('confirmed') !== '1') {
+            throw new BadRequestHttpException(Craft::t('sms-manager', 'Confirm the hold release.'));
+        }
+        $provider = ProviderRecord::findByHandleWithConfig((string)$request->getRequiredBodyParam('handle'));
+        if ($provider === null || $provider->type !== 'mpp-sms') {
+            throw new NotFoundHttpException(Craft::t('sms-manager', 'Provider not found'));
+        }
+        $released = SmsManager::$plugin->mppTransport->release(
+            $provider->getSettingsArray(),
+            (string)$request->getRequiredBodyParam('lane'),
+            (string)$request->getRequiredBodyParam('token'),
+            (int)Craft::$app->getUser()->getId(),
+        );
+        return $this->asJson([
+            'success' => $released,
+            'message' => $released ? Craft::t('sms-manager', 'Hold released') : Craft::t('sms-manager', 'The hold could not be released. Refresh the page and try again.'),
+        ]);
     }
 
     /**

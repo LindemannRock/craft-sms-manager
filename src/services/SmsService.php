@@ -102,7 +102,7 @@ class SmsService extends Component
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID
      * @param int|null $siteId Site ID for analytics attribution
-     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
+     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, failureCode: string|null, failureScope: string|null, retryAfterSeconds: int|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
      */
     public function sendWithDetails(
         string $to,
@@ -125,6 +125,9 @@ class SmsService extends Component
             $this->logError('No provider configured', ['providerId' => $providerId]);
             return [
                 'success' => false,
+                'failureCode' => 'provider-error',
+                'failureScope' => 'unknown',
+                'retryAfterSeconds' => null,
                 'messageId' => null,
                 'response' => null,
                 'error' => Craft::t('sms-manager', 'No provider configured'),
@@ -144,6 +147,9 @@ class SmsService extends Component
             $this->logError('No sender ID configured', ['senderIdId' => $senderIdId, 'providerId' => $provider->id]);
             return [
                 'success' => false,
+                'failureCode' => 'provider-error',
+                'failureScope' => 'unknown',
+                'retryAfterSeconds' => null,
                 'messageId' => null,
                 'response' => null,
                 'error' => Craft::t('sms-manager', 'No sender ID configured'),
@@ -224,7 +230,7 @@ class SmsService extends Component
      * @param string|null $sourcePlugin Source plugin handle
      * @param int|null $sourceElementId Source element ID for log attribution
      * @param int|null $siteId Site ID for analytics attribution
-     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
+     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, failureCode: string|null, failureScope: string|null, retryAfterSeconds: int|null, executionTime: int, providerName: string|null, senderIdName: string|null, senderIdValue: string|null, recipient: string}
      * @since 5.12.0
      */
     public function sendWithHandleDetails(
@@ -245,6 +251,9 @@ class SmsService extends Component
             $this->logError('Sender ID not found', ['handle' => $senderIdHandle]);
             return [
                 'success' => false,
+                'failureCode' => 'provider-error',
+                'failureScope' => 'unknown',
+                'retryAfterSeconds' => null,
                 'messageId' => null,
                 'response' => null,
                 'error' => Craft::t('sms-manager', 'Sender ID not found: {handle}', ['handle' => $senderIdHandle]),
@@ -267,6 +276,9 @@ class SmsService extends Component
             ]);
             return [
                 'success' => false,
+                'failureCode' => 'provider-error',
+                'failureScope' => 'unknown',
+                'retryAfterSeconds' => null,
                 'messageId' => null,
                 'response' => null,
                 'error' => Craft::t('sms-manager', 'Provider not found for sender ID: {handle}', ['handle' => $senderIdHandle]),
@@ -291,7 +303,7 @@ class SmsService extends Component
      * Accepts records rather than IDs so callers with config-based resources
      * (where id is null) route through the same path as DB-based callers.
      *
-     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, executionTime: int, providerName: string, senderIdName: string, senderIdValue: string, recipient: string}
+     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, failureCode: string|null, failureScope: string|null, retryAfterSeconds: int|null, executionTime: int, providerName: string, senderIdName: string, senderIdValue: string, recipient: string}
      */
     private function dispatchSms(
         ProviderRecord $provider,
@@ -314,6 +326,9 @@ class SmsService extends Component
             $this->logError('Provider is disabled', ['providerId' => $provider->id, 'name' => $provider->name]);
             return [
                 'success' => false,
+                'failureCode' => 'provider-error',
+                'failureScope' => 'unknown',
+                'retryAfterSeconds' => null,
                 'messageId' => null,
                 'response' => null,
                 'error' => Craft::t('sms-manager', 'Provider is disabled'),
@@ -329,6 +344,9 @@ class SmsService extends Component
             $this->logError('Sender ID is disabled', ['senderIdId' => $senderId->id, 'name' => $senderId->name]);
             return [
                 'success' => false,
+                'failureCode' => 'provider-error',
+                'failureScope' => 'unknown',
+                'retryAfterSeconds' => null,
                 'messageId' => null,
                 'response' => null,
                 'error' => Craft::t('sms-manager', 'Sender ID is disabled'),
@@ -368,7 +386,7 @@ class SmsService extends Component
         // Auto-trim runs on a 24h schedule via CleanupLogsJob — keeping it
         // off the send path so SMS dispatch isn't paying for COUNT + DELETE
         // on every message.
-        if ($settings->enableSmsLogs) {
+        if ($settings->enableSmsLogs && $provider->type !== 'mpp-sms') {
             $log->save(false);
         }
 
@@ -382,6 +400,9 @@ class SmsService extends Component
             }
             return [
                 'success' => false,
+                'failureCode' => 'provider-error',
+                'failureScope' => 'unknown',
+                'retryAfterSeconds' => null,
                 'messageId' => null,
                 'response' => null,
                 'error' => Craft::t('sms-manager', 'Unknown provider type: {type}', ['type' => $provider->type]),
@@ -412,6 +433,8 @@ class SmsService extends Component
 
         $executionTime = (int)round((microtime(true) - $startTime) * 1000);
 
+        $suppressed = $provider->type === 'mpp-sms' && in_array($result['failureCode'], ['cooldown-active', 'guard-busy', 'guard-unavailable'], true);
+
         if ($result['success']) {
             $this->updateLogStatus(
                 $log,
@@ -430,7 +453,7 @@ class SmsService extends Component
                 'providerType' => $provider->type,
                 'senderId' => $senderId->name,
             ]);
-        } else {
+        } elseif (!$suppressed) {
             $this->updateLogStatus(
                 $log,
                 SmsLogRecord::STATUS_FAILED,
@@ -451,6 +474,9 @@ class SmsService extends Component
         }
 
         return [
+            'failureCode' => $result['failureCode'],
+            'failureScope' => $result['failureScope'],
+            'retryAfterSeconds' => $result['retryAfterSeconds'],
             'success' => $result['success'],
             'messageId' => $result['messageId'],
             'response' => $result['response'],

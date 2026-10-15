@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: Rydder opp i gammel analyse',
 
     // Controller messages
+    'Confirm the hold release.' => 'Bekreft opphevingen av sperren.',
+    'Hold released' => 'Sperre opphevet',
+    'The hold could not be released. Refresh the page and try again.' => 'Sperren kunne ikke oppheves. Oppdater siden og prøv igjen.',
     'Settings saved.' => 'Innstillinger lagret.',
     'Couldn\'t save settings.' => 'Kunne ikke lagre innstillingene.',
     'Provider saved.' => 'Leverandør lagret.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Ditt Twilio Auth Token.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'Avsenderen hentes fra avsender-ID-posten — et Twilio-nummer i E.164-format, et alfanumerisk avsender-ID eller et Messaging Service SID. Mottakernumre sendes i E.164-format.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Transportstatus',
+    'Account' => 'Konto',
+    'Account unavailable' => 'Konto utilgjengelig',
+    'IP blocked' => 'IP blokkert',
+    'In-flight or interrupted request' => 'Pågående eller avbrutt forespørsel',
+    'Main account' => 'Hovedkonto',
+    'Development account' => 'Utviklingskonto',
+    'All MPP accounts' => 'Alle MPP-kontoer',
+    'Hold type' => 'Sperretype',
+    'Activated at' => 'Aktivert den',
+    'Automatic recovery' => 'Automatisk gjenoppretting',
+    'Manual release required' => 'Manuell oppheving kreves',
+    'No active holds' => 'Ingen aktive sperrer',
+    'Release hold' => 'Opphev sperre',
+    'Expired' => 'Utløpt',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Kontosperrer må oppheves manuelt. IP-sperrer utløper automatisk når et gjenopprettingstidspunkt vises. Oppheving av en sperre sender ingen meldinger og gjentar ingen sendinger.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'Transportstatus er utilgjengelig. MPP-sending forblir blokkert til lagringen av sperrer er tilgjengelig.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Oppheve denne sperren? Bekreft at kontoproblemet er løst. Stopp først alle sendeprosesser ved en avbrutt forespørsel. Denne handlingen sender ingenting.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Ny avsender-ID',

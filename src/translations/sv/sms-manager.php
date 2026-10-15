@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: Rensar gammal analys',
 
     // Controller messages
+    'Confirm the hold release.' => 'Bekräfta att spärren ska hävas.',
+    'Hold released' => 'Spärr hävd',
+    'The hold could not be released. Refresh the page and try again.' => 'Det gick inte att häva spärren. Uppdatera sidan och försök igen.',
     'Settings saved.' => 'Inställningar sparade.',
     'Couldn\'t save settings.' => 'Kunde inte spara inställningarna.',
     'Provider saved.' => 'Leverantör sparad.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Ditt Twilio Auth Token.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'Avsändaren hämtas från avsändar-ID-posten — ett Twilio-nummer i E.164-format, ett alfanumeriskt avsändar-ID eller ett Messaging Service SID. Mottagarnummer skickas i E.164-format.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Transportstatus',
+    'Account' => 'Konto',
+    'Account unavailable' => 'Kontot är inte tillgängligt',
+    'IP blocked' => 'IP blockerad',
+    'In-flight or interrupted request' => 'Pågående eller avbruten begäran',
+    'Main account' => 'Huvudkonto',
+    'Development account' => 'Utvecklingskonto',
+    'All MPP accounts' => 'Alla MPP-konton',
+    'Hold type' => 'Spärrtyp',
+    'Activated at' => 'Aktiverad',
+    'Automatic recovery' => 'Automatisk återställning',
+    'Manual release required' => 'Manuell upplåsning krävs',
+    'No active holds' => 'Inga aktiva spärrar',
+    'Release hold' => 'Häv spärr',
+    'Expired' => 'Har löpt ut',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Kontospärrar måste hävas manuellt. IP-spärrar löper ut automatiskt när en återställningstid visas. Att häva en spärr skickar inga meddelanden och gör inga nya sändningsförsök.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'Transportstatus är inte tillgänglig. MPP-sändningar förblir blockerade tills lagringen för spärrar är tillgänglig.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Häva denna spärr? Bekräfta att kontoproblemet är löst. Stoppa först alla sändningsprocesser om en begäran har avbrutits. Den här åtgärden skickar ingenting.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nytt avsändar-ID',

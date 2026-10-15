@@ -13,6 +13,16 @@ Work through these in order:
 5. **Check system logs.** **SMS Manager → Logs → System** carries the same failure reference plus an irreversible recipient reference.
 6. **Check the provider dashboard.** Raw gateway error text is deliberately not copied into Craft because it can contain credentials, request URLs, or message data. Use the time and correlation details to compare the attempt with the provider's own dashboard.
 
+## MPP account or transport hold
+
+Open the MPP provider's **Transport Status** section before attempting another send. `account-unavailable` means the gateway reported an inactive account; verify its state and funding with MPP, then use the confirmed **Release hold** action. `ip-blocked` affects every MPP credential in this installation. Wait for the shown recovery time or obtain provider confirmation before an administrator releases it early.
+
+A hold can remain even if SMS logs or analytics are disabled. Suppressed calls are not delivery attempts and do not inflate either record set. `guard-busy` means another request owns admission. `guard-unavailable` means admission storage or locking could not be used; confirm the upgrade tables exist, all hosts share the primary writer, and the caller is outside an uncommitted database transaction. Do not clear cache or retry failed jobs as a remedy.
+
+An **In-flight or interrupted request** has no automatic expiry. Stop all sending processes and reconcile the possible delivery before release. The release action sends nothing and never restarts work. See [MPP recovery](../feature-tour/provider-mpp-sms.md#transport-status-and-recovery) for credential lanes and the full operator procedure.
+
+Existing pre-release installations need the separately reviewed database upgrade before this code is enabled. Keep producers and workers stopped during schema/code cutover; do not run mixed old/new senders. The schema version remains 1.0.0, so Craft does not automatically apply this addition to an existing installation.
+
 ## "No provider configured" or "No sender ID configured"
 
 A send that relies on the default provider or sender failed to resolve one. This is intentional fail-loud behavior — SMS Manager won't silently substitute a different provider or sender.

@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: Limpiando analíticas antiguas',
 
     // Controller messages
+    'Confirm the hold release.' => 'Confirme el desbloqueo.',
+    'Hold released' => 'Bloqueo eliminado',
+    'The hold could not be released. Refresh the page and try again.' => 'No se pudo eliminar el bloqueo. Actualice la página e inténtelo de nuevo.',
     'Settings saved.' => 'Configuración guardada.',
     'Couldn\'t save settings.' => 'No se pudo guardar la configuración.',
     'Provider saved.' => 'Proveedor guardado.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Su Auth Token de Twilio.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'El remitente proviene del registro de ID de remitente — un número de Twilio en formato E.164, un ID de remitente alfanumérico o un Messaging Service SID. Los números de destinatario se envían en formato E.164.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Estado del transporte',
+    'Account' => 'Cuenta',
+    'Account unavailable' => 'Cuenta no disponible',
+    'IP blocked' => 'IP bloqueada',
+    'In-flight or interrupted request' => 'Solicitud en curso o interrumpida',
+    'Main account' => 'Cuenta principal',
+    'Development account' => 'Cuenta de desarrollo',
+    'All MPP accounts' => 'Todas las cuentas MPP',
+    'Hold type' => 'Tipo de bloqueo',
+    'Activated at' => 'Activado el',
+    'Automatic recovery' => 'Recuperación automática',
+    'Manual release required' => 'Desbloqueo manual necesario',
+    'No active holds' => 'Sin bloqueos activos',
+    'Release hold' => 'Desbloquear',
+    'Expired' => 'Expirado',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Los bloqueos de cuenta requieren un desbloqueo manual. Los bloqueos IP expiran automáticamente cuando se muestra una hora de recuperación. El desbloqueo no envía mensajes ni reintenta envíos.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'El estado del transporte no está disponible. Los envíos MPP permanecen bloqueados hasta que el almacenamiento de bloqueos esté disponible.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => '¿Eliminar este bloqueo? Confirme que el problema de la cuenta está resuelto. Si hay una solicitud interrumpida, detenga primero todos los procesos de envío. Esta acción no envía nada.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nuevo ID de remitente',

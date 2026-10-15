@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: Pulizia analisi obsolete',
 
     // Controller messages
+    'Confirm the hold release.' => 'Confermare lo sblocco.',
+    'Hold released' => 'Blocco rimosso',
+    'The hold could not be released. Refresh the page and try again.' => 'Non è stato possibile rimuovere il blocco. Aggiornare la pagina e riprovare.',
     'Settings saved.' => 'Impostazioni salvate.',
     'Couldn\'t save settings.' => 'Impossibile salvare le impostazioni.',
     'Provider saved.' => 'Provider salvato.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Il tuo Auth Token Twilio.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'Il mittente proviene dal record dell\'ID mittente — un numero Twilio in formato E.164, un ID mittente alfanumerico o un Messaging Service SID. I numeri dei destinatari vengono inviati in formato E.164.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Stato trasporto',
+    'Account' => 'Account',
+    'Account unavailable' => 'Account non disponibile',
+    'IP blocked' => 'IP bloccato',
+    'In-flight or interrupted request' => 'Richiesta in corso o interrotta',
+    'Main account' => 'Account principale',
+    'Development account' => 'Account di sviluppo',
+    'All MPP accounts' => 'Tutti gli account MPP',
+    'Hold type' => 'Tipo di blocco',
+    'Activated at' => 'Attivato il',
+    'Automatic recovery' => 'Ripristino automatico',
+    'Manual release required' => 'Sblocco manuale richiesto',
+    'No active holds' => 'Nessun blocco attivo',
+    'Release hold' => 'Sblocca',
+    'Expired' => 'Scaduto',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'I blocchi degli account richiedono uno sblocco manuale. I blocchi IP scadono automaticamente quando è indicata un\'ora di ripristino. Lo sblocco non invia messaggi e non ripete gli invii.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'Lo stato del trasporto non è disponibile. Gli invii MPP rimangono bloccati finché lo spazio di archiviazione dei blocchi non è disponibile.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Rimuovere questo blocco? Confermare che il problema dell\'account sia risolto. In caso di richiesta interrotta, arrestare prima tutti i processi di invio. Questa azione non invia nulla.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nuovo ID mittente',

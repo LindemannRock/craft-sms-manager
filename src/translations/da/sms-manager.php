@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: Rydder op i gamle analyser',
 
     // Controller messages
+    'Confirm the hold release.' => 'Bekræft ophævelsen af blokeringen.',
+    'Hold released' => 'Blokering ophævet',
+    'The hold could not be released. Refresh the page and try again.' => 'Blokeringen kunne ikke ophæves. Opdater siden, og prøv igen.',
     'Settings saved.' => 'Indstillinger gemt.',
     'Couldn\'t save settings.' => 'Indstillingerne kunne ikke gemmes.',
     'Provider saved.' => 'Udbyder gemt.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Dit Twilio Auth Token.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'Afsenderen hentes fra afsender-ID-posten — et Twilio-nummer i E.164-format, et alfanumerisk afsender-ID eller et Messaging Service SID. Modtagernumre sendes i E.164-format.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Transportstatus',
+    'Account' => 'Konto',
+    'Account unavailable' => 'Konto ikke tilgængelig',
+    'IP blocked' => 'IP blokeret',
+    'In-flight or interrupted request' => 'Igangværende eller afbrudt anmodning',
+    'Main account' => 'Hovedkonto',
+    'Development account' => 'Udviklingskonto',
+    'All MPP accounts' => 'Alle MPP-konti',
+    'Hold type' => 'Blokeringstype',
+    'Activated at' => 'Aktiveret den',
+    'Automatic recovery' => 'Automatisk gendannelse',
+    'Manual release required' => 'Manuel ophævelse påkrævet',
+    'No active holds' => 'Ingen aktive blokeringer',
+    'Release hold' => 'Ophæv blokering',
+    'Expired' => 'Udløbet',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Kontoblokeringer skal ophæves manuelt. IP-blokeringer udløber automatisk, når et gendannelsestidspunkt vises. Ophævelse af en blokering sender ingen beskeder og gentager ingen afsendelser.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'Transportstatus er ikke tilgængelig. MPP-afsendelse forbliver blokeret, indtil lagringen af blokeringer er tilgængelig.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Ophæv denne blokering? Bekræft, at kontoproblemet er løst. Stop først alle afsendelsesprocesser ved en afbrudt anmodning. Denne handling sender intet.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Nyt afsender-ID',

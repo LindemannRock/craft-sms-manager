@@ -347,7 +347,7 @@ final class ProviderFailurePrivacyTest extends TestCase
             'response' => 'OK',
         ];
         self::assertSame(
-            [...$providerResult, 'error' => null],
+            [...$providerResult, 'error' => null, 'failureCode' => null, 'failureScope' => null, 'retryAfterSeconds' => null],
             SmsPrivacyHelper::sanitizeProviderResult($providerResult, StubProvider::handle()),
         );
 
@@ -489,6 +489,9 @@ final class ProviderFailurePrivacyTest extends TestCase
             'messageId' => 'privacy-success',
             'response' => 'OK,smsid:privacy-success,mobiles:1',
             'error' => null,
+            'failureCode' => null,
+            'failureScope' => null,
+            'retryAfterSeconds' => null,
         ], $results['success']);
         $this->assertCanariesAbsent($logs, [
             $invalidRecipient,

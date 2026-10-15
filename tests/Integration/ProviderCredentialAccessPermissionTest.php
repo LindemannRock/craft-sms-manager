@@ -154,6 +154,7 @@ final class ProviderCredentialAccessPermissionTest extends TestCase
             'providerCount',
             'defaultProviderHandle',
             'isDefaultFromConfig',
+            'transportStatus',
             'providerMeta',
         ], array_keys($controller->variables));
         self::assertSame($settings, $controller->variables['providerSettings']);

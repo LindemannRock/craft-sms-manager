@@ -92,6 +92,9 @@ return [
     '{pluginName}: Cleaning up old analytics' => '{pluginName}: Alte Analysedaten bereinigen',
 
     // Controller messages
+    'Confirm the hold release.' => 'Bestätigen Sie die Aufhebung der Sperre.',
+    'Hold released' => 'Sperre aufgehoben',
+    'The hold could not be released. Refresh the page and try again.' => 'Die Sperre konnte nicht aufgehoben werden. Aktualisieren Sie die Seite und versuchen Sie es erneut.',
     'Settings saved.' => 'Einstellungen gespeichert.',
     'Couldn\'t save settings.' => 'Einstellungen konnten nicht gespeichert werden.',
     'Provider saved.' => 'Anbieter gespeichert.',
@@ -318,6 +321,26 @@ return [
     'Auth Token' => 'Auth Token',
     'Your Twilio Auth Token.' => 'Ihr Twilio Auth Token.',
     'The sender comes from the Sender ID record — a Twilio number in E.164 format, an alphanumeric sender ID, or a Messaging Service SID. Recipient numbers are sent in E.164 format.' => 'Der Absender stammt aus dem Absender-ID-Eintrag — eine Twilio-Nummer im E.164-Format, eine alphanumerische Absender-ID oder eine Messaging Service SID. Empfängernummern werden im E.164-Format übermittelt.',
+
+    // Providers: Transport Status
+    'Transport Status' => 'Transportstatus',
+    'Account' => 'Konto',
+    'Account unavailable' => 'Konto nicht verfügbar',
+    'IP blocked' => 'IP gesperrt',
+    'In-flight or interrupted request' => 'Laufende oder unterbrochene Anfrage',
+    'Main account' => 'Hauptkonto',
+    'Development account' => 'Entwicklungskonto',
+    'All MPP accounts' => 'Alle MPP-Konten',
+    'Hold type' => 'Sperrtyp',
+    'Activated at' => 'Aktiviert am',
+    'Automatic recovery' => 'Automatische Wiederherstellung',
+    'Manual release required' => 'Manuelle Freigabe erforderlich',
+    'No active holds' => 'Keine aktiven Sperren',
+    'Release hold' => 'Sperre aufheben',
+    'Expired' => 'Abgelaufen',
+    'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.' => 'Kontosperren müssen manuell aufgehoben werden. IP-Sperren laufen automatisch ab, wenn eine Wiederherstellungszeit angezeigt wird. Das Aufheben einer Sperre sendet keine Nachrichten und wiederholt keine Sendeversuche.',
+    'Transport status is unavailable. MPP sending remains blocked until guard storage is available.' => 'Der Transportstatus ist nicht verfügbar. Der MPP-Versand bleibt gesperrt, bis der Speicher für Sperren verfügbar ist.',
+    'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.' => 'Diese Sperre aufheben? Bestätigen Sie, dass das Kontoproblem behoben ist. Stoppen Sie bei einer unterbrochenen Anfrage zuerst alle Sendeprozesse. Diese Aktion sendet nichts.',
 
     // Sender IDs: Index
     'New Sender ID' => 'Neue Absender-ID',

@@ -51,7 +51,7 @@ final class SmsPrivacyHelper
     /**
      * Create a provider result containing only bounded diagnostic metadata.
      *
-     * @return array{success: false, messageId: null, response: null, error: string}
+     * @return array{success: false, messageId: null, response: null, error: string, failureCode: string, failureScope: string, retryAfterSeconds: int|null}
      */
     public static function failureResult(
         string $provider,
@@ -70,6 +70,9 @@ final class SmsPrivacyHelper
         $reference = strtolower($reference);
 
         return [
+            'failureCode' => $category === 'invalid-recipient' ? 'invalid-recipient' : 'provider-error',
+            'failureScope' => $category === 'invalid-recipient' ? 'recipient' : 'unknown',
+            'retryAfterSeconds' => null,
             'success' => false,
             'messageId' => null,
             'response' => null,
@@ -86,7 +89,7 @@ final class SmsPrivacyHelper
     /**
      * Classify a provider throwable without reading its potentially sensitive payload.
      *
-     * @return array{success: false, messageId: null, response: null, error: string}
+     * @return array{success: false, messageId: null, response: null, error: string, failureCode: string, failureScope: string, retryAfterSeconds: int|null}
      */
     public static function failureResultFromThrowable(string $provider, \Throwable $throwable): array
     {
@@ -108,7 +111,7 @@ final class SmsPrivacyHelper
      * Enforce the public provider result contract and remove all free-text failure data.
      *
      * @param array<string, mixed> $result
-     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null}
+     * @return array{success: bool, messageId: string|null, response: string|null, error: string|null, failureCode: string|null, failureScope: string|null, retryAfterSeconds: int|null}
      */
     public static function sanitizeProviderResult(array $result, string $provider): array
     {
@@ -118,6 +121,9 @@ final class SmsPrivacyHelper
                 'messageId' => $result['messageId'],
                 'response' => $result['response'],
                 'error' => null,
+                'failureCode' => null,
+                'failureScope' => null,
+                'retryAfterSeconds' => null,
             ];
         }
 
@@ -134,6 +140,7 @@ final class SmsPrivacyHelper
                 'messageId' => null,
                 'response' => null,
                 'error' => $error,
+                ...self::metadata($result),
             ];
         }
 
@@ -141,7 +148,34 @@ final class SmsPrivacyHelper
             ? 'provider'
             : 'malformed-response';
 
-        return self::failureResult($provider, $category);
+        return array_replace(self::failureResult($provider, $category), self::metadata($result));
+    }
+
+    /** Accept only coherent bounded metadata, including from custom providers. */
+    private static function metadata(array $result): array
+    {
+        $code = $result['failureCode'] ?? 'provider-error';
+        $scope = $result['failureScope'] ?? 'unknown';
+        $allowed = [
+            'provider-error' => ['unknown'],
+            'invalid-recipient' => ['recipient'],
+            'account-unavailable' => ['account'],
+            'ip-blocked' => ['transport'],
+            'cooldown-active' => ['account', 'transport'],
+            'guard-busy' => ['transport'],
+            'guard-unavailable' => ['transport'],
+            'transport-uncertain' => ['transport'],
+        ];
+        if (!is_string($code) || !isset($allowed[$code]) || !in_array($scope, $allowed[$code], true)) {
+            $code = 'provider-error';
+            $scope = 'unknown';
+        }
+        $seconds = $result['retryAfterSeconds'] ?? null;
+        if (!in_array($code, ['ip-blocked', 'cooldown-active', 'guard-busy'], true)
+            || $scope !== 'transport' || !is_int($seconds) || $seconds < 0 || $seconds > 7260) {
+            $seconds = null;
+        }
+        return ['failureCode' => $code, 'failureScope' => $scope, 'retryAfterSeconds' => $seconds];
     }
 
     /** @param array<string, mixed> $result */
