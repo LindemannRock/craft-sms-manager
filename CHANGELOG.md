@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.18.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.17.0...v5.18.0) (2026-10-16)
+
+
+### Fixed
+
+* **providers:** contain MPP transport failures ([7171429](https://github.com/LindemannRock/craft-sms-manager/commit/71714296d6ba097f0b427e45306bc91d481a3a57))
+
+
+### Miscellaneous Chores
+
+* **deps:** prepare 5.18.0 package release ([44f8933](https://github.com/LindemannRock/craft-sms-manager/commit/44f8933dfb8f706cd06e20267d3fdc7a743588c2))
+
 ## [5.17.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.16.1...v5.17.0) - 2026-10-13
 
 
