@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.18.1](https://github.com/LindemannRock/craft-sms-manager/compare/v5.18.0...v5.18.1) (2026-10-16)
+
+
+### Fixed
+
+* **cp:** place transport notice in existing content grid ([94db2ad](https://github.com/LindemannRock/craft-sms-manager/commit/94db2adc50aaa6fa6797cae387445fe99dca2385))
+* **providers:** share transport holds and clarify recovery controls ([d428511](https://github.com/LindemannRock/craft-sms-manager/commit/d4285110a372650e9501462ba72a86110e6aeb0a))
+
 ## [5.18.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.17.0...v5.18.0) - 2026-10-16
 
 
