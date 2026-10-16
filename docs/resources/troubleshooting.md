@@ -13,13 +13,17 @@ Work through these in order:
 5. **Check system logs.** **SMS Manager → Logs → System** carries the same failure reference plus an irreversible recipient reference.
 6. **Check the provider dashboard.** Raw gateway error text is deliberately not copied into Craft because it can contain credentials, request URLs, or message data. Use the time and correlation details to compare the attempt with the provider's own dashboard.
 
-## MPP account or transport hold
+## Provider account or transport hold
 
-Open the MPP provider's **Transport Status** section before attempting another send. `account-unavailable` means the gateway reported an inactive account; verify its state and funding with MPP, then use the confirmed **Release hold** action. `ip-blocked` affects every MPP credential in this installation. Wait for the shown recovery time or obtain provider confirmation before an administrator releases it early.
+Check the providers list’s **Transport** column before attempting another send. Enabled/Disabled is a separate setting; enabling a provider does not release its holds. Open the provider for the affected account and recovery time. **Available** means no active hold, not a successful connection test. **Not configured** means a custom provider has not adopted shared protection.
 
-A hold can remain even if SMS logs or analytics are disabled. Suppressed calls are not delivery attempts and do not inflate either record set. `guard-busy` means another request owns admission. `guard-unavailable` means admission storage or locking could not be used; confirm the upgrade tables exist, all hosts share the primary writer, and the caller is outside an uncommitted database transaction. Do not clear cache or retry failed jobs as a remedy.
+For MPP, `account-unavailable` means the gateway reported an inactive account; verify its state and funding with MPP, then use the confirmed **Release hold** action. `ip-blocked` affects every MPP credential in this installation. Wait for the shown recovery time or obtain provider confirmation before an administrator releases it early.
 
-An **In-flight or interrupted request** has no automatic expiry. Stop all sending processes and reconcile the possible delivery before release. The release action sends nothing and never restarts work. See [MPP recovery](../feature-tour/provider-mpp-sms.md#transport-status-and-recovery) for credential lanes and the full operator procedure.
+For Twilio, authentication/inactive-account errors require manual account release. HTTP 429 creates a 60-second account hold; HTTP 5xx creates a 60-second hold across Twilio accounts. These holds are independent of MPP. See [Twilio protection](../feature-tour/provider-twilio.md#transport-protection).
+
+A hold can remain even if SMS logs or analytics are disabled. Suppressed calls are not delivery attempts and do not inflate either record set. `guard-busy` means another request owns admission. `guard-unavailable` means admission storage or locking could not be used; confirm the upgrade tables and provider-type columns exist, all hosts share the primary writer, and the caller is outside an uncommitted database transaction. Do not clear cache or retry failed jobs as a remedy.
+
+A **Safety hold** has no automatic expiry. It may have been deliberately installed during setup or left by an interrupted request; it does not mean a request is currently running. Stop all sending processes and reconcile any possible delivery before release. The release action sends nothing and never restarts work. See [Transport Status and recovery](../feature-tour/providers.md#transport-status-and-recovery) for the full operator procedure.
 
 Existing pre-release installations need the separately reviewed database upgrade before this code is enabled. Keep producers and workers stopped during schema/code cutover; do not run mixed old/new senders. The schema version remains 1.0.0, so Craft does not automatically apply this addition to an existing installation.
 

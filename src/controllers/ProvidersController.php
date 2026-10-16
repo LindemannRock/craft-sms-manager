@@ -82,6 +82,11 @@ class ProvidersController extends Controller
             $statusFilter = 'all';
         }
 
+        $transportFilter = (string) $request->getQueryParam('transport', 'all');
+        if (!in_array($transportFilter, ['all', 'available', 'on-hold', 'unavailable', 'not-configured'], true)) {
+            $transportFilter = 'all';
+        }
+
         $sourceFilter = (string) $request->getQueryParam('source', 'all');
         $validSources = ['all', 'config', 'database'];
         if (!in_array($sourceFilter, $validSources, true)) {
@@ -123,6 +128,15 @@ class ProvidersController extends Controller
             }));
         }
 
+        // Share one status snapshot between filtering and row badges.
+        $transportStatuses = [];
+        foreach ($providers as $provider) {
+            $transportStatuses[$provider->handle] = SmsManager::$plugin->transport->statusForProvider($provider);
+        }
+        if ($transportFilter !== 'all') {
+            $providers = array_values(array_filter($providers, fn($provider): bool => $transportStatuses[$provider->handle]['state'] === $transportFilter));
+        }
+
         // ---- Sort + paginate ----------------------------------------------
 
         $providers = $this->sortProviders($providers, $sort, $dir);
@@ -145,6 +159,7 @@ class ProvidersController extends Controller
 
         return $this->renderTemplate('sms-manager/providers/index', [
             'providers' => $providers,
+            'transportStatuses' => $transportStatuses,
             'hasAnyProviders' => $hasAnyProviders,
             'settings' => $settings,
             'defaultProviderHandle' => $defaultProviderHandle,
@@ -152,6 +167,7 @@ class ProvidersController extends Controller
             'isDefaultFromConfig' => $isDefaultFromConfig,
             'collisionHandles' => $collisionHandles,
             'statusFilter' => $statusFilter,
+            'transportFilter' => $transportFilter,
             'sourceFilter' => $sourceFilter,
             'search' => $search,
             'sort' => $sort,
@@ -241,7 +257,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
-            'transportStatus' => $provider->type === 'mpp-sms' ? SmsManager::$plugin->mppTransport->status($provider->getSettingsArray()) : null,
+            'transportStatus' => SmsManager::$plugin->transport->statusForProvider($provider),
             'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($provider->type),
         ]);
     }
@@ -291,7 +307,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
-            'transportStatus' => $provider && $provider->type === 'mpp-sms' ? SmsManager::$plugin->mppTransport->status($provider->getSettingsArray()) : null,
+            'transportStatus' => $provider ? SmsManager::$plugin->transport->statusForProvider($provider) : null,
             'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($providerType),
         ]);
     }
@@ -398,7 +414,7 @@ class ProvidersController extends Controller
             'providerCount' => $providerCount,
             'defaultProviderHandle' => $settings->defaultProviderHandle,
             'isDefaultFromConfig' => SmsManager::$plugin->providers->isDefaultProviderFromConfig(),
-            'transportStatus' => $provider && $provider->type === 'mpp-sms' ? SmsManager::$plugin->mppTransport->status($provider->getSettingsArray()) : null,
+            'transportStatus' => $provider ? SmsManager::$plugin->transport->statusForProvider($provider) : null,
             'providerMeta' => SmsManager::$plugin->providers->getProviderTypeMetadata($provider->type),
         ]);
     }
@@ -464,7 +480,7 @@ class ProvidersController extends Controller
     }
 
     /**
-     * Release a selected MPP hold after explicit administrator confirmation.
+     * Release a selected provider hold after explicit administrator confirmation.
      *
      * @since 5.18.0
      */
@@ -483,11 +499,15 @@ class ProvidersController extends Controller
             throw new BadRequestHttpException(Craft::t('sms-manager', 'Confirm the hold release.'));
         }
         $provider = ProviderRecord::findByHandleWithConfig((string)$request->getRequiredBodyParam('handle'));
-        if ($provider === null || $provider->type !== 'mpp-sms') {
+        if ($provider === null) {
             throw new NotFoundHttpException(Craft::t('sms-manager', 'Provider not found'));
         }
-        $released = SmsManager::$plugin->mppTransport->release(
-            $provider->getSettingsArray(),
+        $context = SmsManager::$plugin->transport->contextForProvider($provider);
+        if ($context === null) {
+            throw new BadRequestHttpException();
+        }
+        $released = SmsManager::$plugin->transport->release(
+            $context,
             (string)$request->getRequiredBodyParam('lane'),
             (string)$request->getRequiredBodyParam('token'),
             (int)Craft::$app->getUser()->getId(),

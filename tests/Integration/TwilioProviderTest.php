@@ -18,9 +18,8 @@ use ReflectionMethod;
 /**
  * Twilio provider contract, pinned without hitting the network.
  *
- * The HTTP send itself isn't exercised here (it needs a live Twilio account);
- * what's pinned is the pure, regression-prone logic around it via an
- * in-test subclass that re-exposes the protected helpers:
+ * SharedTransportGuardTest exercises HTTP through intercepted responses.
+ * This class pins the pure response and formatting helpers:
  *
  *  1. **E.164 formatting**: Twilio rejects numbers without a leading `+`,
  *     but the shared `normalizeAndValidatePhone` strips it. `formatRecipient`
@@ -108,6 +107,18 @@ final class TwilioProviderTest extends TestCase
         self::assertFalse($result['success'], 'A present error_code must override the 2xx status');
     }
 
+    public function testAccountAndOutageFailuresExposeSharedHoldMetadata(): void
+    {
+        $account = $this->parseResponse(401, '{"code":20003,"message":"synthetic private failure"}');
+        self::assertSame('account-unavailable', $account['failureCode']);
+        self::assertSame('account', $account['failureScope']);
+        self::assertNull($account['retryAfterSeconds']);
+        $outage = $this->parseResponse(503, 'synthetic unavailable');
+        self::assertSame('provider-unavailable', $outage['failureCode']);
+        self::assertSame('transport', $outage['failureScope']);
+        self::assertSame(60, $outage['retryAfterSeconds']);
+    }
+
     public function testValidateSettingsRequiresCredentials(): void
     {
         $errors = $this->provider->validateSettings([]);
@@ -172,11 +183,11 @@ final class TwilioProviderTest extends TestCase
         return $method->invoke($this->provider, $to, $countries);
     }
 
-    /** @return array{success: bool, messageId: string|null, response: string, error: string|null} */
+    /** @return array{success: bool, messageId: string|null, response: string|null, error: string|null, failureCode?: string, failureScope?: string, retryAfterSeconds?: int|null} */
     private function parseResponse(int $statusCode, string $body): array
     {
         $method = new ReflectionMethod(TwilioProvider::class, 'parseResponse');
-        /** @var array{success: bool, messageId: string|null, response: string, error: string|null} */
+        /** @var array{success: bool, messageId: string|null, response: string|null, error: string|null, failureCode?: string, failureScope?: string, retryAfterSeconds?: int|null} */
         return $method->invoke($this->provider, $statusCode, $body);
     }
 }

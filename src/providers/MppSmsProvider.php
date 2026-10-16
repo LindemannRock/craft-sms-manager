@@ -12,6 +12,7 @@ use Craft;
 use craft\helpers\App;
 use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\smsmanager\helpers\SmsPrivacyHelper;
+use lindemannrock\smsmanager\models\TransportContext;
 use lindemannrock\smsmanager\records\ProviderRecord;
 use lindemannrock\smsmanager\SmsManager;
 
@@ -24,7 +25,7 @@ use lindemannrock\smsmanager\SmsManager;
  * @package   SmsManager
  * @since     5.0.0
  */
-class MppSmsProvider extends BaseProvider
+class MppSmsProvider extends BaseProvider implements TransportProviderInterface
 {
     /**
      * Language codes for MPP-SMS API
@@ -164,6 +165,19 @@ class MppSmsProvider extends BaseProvider
         return $errors;
     }
 
+    /** @inheritdoc */
+    public function getTransportContext(array $settings): TransportContext
+    {
+        $main = (string)App::parseEnv($settings['apiKey'] ?? '');
+        $dev = (string)App::parseEnv($settings['devApiKey'] ?? '');
+        $accounts = ['main' => $main];
+        if ($dev !== '' && $dev !== $main) {
+            $accounts['development'] = $dev;
+        }
+        return new TransportContext(self::handle(), 'mpp', $accounts,
+            !empty($settings['isDev']) && isset($accounts['development']) ? 'development' : 'main');
+    }
+
     /**
      * @inheritdoc
      */
@@ -252,7 +266,7 @@ class MppSmsProvider extends BaseProvider
             'message=' . $encodedMessage,
         ]);
 
-        return SmsManager::$plugin->mppTransport->send($apiKey, function() use ($url, $to, $language): array {
+        return SmsManager::$plugin->transport->send($this->getTransportContext($settings), function() use ($url, $to, $language): array {
             try {
                 $client = Craft::createGuzzleClient([
                     'timeout' => 60,

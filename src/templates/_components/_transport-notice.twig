@@ -1,0 +1,17 @@
+{% if not transportStatus.available %}
+    {% include 'lindemannrock-base/_components/info-box' with {
+        message: 'Transport status is unavailable. Sending remains blocked until guard storage is available.'|t('sms-manager'),
+        type: 'error',
+        variant: 'colored',
+        margin: 'bottom',
+        allowHtml: false,
+    } only %}
+{% elseif transportStatus.state == 'on-hold' %}
+    {% include 'lindemannrock-base/_components/info-box' with {
+        message: 'Sending is on hold for one or more accounts. See the sidebar for details.'|t('sms-manager'),
+        type: 'warning',
+        variant: 'colored',
+        margin: 'bottom',
+        allowHtml: false,
+    } only %}
+{% endif %}

@@ -20,7 +20,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 ## Features
 
-- **MPP transport protection** — shared account/IP holds, serialized admission, and an administrator status/release panel that never retries messages
+- **Shared transport protection** — provider-defined account/outage holds for MPP-SMS, Twilio and custom providers, serialized admission, and a status/release panel that never retries messages
 
 - **Multi-provider support** — connect MPP-SMS (Kuwait), Twilio (global), or add your own gateway
 - **Sender ID management** — register, enable, and default the names messages are sent from

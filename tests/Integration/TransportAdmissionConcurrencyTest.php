@@ -13,7 +13,8 @@ namespace lindemannrock\smsmanager\tests\Integration;
 use Craft;
 use craft\db\Connection;
 use craft\db\Query;
-use lindemannrock\smsmanager\services\MppTransportService;
+use lindemannrock\smsmanager\providers\MppSmsProvider;
+use lindemannrock\smsmanager\services\TransportService;
 use lindemannrock\smsmanager\tests\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -22,10 +23,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
  *
  * @since 5.18.0
  */
-final class MppAdmissionConcurrencyTest extends TestCase
+final class TransportAdmissionConcurrencyTest extends TestCase
 {
     #[DataProvider('workerOutcomes')]
-    public function testConcurrentAdmissionAndWorkerDeathRemainClosed(bool $kill): void
+    public function testConcurrentAdmissionAndWorkerDeathRemainClosed(bool $kill, string $type): void
     {
         $original = Craft::$app->getDb();
         $name = (string)$original->createCommand('SELECT DATABASE()')->queryScalar();
@@ -37,8 +38,8 @@ final class MppAdmissionConcurrencyTest extends TestCase
         $process = null;
         try {
             Craft::$app->set('db', $db);
-            self::assertSame(0, (int)(new Query())->from(MppTransportService::TABLE)->count());
-            $process = proc_open([PHP_BINARY, dirname(__DIR__) . '/Fixtures/Transport/worker.php'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+            self::assertSame(0, (int)(new Query())->from(TransportService::TABLE)->count());
+            $process = proc_open([PHP_BINARY, dirname(__DIR__) . '/Fixtures/Transport/worker.php', $type], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
             self::assertIsResource($process);
             $read = [$pipes[1]];
             $write = $except = [];
@@ -50,14 +51,16 @@ final class MppAdmissionConcurrencyTest extends TestCase
             if ($line !== "ADMITTED\n") {
                 self::fail('Worker did not enter intercepted transport: ' . $line . stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]));
             }
-            $guard = new MppTransportService();
+            $guard = new TransportService();
+            $provider = $type === 'twilio' ? new \lindemannrock\smsmanager\providers\TwilioProvider() : new MppSmsProvider();
+            $identity = $type === 'twilio' ? 'accountSid' : 'apiKey';
             $requests = 0;
             $transport = static function() use (&$requests): array {
                 $requests++;
                 return ['success' => true, 'messageId' => null, 'response' => 'OK'];
             };
-            self::assertSame('guard-busy', $guard->send('synthetic-concurrent-account', $transport)['failureCode']);
-            self::assertSame('guard-busy', $guard->send('synthetic-another-account', $transport)['failureCode']);
+            self::assertSame('guard-busy', $guard->send($provider->getTransportContext([$identity => 'synthetic-concurrent-account']), $transport)['failureCode']);
+            self::assertSame('guard-busy', $guard->send($provider->getTransportContext([$identity => 'synthetic-another-account']), $transport)['failureCode']);
             self::assertSame(0, $requests);
             fwrite(STDOUT, "Concurrent child: intercepted=1; real=0; queue-workers=0\n");
             if ($kill) {
@@ -77,15 +80,15 @@ final class MppAdmissionConcurrencyTest extends TestCase
                 self::assertStringContainsString('account-unavailable', $output);
                 self::assertStringContainsString('intercepted=1; real=0', $errors);
             }
-            $settings = ['apiKey' => 'synthetic-concurrent-account'];
-            $hold = $guard->status($settings)['holds'][0];
+            $settings = [$identity => 'synthetic-concurrent-account'];
+            $hold = $guard->status($provider->getTransportContext($settings))['holds'][0];
             self::assertSame($kill ? 'admission-uncertain' : 'account-unavailable', $hold['type']);
-            self::assertSame('cooldown-active', $guard->send('synthetic-concurrent-account', $transport)['failureCode']);
+            self::assertSame('cooldown-active', $guard->send($provider->getTransportContext([$identity => 'synthetic-concurrent-account']), $transport)['failureCode']);
             self::assertSame(0, $requests);
-            self::assertTrue($guard->release($settings, $hold['lane'], $hold['token'], 1));
-            self::assertTrue($guard->send('synthetic-concurrent-account', $transport)['success']);
+            self::assertTrue($guard->release($provider->getTransportContext($settings), $hold['lane'], $hold['token'], 1));
+            self::assertTrue($guard->send($provider->getTransportContext([$identity => 'synthetic-concurrent-account']), $transport)['success']);
             self::assertSame(1, $requests);
-            self::assertSame([], $guard->status($settings)['holds']);
+            self::assertSame([], $guard->status($provider->getTransportContext($settings))['holds']);
         } finally {
             if (is_resource($process)) {
                 proc_terminate($process, 9);
@@ -98,11 +101,11 @@ final class MppAdmissionConcurrencyTest extends TestCase
             }
             // All rows in this exclusive disposable fixture were created by
             // this test. Delete them by exact primary key, including failure paths.
-            foreach ((new Query())->select('scopeKey')->from(MppTransportService::TABLE)->column() as $key) {
-                $db->createCommand()->delete(MppTransportService::TABLE, ['scopeKey' => $key])->execute();
+            foreach ((new Query())->select('scopeKey')->from(TransportService::TABLE)->column() as $key) {
+                $db->createCommand()->delete(TransportService::TABLE, ['scopeKey' => $key])->execute();
             }
-            foreach ((new Query())->select('id')->from(MppTransportService::RELEASE_TABLE)->column() as $id) {
-                $db->createCommand()->delete(MppTransportService::RELEASE_TABLE, ['id' => $id])->execute();
+            foreach ((new Query())->select('id')->from(TransportService::RELEASE_TABLE)->column() as $id) {
+                $db->createCommand()->delete(TransportService::RELEASE_TABLE, ['id' => $id])->execute();
             }
             Craft::$app->set('db', $original);
             $db->close();
@@ -111,7 +114,9 @@ final class MppAdmissionConcurrencyTest extends TestCase
 
     public static function workerOutcomes(): iterable
     {
-        yield 'classification committed before unlock' => [false];
-        yield 'process killed during intercepted HTTP' => [true];
+        foreach (['mpp-sms', 'twilio'] as $type) {
+            yield $type . ' classification committed before unlock' => [false, $type];
+            yield $type . ' process killed during intercepted HTTP' => [true, $type];
+        }
     }
 }

@@ -291,6 +291,7 @@ final class ProviderFailurePrivacyTest extends TestCase
             'messageId' => 'SMprivacy-success',
             'response' => $body,
             'error' => null,
+            'failureCode' => null, 'failureScope' => null, 'retryAfterSeconds' => null,
         ], $result);
         $this->assertCanariesAbsent($logs, [$recipient, $message, $sender, $accountSid, $authToken]);
         self::assertStringContainsString('hmac-sha256:', $logs);

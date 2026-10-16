@@ -56,6 +56,11 @@ const constituents = [
         standalone: ['npm', ['run', 'test:encoding']],
     },
     {
+        id: 'transport-release-javascript',
+        family: 'transport-administration-javascript',
+        standalone: ['npm', ['run', 'test:transport']],
+    },
+    {
         id: 'generated-asset-parity',
         family: 'generated-source-dist',
         standalone: ['npm', ['run', 'test:build-parity']],
@@ -208,5 +213,5 @@ for (const constituent of constituents) {
 }
 
 if (process.exitCode === undefined) {
-    console.log('\nComplete SMS Manager quality gate passed (10 constituents).');
+    console.log(`\nComplete SMS Manager quality gate passed (${constituents.length} constituents).`);
 }

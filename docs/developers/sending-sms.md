@@ -160,15 +160,17 @@ Detailed results add three bounded fields without changing the existing Boolean 
 | Code | Scope | Meaning |
 |------|-------|---------|
 | `invalid-recipient` | `recipient` | The provider rejected recipient validation |
-| `account-unavailable` | `account` | MPP rejected the account; a manual account hold is now active |
-| `ip-blocked` | `transport` | MPP reported an IP block; an installation-wide hold is now active |
+| `account-unavailable` | `account` | The provider rejected the account; a participating provider creates a manual account hold |
+| `ip-blocked` | `transport` | MPP reported an IP block; all MPP accounts in this installation are held |
+| `rate-limited` | `account` or `transport` | The provider’s declared rate limit policy creates a hold |
+| `provider-unavailable` | `account` or `transport` | The provider’s declared outage policy creates a hold |
 | `cooldown-active` | `account` or `transport` | Transport was not attempted because that scope is held |
-| `guard-busy` | `transport` | Another process owns MPP admission; no transport attempt, one-second reconsideration hint |
+| `guard-busy` | `transport` | Another process owns admission for this provider type; no transport attempt, one-second reconsideration hint |
 | `guard-unavailable` | `transport` | Admission could not be established; no transport attempt |
 | `transport-uncertain` | `transport` | A request may have happened but guard completion failed; reconcile delivery before any retry |
 | `provider-error` | `unknown` | No more specific supported classification is available |
 
-`retryAfterSeconds` is a nonnegative integer or `null`. Account holds and uncertain outcomes have no automatic recovery. A timed IP delay is bounded to 7,260 seconds. A zero delay means only that the hold time has elapsed; it does not prove a message is safe to resend. Unknown MPP text is discarded and does not create an account/IP hold. MPP redirects are disabled so one admitted attempt cannot follow a second gateway request.
+`retryAfterSeconds` is a nonnegative integer or `null`. Account-unavailable holds and uncertain outcomes have no automatic recovery. Rate-limit and outage holds may have a timed recovery, including at account scope. All accepted delays are bounded to 7,260 seconds. A zero delay means only that the hold time has elapsed; it does not prove a message is safe to resend. Unknown MPP text is discarded and does not create an account/IP hold. Both built-in providers disable redirects so one admitted attempt cannot follow a second gateway request. See each provider’s page for its exact classification rules; custom providers must opt into shared protection to persist holds.
 
 A consumer can use the classification to stop its own SMS loop and preserve unattempted work:
 
@@ -202,7 +204,7 @@ If your plugin participates in resource usage tracking (so providers and senders
 
 ## What happens on send
 
-Every send resolves a provider and sender ID and checks both are enabled. Provider dispatches record their outcome in delivery logs and analytics when enabled. MPP persists its delivery log after the guarded result: calls suppressed by a hold, busy admission or unavailable guard storage create neither a delivery log nor an analytics failure. The first account/IP failure remains a recorded attempt. An abrupt process death can leave a transport hold without a completed delivery log. A send fails early — with a specific error — when no provider or sender resolves, when either is disabled, or when the provider type is unknown.
+Every send resolves a provider and sender ID and checks both are enabled. Provider dispatches record their outcome in delivery logs and analytics when enabled. Providers implementing shared transport protection persist their delivery log after the guarded result: calls suppressed by a hold, busy admission or unavailable guard storage create neither a delivery log nor an analytics failure. The first account, rate-limit or transport failure remains a recorded attempt. An abrupt process death can leave a transport hold without a completed delivery log. A send fails early — with a specific error — when no provider or sender resolves, when either is disabled, or when the provider type is unknown.
 
 For each attempted provider dispatch, analytics classifies the actual message content as GSM-7 or UCS-2. GSM-7 has a 160-septet single-segment limit and a 153-septet multipart limit; characters from the GSM extension table consume two septets. UCS-2 has a 70 UTF-16-code-unit single-segment limit and a 67-unit multipart limit; emoji and other astral characters consume two UTF-16 code units. The stored character total is the number of Unicode code points, while the SMS total is the calculated segment count. An empty message has zero characters and zero segments.
 

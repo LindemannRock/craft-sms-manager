@@ -1,0 +1,6 @@
+{% import 'sms-manager/_components/_transport-labels' as transportLabels %}
+{% include 'lindemannrock-base/_components/badge' with {
+    label: transportLabels.status(state)|trim,
+    value: state,
+    colorSet: 'smsTransportStatus',
+} only %}

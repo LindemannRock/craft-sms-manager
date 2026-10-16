@@ -38,6 +38,21 @@ SMS Manager sends through Twilio's Programmable Messaging API (`POST https://api
 
 A send is successful when Twilio returns a 2xx response with a message `sid` and no error code; SMS Manager stores that `sid` as the provider message ID. Failed sends discard raw gateway and transport text, then expose a bounded category, optional HTTP status, and correlation reference. Use that reference and the send time to investigate the attempt in the Twilio console.
 
+## Transport protection
+
+Twilio uses SMS Manager's [shared Transport Status and recovery workflow](providers.md#transport-status-and-recovery). Its account identity is the resolved Account SID, so provider aliases and Auth Token rotation share the same account hold. Twilio uses the main lane; MPP holds do not affect it.
+
+| Response | Hold | Recovery |
+|----------|------|----------|
+| Error code `20003` (authentication) or `20005` (inactive account) | Account unavailable | Manual release after the account/credentials are corrected |
+| HTTP `429` | Account rate limit | 60 seconds |
+| HTTP `500`–`599` | All Twilio accounts in this installation | 60 seconds |
+| Other failures, including recipient-specific errors | No new shared hold | Return the sanitized failure to the caller |
+
+The 60-second delay is SMS Manager's conservative local policy, not a provider-promised recovery time. Automatic expiry permits a future ordinary attempt; it never replays a message. A failed request, especially a server error, may have an uncertain delivery outcome, so reconcile it before any caller-owned retry.
+
+These classifications use Twilio's documented [HTTP responses](https://www.twilio.com/docs/usage/twilios-response), [authentication error](https://www.twilio.com/docs/api/errors/20003), [inactive-account error](https://www.twilio.com/docs/api/errors/20005), and [rate-limit error](https://www.twilio.com/docs/api/errors/20429). Raw error messages are discarded. Redirects and automatic retries are disabled.
+
 ## Capabilities
 
 | Capability | Supported |

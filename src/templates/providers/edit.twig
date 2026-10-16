@@ -66,6 +66,18 @@
     {% endif %}
 {% endblock %}
 
+{% block main %}
+    {% if transportStatus ?? null %}
+        {% set transportNotice = include('sms-manager/_components/_transport-notice', {transportStatus: transportStatus}, with_context = false)|trim %}
+        {% if transportNotice %}
+            <div class="content-grid__main">
+                {{ transportNotice|raw }}
+            </div>
+        {% endif %}
+    {% endif %}
+    {{ parent() }}
+{% endblock %}
+
 {% block content %}
     {% if canEdit %}
         {# Editable form for database providers #}
@@ -129,13 +141,6 @@
     {% endif %}
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
-    {% if transportStatus ?? null %}
-        {% include 'sms-manager/providers/_transport-status' with {
-            transportStatus: transportStatus,
-            providerHandle: provider.handle,
-            canRelease: currentUser.can('smsManager:editProviders'),
-        } only %}
-    {% endif %}
 {% endblock %}
 
 {% block details %}
@@ -284,6 +289,14 @@
                 </div>
             </div>
         </fieldset>
+    {% endif %}
+
+    {% if transportStatus ?? null %}
+        {% include 'sms-manager/providers/_transport-status' with {
+            transportStatus: transportStatus,
+            providerHandle: provider.handle,
+            canRelease: currentUser.can('smsManager:editProviders'),
+        } only %}
     {% endif %}
 
     {% if not isNew %}

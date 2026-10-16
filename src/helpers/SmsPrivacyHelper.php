@@ -161,6 +161,8 @@ final class SmsPrivacyHelper
             'invalid-recipient' => ['recipient'],
             'account-unavailable' => ['account'],
             'ip-blocked' => ['transport'],
+            'rate-limited' => ['account', 'transport'],
+            'provider-unavailable' => ['account', 'transport'],
             'cooldown-active' => ['account', 'transport'],
             'guard-busy' => ['transport'],
             'guard-unavailable' => ['transport'],
@@ -171,11 +173,23 @@ final class SmsPrivacyHelper
             $scope = 'unknown';
         }
         $seconds = $result['retryAfterSeconds'] ?? null;
-        if (!in_array($code, ['ip-blocked', 'cooldown-active', 'guard-busy'], true)
-            || $scope !== 'transport' || !is_int($seconds) || $seconds < 0 || $seconds > 7260) {
+        if (!in_array($code, ['ip-blocked', 'rate-limited', 'provider-unavailable', 'cooldown-active', 'guard-busy'], true)
+            || !in_array($scope, ['account', 'transport'], true) || !is_int($seconds) || $seconds < 0 || $seconds > 7260) {
             $seconds = null;
         }
         return ['failureCode' => $code, 'failureScope' => $scope, 'retryAfterSeconds' => $seconds];
+    }
+
+    /**
+     * Only explicit, sanitized provider classifications may establish a hold.
+     *
+     * @since 5.19.0
+     */
+    public static function isHoldResult(array $result): bool
+    {
+        return !$result['success'] && in_array($result['failureCode'], [
+            'account-unavailable', 'ip-blocked', 'rate-limited', 'provider-unavailable',
+        ], true);
     }
 
     /** @param array<string, mixed> $result */

@@ -124,7 +124,7 @@ Every settings template also receives a `countryOptions` variable — the dial-c
 | `response` | `string\|null` | Raw gateway response on success |
 | `error` | `string\|null` | Optional on success and must be `null` when present. Use the safe failure helper for failures; the service replaces other free text with bounded metadata before returning or persisting it |
 
-Providers may optionally return the bounded [failure metadata](sending-sms.md#failure-metadata-and-queue-ownership). SMS Manager validates code/scope combinations and delay bounds, discarding arbitrary values. A custom provider reporting an account scope does not acquire an MPP hold: durable admission is specific to MPP.
+Providers may optionally return the bounded [failure metadata](sending-sms.md#failure-metadata-and-queue-ownership). SMS Manager validates code/scope combinations and delay bounds, discarding arbitrary values. Metadata alone does not create a hold. Opt into the shared admission contract below to persist and enforce your provider’s classifications.
 
 Treat failure data as untrusted. Transport exception messages and gateway bodies can contain request URLs, authorization headers, credentials, recipients, sender IDs, or complete message text. Catch provider-call failures inside `send()` and classify them without inspecting their free-text payload:
 
@@ -139,6 +139,52 @@ try {
 The classifier uses only safe exception type and response-status metadata: a response-bearing Guzzle `RequestException` becomes `http`, a Guzzle `ConnectException` or other response-less `TransferException` becomes `transport`, and any other throwable becomes `provider-exception`.
 
 Do not log the exception message, request URI, authorization headers, recipient, sender ID, or message. For operational correlation, log the returned failure string and use `recipientReference($to)` for the destination. As a final safeguard, `SmsService` discards all free-text failure fields returned by custom providers and catches uncaught provider exceptions.
+
+## Shared transport protection
+
+Implement the optional `TransportProviderInterface` alongside `BaseProvider` (or `ProviderInterface`). Return a `TransportContext` from `getTransportContext(array $settings)`, then wrap the actual HTTP operation in `SmsManager::$plugin->transport->send($context, $callback)`. The same context method supplies the list, detail and release UI; do not make network requests from it or from the provider constructor.
+
+```php
+use craft\helpers\App;
+use lindemannrock\smsmanager\models\TransportContext;
+use lindemannrock\smsmanager\providers\TransportProviderInterface;
+use lindemannrock\smsmanager\SmsManager;
+
+// Add TransportProviderInterface to your provider's implements clause.
+public function getTransportContext(array $settings): TransportContext
+{
+    return new TransportContext(
+        self::handle(),
+        'my-gateway', // Stable namespace: keep it unchanged after deployment.
+        ['main' => (string) App::parseEnv($settings['accountId'] ?? '')],
+    );
+}
+
+// Inside send(), after credential, recipient and endpoint validation:
+return SmsManager::$plugin->transport->send(
+    $this->getTransportContext($settings),
+    function () use ($to, $message, $senderId, $settings): array {
+        // Make exactly one HTTP request with redirects and automatic retries off.
+        // Parse documented response fields; never copy free-text failure data.
+        // For a confirmed account outage, for example:
+        return array_replace($this->failureResult('provider'), [
+            'failureCode' => 'account-unavailable',
+            'failureScope' => 'account',
+            'retryAfterSeconds' => null,
+        ]);
+    },
+);
+```
+
+Choose a stable resolved account identity, such as an account ID; use the effective credential only when the gateway exposes no separate account identity. The context hashes it with the installation's Craft security key. Never log the context's storage keys or include them in UI, results or release history. `providerType` must equal the registered provider handle; it and the identity namespace accept lowercase letters, digits and hyphens, up to 64 characters. All hosts need the same namespace, identity rules and security key.
+
+For development credentials, supply `main` and `development` identities and set the active lane from the effective send settings. If development falls back to the main account, select `main`; identical identities should also share that lane. A transport-wide hold is shared across every account of this provider type, independently of other provider types.
+
+The shared service creates holds only for sanitized `account-unavailable` (manual account), `ip-blocked` (transport), `rate-limited` and `provider-unavailable` results. The last two may target `account` or `transport`; a bounded `retryAfterSeconds` schedules automatic expiry, otherwise release is manual. Unknown codes, raw response text and arbitrary scope values cannot become stored hold reasons. Select rules from the gateway's documented behavior; a recipient error or timeout alone does not establish an account-wide outage.
+
+Persistence, locking, process-death recovery, expiry, privacy-safe status and confirmed release belong to the shared service. Do not maintain a second cache or process-local guard. Suppressed dispatches produce no delivery log or analytics failure. The caller still owns pending messages; admission never schedules retries.
+
+Providers that do not implement this optional interface keep their existing send contract and display **Not configured** for transport protection. All four public SMS methods and `ProviderInterface` remain compatible. Integrations that directly used the former MPP-specific `mppTransport` component must adopt `transport` and `TransportContext`; there is no compatibility alias for that component.
 
 ## Helpers from `BaseProvider`
 

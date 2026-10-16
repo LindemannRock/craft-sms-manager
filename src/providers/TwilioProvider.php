@@ -10,7 +10,9 @@ namespace lindemannrock\smsmanager\providers;
 
 use Craft;
 use craft\helpers\App;
+use lindemannrock\smsmanager\models\TransportContext;
 use lindemannrock\smsmanager\records\ProviderRecord;
+use lindemannrock\smsmanager\SmsManager;
 
 /**
  * Twilio Provider
@@ -25,7 +27,7 @@ use lindemannrock\smsmanager\records\ProviderRecord;
  * @package   SmsManager
  * @since     5.13.0
  */
-class TwilioProvider extends BaseProvider
+class TwilioProvider extends BaseProvider implements TransportProviderInterface
 {
     /**
      * @inheritdoc
@@ -142,6 +144,14 @@ class TwilioProvider extends BaseProvider
         return $errors;
     }
 
+    /** @inheritdoc */
+    public function getTransportContext(array $settings): TransportContext
+    {
+        return new TransportContext(self::handle(), 'twilio', [
+            'main' => (string)App::parseEnv($settings['accountSid'] ?? ''),
+        ]);
+    }
+
     /**
      * @inheritdoc
      */
@@ -187,52 +197,54 @@ class TwilioProvider extends BaseProvider
             return $this->failureResult('endpoint-policy');
         }
 
-        try {
-            $client = Craft::createGuzzleClient([
-                'timeout' => 30,
-                'connect_timeout' => 30,
-                'http_errors' => false,
-                'allow_redirects' => $this->getRedirectPolicy(),
-            ]);
-
-            $response = $client->post($endpoint, [
-                'auth' => [$accountSid, $authToken],
-                'form_params' => [
-                    'To' => $toNumber,
-                    'From' => $senderId,
-                    'Body' => $message,
-                ],
-            ]);
-
-            $result = $this->parseResponse(
-                $response->getStatusCode(),
-                $response->getBody()->getContents(),
-            );
-
-            if ($result['success']) {
-                $this->logInfo('Twilio: Message sent successfully', [
-                    'recipient' => $this->recipientReference($to),
-                    'language' => $language,
-                    'messageId' => $result['messageId'],
+        return SmsManager::$plugin->transport->send($this->getTransportContext($settings), function() use ($endpoint, $accountSid, $authToken, $toNumber, $senderId, $message, $to, $language): array {
+            try {
+                $client = Craft::createGuzzleClient([
+                    'timeout' => 30,
+                    'connect_timeout' => 30,
+                    'http_errors' => false,
+                    'allow_redirects' => false,
                 ]);
-            } else {
-                $this->logError('Twilio: Message failed', [
+
+                $response = $client->post($endpoint, [
+                    'auth' => [$accountSid, $authToken],
+                    'form_params' => [
+                        'To' => $toNumber,
+                        'From' => $senderId,
+                        'Body' => $message,
+                    ],
+                ]);
+
+                $result = $this->parseResponse(
+                    $response->getStatusCode(),
+                    $response->getBody()->getContents(),
+                );
+
+                if ($result['success']) {
+                    $this->logInfo('Twilio: Message sent successfully', [
+                        'recipient' => $this->recipientReference($to),
+                        'language' => $language,
+                        'messageId' => $result['messageId'],
+                    ]);
+                } else {
+                    $this->logError('Twilio: Message failed', [
+                        'recipient' => $this->recipientReference($to),
+                        'language' => $language,
+                        'failure' => $result['error'],
+                    ]);
+                }
+
+                return $result;
+            } catch (\Throwable $e) {
+                $result = $this->failureResultFromThrowable($e);
+                $this->logError('Twilio: Request failed', [
                     'recipient' => $this->recipientReference($to),
-                    'language' => $language,
                     'failure' => $result['error'],
                 ]);
+
+                return $result;
             }
-
-            return $result;
-        } catch (\Throwable $e) {
-            $result = $this->failureResultFromThrowable($e);
-            $this->logError('Twilio: Request failed', [
-                'recipient' => $this->recipientReference($to),
-                'failure' => $result['error'],
-            ]);
-
-            return $result;
-        }
+        });
     }
 
     /**
@@ -291,6 +303,18 @@ class TwilioProvider extends BaseProvider
             ? 'http'
             : 'malformed-response';
 
-        return $this->failureResult($category, $statusCode);
+        $result = $this->failureResult($category, $statusCode);
+        $code = $data['code'] ?? $data['error_code'] ?? null;
+        // Twilio documents these account/authentication and concurrency errors.
+        if (in_array($code, [20003, 20005], true)) {
+            return array_replace($result, ['failureCode' => 'account-unavailable', 'failureScope' => 'account']);
+        }
+        if ($statusCode === 429) {
+            return array_replace($result, ['failureCode' => 'rate-limited', 'failureScope' => 'account', 'retryAfterSeconds' => 60]);
+        }
+        if ($statusCode >= 500 && $statusCode <= 599) {
+            return array_replace($result, ['failureCode' => 'provider-unavailable', 'failureScope' => 'transport', 'retryAfterSeconds' => 60]);
+        }
+        return $result;
     }
 }

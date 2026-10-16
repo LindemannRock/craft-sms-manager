@@ -386,11 +386,11 @@ class SmsService extends Component
         // Auto-trim runs on a 24h schedule via CleanupLogsJob — keeping it
         // off the send path so SMS dispatch isn't paying for COUNT + DELETE
         // on every message.
-        if ($settings->enableSmsLogs && $provider->type !== 'mpp-sms') {
+        $providerInstance = $plugin->providers->createProviderByType($provider->type);
+        $guarded = $providerInstance instanceof \lindemannrock\smsmanager\providers\TransportProviderInterface;
+        if ($settings->enableSmsLogs && !$guarded) {
             $log->save(false);
         }
-
-        $providerInstance = $plugin->providers->createProviderByType($provider->type);
 
         if (!$providerInstance) {
             $this->logError('Unknown provider type', ['type' => $provider->type]);
@@ -433,7 +433,7 @@ class SmsService extends Component
 
         $executionTime = (int)round((microtime(true) - $startTime) * 1000);
 
-        $suppressed = $provider->type === 'mpp-sms' && in_array($result['failureCode'], ['cooldown-active', 'guard-busy', 'guard-unavailable'], true);
+        $suppressed = $guarded && in_array($result['failureCode'], ['cooldown-active', 'guard-busy', 'guard-unavailable'], true);
 
         if ($result['success']) {
             $this->updateLogStatus(

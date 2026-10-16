@@ -1,0 +1,17 @@
+{% macro lane(lane) %}
+    {{- {
+        main: 'Main account'|t('sms-manager'),
+        development: 'Development account'|t('sms-manager'),
+        transport: 'All accounts'|t('sms-manager'),
+    }[lane] -}}
+{% endmacro %}
+
+{% macro status(state) %}
+    {{- {
+        'available': 'Available'|t('lindemannrock-base'),
+        'on-hold': 'On hold'|t('sms-manager'),
+        'unavailable': 'Unavailable'|t('lindemannrock-base'),
+        'not-configured': 'Not configured'|t('sms-manager'),
+        'expired': 'Expired'|t('sms-manager'),
+    }[state] -}}
+{% endmacro %}

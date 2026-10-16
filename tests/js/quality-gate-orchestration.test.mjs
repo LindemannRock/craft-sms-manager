@@ -14,6 +14,7 @@ const expectedIds = [
     'test-conventions',
     'disposable-phpunit',
     'sms-encoding-javascript',
+    'transport-release-javascript',
     'generated-asset-parity',
     'customer-archive',
     'pre-commit-hook-regressions',

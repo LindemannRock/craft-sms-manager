@@ -14,7 +14,7 @@ use craft\db\Query;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use lindemannrock\smsmanager\providers\MppSmsProvider;
-use lindemannrock\smsmanager\services\MppTransportService;
+use lindemannrock\smsmanager\services\TransportService;
 use lindemannrock\smsmanager\SmsManager;
 use lindemannrock\smsmanager\tests\Stubs\ProviderPrivacyConfig;
 use lindemannrock\smsmanager\tests\Support\TransportIsolation;
@@ -95,16 +95,16 @@ final class MppTransportGuardTest extends TestCase
 
     public function testTimedHoldExpiresUsingControlledClockAcrossAllAccounts(): void
     {
-        $clock = new ControlledMppTransportService();
-        $this->swapPluginComponent('sms-manager', 'mppTransport', $clock);
+        $clock = new ControlledTransportService();
+        $this->swapPluginComponent('sms-manager', 'transport', $clock);
         $this->mock([new Response(200, [], 'error,your ip is blocked until next 1 minute(s): 192.0.2.1'), new Response(200, [], 'OK,smsid:recovered')]);
         self::assertSame(120, $this->send()['retryAfterSeconds']);
         $clock->time += 119;
         self::assertSame(1, $this->send(['apiKey' => 'synthetic-other-account'])['retryAfterSeconds']);
         $clock->time++;
-        self::assertFalse($clock->status($this->settingsArray())['holds'][0]['active']);
+        self::assertFalse($clock->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['holds'][0]['active']);
         self::assertTrue($this->send(['apiKey' => 'synthetic-other-account'])['success']);
-        self::assertSame([], $clock->status($this->settingsArray())['holds']);
+        self::assertSame([], $clock->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['holds']);
     }
 
     public function testAccountReleaseOnlyClearsSelectedHoldAndRecordsSafeActor(): void
@@ -112,23 +112,23 @@ final class MppTransportGuardTest extends TestCase
         $this->mock([new Response(200, [], 'error,user is inactive'), new Response(200, [], 'error,your ip is blocked until next 5 minute(s): 192.0.2.1')]);
         $this->send();
         $this->send(['apiKey' => 'synthetic-other-account']);
-        $service = SmsManager::$plugin->mppTransport;
-        $holds = $service->status($this->settingsArray())['holds'];
+        $service = SmsManager::$plugin->transport;
+        $holds = $service->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['holds'];
         self::assertCount(2, $holds);
         $before = TransportIsolation::$interceptedRequests;
         $queueBefore = (new Query())->from('{{%queue}}')->all();
-        self::assertFalse($service->release($this->settingsArray(), 'main', 'stale-token', 1));
-        self::assertTrue($service->release($this->settingsArray(), 'main', $holds[1]['token'], 1));
-        self::assertCount(1, $service->status($this->settingsArray())['holds']);
+        self::assertFalse($service->release((new MppSmsProvider())->getTransportContext($this->settingsArray()), 'main', 'stale-token', 1));
+        self::assertTrue($service->release((new MppSmsProvider())->getTransportContext($this->settingsArray()), 'main', $holds[1]['token'], 1));
+        self::assertCount(1, $service->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['holds']);
         self::assertSame('cooldown-active', $this->send()['failureCode']);
         self::assertSame($before, TransportIsolation::$interceptedRequests);
         self::assertSame($queueBefore, (new Query())->from('{{%queue}}')->all());
-        $audit = (new Query())->from(MppTransportService::RELEASE_TABLE)->one();
+        $audit = (new Query())->from(TransportService::RELEASE_TABLE)->one();
         self::assertSame('account', $audit['scope']);
         self::assertSame('main', $audit['lane']);
         self::assertSame(1, (int)$audit['releasedBy']);
         self::assertGreaterThan(0, (int)$audit['releasedAt']);
-        self::assertSame(['id', 'scope', 'lane', 'failureCode', 'releasedBy', 'releasedAt'], array_keys($audit));
+        self::assertSame(['id', 'providerType', 'scope', 'lane', 'failureCode', 'releasedBy', 'releasedAt'], array_keys($audit));
     }
 
     public function testServiceApisPreserveBooleanResultsAndDoNotCountSuppressedAttempts(): void
@@ -163,11 +163,11 @@ final class MppTransportGuardTest extends TestCase
     {
         $this->mock([new Response(200, [], 'error,your ip is blocked until next 120 minute(s): 192.0.2.1')]);
         $this->send();
-        $guard = SmsManager::$plugin->mppTransport;
-        $hold = $guard->status($this->settingsArray())['holds'][0];
+        $guard = SmsManager::$plugin->transport;
+        $hold = $guard->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['holds'][0];
         $before = TransportIsolation::$interceptedRequests;
-        self::assertTrue($guard->release($this->settingsArray(), 'transport', $hold['token'], 1));
-        self::assertSame([], $guard->status($this->settingsArray())['holds']);
+        self::assertTrue($guard->release((new MppSmsProvider())->getTransportContext($this->settingsArray()), 'transport', $hold['token'], 1));
+        self::assertSame([], $guard->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['holds']);
         self::assertSame($before, TransportIsolation::$interceptedRequests);
     }
 
@@ -175,7 +175,7 @@ final class MppTransportGuardTest extends TestCase
     {
         $this->mock([new \RuntimeException('synthetic-private-transport-text'), new Response(200, [], 'OK,smsid:next')]);
         self::assertSame('provider-error', $this->send()['failureCode']);
-        self::assertSame([], SmsManager::$plugin->mppTransport->status($this->settingsArray())['holds']);
+        self::assertSame([], SmsManager::$plugin->transport->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['holds']);
         self::assertCount(1, ProviderPrivacyConfig::$handler);
         self::assertTrue($this->send()['success']);
     }
@@ -183,14 +183,14 @@ final class MppTransportGuardTest extends TestCase
     public function testCompletionStorageFailureLeavesManualHoldAndReleasesLock(): void
     {
         $guard = new FailingCompletionClock();
-        $this->swapPluginComponent('sms-manager', 'mppTransport', $guard);
+        $this->swapPluginComponent('sms-manager', 'transport', $guard);
         $this->mock([new Response(200, [], 'error,user is inactive')]);
         self::assertSame('transport-uncertain', $this->send()['failureCode']);
-        $hold = $guard->status($this->settingsArray())['holds'][0];
+        $hold = $guard->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['holds'][0];
         self::assertSame('admission-uncertain', $hold['type']);
         self::assertNull($hold['recoveryAt']);
         self::assertSame('cooldown-active', $this->send()['failureCode']);
-        self::assertTrue($guard->release($this->settingsArray(), 'transport', $hold['token'], 1));
+        self::assertTrue($guard->release((new MppSmsProvider())->getTransportContext($this->settingsArray()), 'transport', $hold['token'], 1));
     }
 
     public function testMissingUpgradeStorageFailsClosedBeforeHttp(): void
@@ -201,7 +201,7 @@ final class MppTransportGuardTest extends TestCase
         try {
             Craft::$app->set('db', $db);
             self::assertSame('guard-unavailable', $this->send()['failureCode']);
-            self::assertFalse(SmsManager::$plugin->mppTransport->status($this->settingsArray())['available']);
+            self::assertFalse(SmsManager::$plugin->transport->status((new MppSmsProvider())->getTransportContext($this->settingsArray()))['available']);
         } finally {
             Craft::$app->set('db', $original);
             $db->close();
@@ -254,7 +254,7 @@ final class MppTransportGuardTest extends TestCase
 }
 
 /** Controlled clock without sleeps or production configuration switches. */
-final class ControlledMppTransportService extends MppTransportService
+final class ControlledTransportService extends TransportService
 {
     public int $time = 2000000000;
 
@@ -265,7 +265,7 @@ final class ControlledMppTransportService extends MppTransportService
 }
 
 /** Simulates loss of authoritative database time after intercepted HTTP. */
-final class FailingCompletionClock extends MppTransportService
+final class FailingCompletionClock extends TransportService
 {
     private int $calls = 0;
 

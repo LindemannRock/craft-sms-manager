@@ -43,7 +43,7 @@ use yii\base\Event;
  * @package   SmsManager
  * @since     5.0.0
  *
- * @property-read \lindemannrock\smsmanager\services\MppTransportService $mppTransport
+ * @property-read \lindemannrock\smsmanager\services\TransportService $transport
  * @property-read SmsService $sms
  * @property-read ProvidersService $providers
  * @property-read SenderIdsService $senderIds
@@ -115,6 +115,13 @@ class SmsManager extends Plugin
                         'failed' => ColorHelper::getPaletteColor('red'),
                         'pending' => ColorHelper::getPaletteColor('orange'),
                     ],
+                    'smsTransportStatus' => [
+                        'available' => ColorHelper::getPaletteColor('teal'),
+                        'on-hold' => ColorHelper::getPaletteColor('orange'),
+                        'unavailable' => ColorHelper::getPaletteColor('red'),
+                        'not-configured' => ColorHelper::getPaletteColor('gray'),
+                        'expired' => ColorHelper::getPaletteColor('gray'),
+                    ],
                     'smsProviderType' => [
                         'mpp-sms' => ColorHelper::getPaletteColor('purple'),
                         'twilio' => ColorHelper::getPaletteColor('red'),
@@ -135,7 +142,7 @@ class SmsManager extends Plugin
         // Register services
         $this->setComponents([
             'sms' => SmsService::class,
-            'mppTransport' => \lindemannrock\smsmanager\services\MppTransportService::class,
+            'transport' => \lindemannrock\smsmanager\services\TransportService::class,
             'providers' => ProvidersService::class,
             'senderIds' => SenderIdsService::class,
             'integrations' => IntegrationsService::class,

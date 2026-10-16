@@ -48,6 +48,19 @@
                     ],
                 },
                 {
+                    header: 'Transport Status'|t('sms-manager'),
+                    param: 'transport',
+                    current: transportFilter,
+                    colorSet: 'smsTransportStatus',
+                    options: [
+                        {value: 'all', label: 'All'|t('sms-manager'), status: 'all'},
+                        {value: 'available', label: 'Available'|t('lindemannrock-base'), colorKey: 'available'},
+                        {value: 'on-hold', label: 'On hold'|t('sms-manager'), colorKey: 'on-hold'},
+                        {value: 'unavailable', label: 'Unavailable'|t('lindemannrock-base'), colorKey: 'unavailable'},
+                        {value: 'not-configured', label: 'Not configured'|t('sms-manager'), colorKey: 'not-configured'},
+                    ],
+                },
+                {
                     header: 'Config Source'|t('sms-manager'),
                     param: 'source',
                     current: sourceFilter,
@@ -76,6 +89,7 @@
             {key: 'type', label: 'Type'|t('sms-manager'), sortable: true, hideable: true},
             {key: 'source', label: 'Source'|t('sms-manager'), sortable: true, hideable: true},
             {key: 'enabled', label: 'Status'|t('sms-manager'), sortable: true, hideable: true},
+            {key: 'transport', label: 'Transport'|t('sms-manager'), hideable: true},
             {key: 'default', label: 'Default'|t('sms-manager'), hideable: true},
         ],
         items: providers,
@@ -217,6 +231,7 @@
    ============================================================================ #}
 
 {% block rowActions %}
+    {% import 'sms-manager/_components/_transport-labels' as transportLabels %}
     {% set isDefault = defaultProviderHandle == item.handle %}
     {% set itemId = item.id ?: item.handle %}
 
@@ -233,6 +248,26 @@
             label: 'View'|t('sms-manager'),
             url: url('sms-manager/providers/view/' ~ item.handle),
         }]) %}
+    {% endif %}
+
+    {% set activeHolds = (transportStatuses[item.handle].holds ?? [])|filter(hold => hold.active) %}
+    {% if activeHolds|length %}
+        {% set actionItems = actionItems|merge([{type: 'divider'}]) %}
+        {% if activeHolds|length == 1 %}
+            {% set hold = activeHolds|first %}
+            {% set actionItems = actionItems|merge([{
+                label: 'Release hold'|t('sms-manager'),
+                jsAction: 'release-transport-hold',
+                data: {handle: item.handle, lane: hold.lane, token: hold.token, 'lane-label': transportLabels.lane(hold.lane)|trim},
+                permission: 'smsManager:editProviders',
+            }]) %}
+        {% else %}
+            {% set actionItems = actionItems|merge([{
+                label: 'Release hold'|t('sms-manager'),
+                url: url(item.canEdit() ? 'sms-manager/providers/' ~ item.id : 'sms-manager/providers/view/' ~ item.handle) ~ '#sms-transport-status',
+                permission: 'smsManager:editProviders',
+            }]) %}
+        {% endif %}
     {% endif %}
 
     {% set actionItems = actionItems|merge([
@@ -320,6 +355,12 @@
         } only %}
     </td>
 
+    <td>
+        {% include 'sms-manager/providers/_transport-badge' with {
+            state: transportStatuses[item.handle].state,
+        } only %}
+    </td>
+
     {# Default indicator #}
     <td>
         {% if defaultProviderHandle == item.handle %}
@@ -340,6 +381,9 @@
    ============================================================================ #}
 
 {% block scripts %}
+    {% if canEdit %}
+        {% include 'sms-manager/_components/_transport-release-script' only %}
+    {% endif %}
     <script>
     (function() {
         if (typeof Craft === 'undefined') return;

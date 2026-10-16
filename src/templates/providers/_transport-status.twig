@@ -1,78 +1,62 @@
-<section id="mpp-transport-status" aria-labelledby="mpp-transport-title">
-    <hr>
-    <h2 id="mpp-transport-title">{{ 'Transport Status'|t('sms-manager') }}</h2>
-    {% include 'lindemannrock-base/_components/info-box' with {
-        message: 'Account holds require manual release. IP holds expire automatically when a recovery time is shown. Releasing a hold does not send or retry messages.'|t('sms-manager'),
-        type: 'info',
-        allowHtml: false,
-    } only %}
-    {% if not transportStatus.available %}
-        {% include 'lindemannrock-base/_components/info-box' with {
-            message: 'Transport status is unavailable. MPP sending remains blocked until guard storage is available.'|t('sms-manager'),
-            type: 'error',
-            allowHtml: false,
-        } only %}
-    {% elseif transportStatus.holds is empty %}
-        <p>{{ 'No active holds'|t('sms-manager') }}</p>
+{% import 'sms-manager/_components/_transport-labels' as transportLabels %}
+<fieldset id="sms-transport-status">
+    <legend class="h6">{{ 'Transport Status'|t('sms-manager') }}</legend>
+    {% if not transportStatus.available or transportStatus.holds is empty %}
+        <div class="meta">
+            <div class="field">
+                <div class="heading"><label>{{ 'Transport'|t('sms-manager') }}</label></div>
+                <div class="input">
+                    {% include 'lindemannrock-base/_components/status-dot' with {value: transportStatus.state, colorSet: 'smsTransportStatus'} only %}
+                    <span>{{ transportLabels.status(transportStatus.state) }}</span>
+                </div>
+            </div>
+            {% if transportStatus.state == 'not-configured' %}
+                <p class="light">{{ 'This provider has not configured shared transport protection.'|t('sms-manager') }}</p>
+            {% endif %}
+        </div>
     {% else %}
         {% set typeLabels = {
             'account-unavailable': 'Account unavailable'|t('sms-manager'),
             'ip-blocked': 'IP blocked'|t('sms-manager'),
-            'admission-uncertain': 'In-flight or interrupted request'|t('sms-manager'),
+            'admission-uncertain': 'Safety hold'|t('sms-manager'),
+            'manual-hold': 'Manual hold'|t('sms-manager'),
+            'rate-limited': 'Rate limited'|t('sms-manager'),
+            'provider-unavailable': 'Provider unavailable'|t('sms-manager'),
         } %}
-        {% set laneLabels = {
-            'main': 'Main account'|t('sms-manager'),
-            'development': 'Development account'|t('sms-manager'),
-            'transport': 'All MPP accounts'|t('sms-manager'),
-        } %}
-        <table class="data fullwidth">
-            <thead><tr>
-                <th>{{ 'Hold type'|t('sms-manager') }}</th>
-                <th>{{ 'Account'|t('sms-manager') }}</th>
-                <th>{{ 'Activated at'|t('sms-manager') }}</th>
-                <th>{{ 'Automatic recovery'|t('sms-manager') }}</th>
-                <th>{{ 'Status'|t('sms-manager') }}</th>
-                {% if canRelease %}<th><span class="visually-hidden">{{ 'Actions'|t('sms-manager') }}</span></th>{% endif %}
-            </tr></thead>
-            <tbody>
-                {% for hold in transportStatus.holds %}
-                    <tr>
-                        <td>{{ typeLabels[hold.type] }}</td>
-                        <td>{{ laneLabels[hold.lane] }}</td>
-                        <td>{{ hold.activatedAt|lrDatetime }}</td>
-                        <td>{{ hold.recoveryAt ? hold.recoveryAt|lrDatetime : 'Manual release required'|t('sms-manager') }}</td>
-                        <td>{{ hold.active ? 'Active'|t('sms-manager') : 'Expired'|t('sms-manager') }}</td>
-                        {% if canRelease %}
-                            <td>{% if hold.active %}<button type="button" class="btn mpp-release-hold" data-lane="{{ hold.lane }}" data-token="{{ hold.token }}">{{ 'Release hold'|t('sms-manager') }}</button>{% endif %}</td>
-                        {% endif %}
-                    </tr>
+        {% for hold in transportStatus.holds %}
+            <div class="meta">
+                <div class="field">
+                    <div class="heading"><label>{{ 'Transport'|t('sms-manager') }}</label></div>
+                    <div class="input">
+                        {% set state = hold.active ? 'on-hold' : 'expired' %}
+                        {% include 'lindemannrock-base/_components/status-dot' with {value: state, colorSet: 'smsTransportStatus'} only %}
+                        <span>{{ transportLabels.status(state) }}</span>
+                    </div>
+                </div>
+                {% set fields = [
+                    {label: 'Hold type'|t('sms-manager'), value: typeLabels[hold.type]},
+                    {label: 'Account'|t('sms-manager'), value: transportLabels.lane(hold.lane)},
+                    {label: 'Activated at'|t('sms-manager'), value: hold.activatedAt|lrDatetime},
+                    {label: 'Automatic recovery'|t('sms-manager'), value: hold.recoveryAt ? hold.recoveryAt|lrDatetime : 'Manual release required'|t('sms-manager')},
+                ] %}
+                {% for field in fields %}
+                    <div class="field">
+                        <div class="heading"><label>{{ field.label }}</label></div>
+                        <div class="input">{{ field.value }}</div>
+                    </div>
                 {% endfor %}
-            </tbody>
-        </table>
+                {% if canRelease and hold.active %}
+                    <div class="field">
+                        <div class="heading"><label>{{ 'Actions'|t('sms-manager') }}</label></div>
+                        <div class="input">
+                            <button type="button" class="btn fullwidth sms-release-hold" data-action="release-transport-hold" data-handle="{{ providerHandle }}" data-lane="{{ hold.lane }}" data-lane-label="{{ transportLabels.lane(hold.lane)|trim }}" data-token="{{ hold.token }}">{{ 'Release hold'|t('sms-manager') }}</button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
     {% endif %}
-</section>
+</fieldset>
 {% if canRelease %}
-    {% js %}
-    document.querySelectorAll('#mpp-transport-status .mpp-release-hold').forEach((button) => {
-        button.addEventListener('click', async () => {
-            if (!window.confirm({{ 'Release this hold? Confirm the account issue is resolved. For an interrupted request, stop all sending processes first. This action sends nothing.'|t('sms-manager')|json_encode|raw }})) return;
-            button.disabled = true;
-            try {
-                const response = await Craft.sendActionRequest('POST', 'sms-manager/providers/release-transport-hold', {
-                    data: {handle: {{ providerHandle|json_encode|raw }}, lane: button.dataset.lane, token: button.dataset.token, confirmed: '1'},
-                });
-                if (response.data.success) {
-                    Craft.cp.displayNotice(response.data.message);
-                    window.location.reload();
-                } else {
-                    Craft.cp.displayError(response.data.message);
-                }
-            } catch (error) {
-                Craft.cp.displayError(error?.response?.data?.message);
-            } finally {
-                button.disabled = false;
-            }
-        });
-    });
-    {% endjs %}
+    {% include 'sms-manager/_components/_transport-release-script' only %}
 {% endif %}

@@ -58,17 +58,19 @@ class Install extends Migration
     {
         if (!$this->db->tableExists('{{%smsmanager_transportguards}}')) {
             $this->createTable('{{%smsmanager_transportguards}}', [
+                'providerType' => $this->string(64)->notNull(),
                 'scopeKey' => $this->string(80)->notNull(),
                 'failureCode' => $this->string(32)->notNull(),
                 'activatedAt' => $this->bigInteger()->notNull(),
                 'blockedUntil' => $this->bigInteger()->null(),
                 'token' => $this->string(36)->notNull(),
             ]);
-            $this->addPrimaryKey(null, '{{%smsmanager_transportguards}}', 'scopeKey');
+            $this->addPrimaryKey(null, '{{%smsmanager_transportguards}}', ['providerType', 'scopeKey']);
         }
         if (!$this->db->tableExists('{{%smsmanager_transportreleases}}')) {
             $this->createTable('{{%smsmanager_transportreleases}}', [
                 'id' => $this->primaryKey(),
+                'providerType' => $this->string(64)->notNull(),
                 'scope' => $this->string(16)->notNull(),
                 'lane' => $this->string(16)->notNull(),
                 'failureCode' => $this->string(32)->notNull(),
