@@ -31,7 +31,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 /**
  * Provider-owned identities and classifications share one guard implementation.
  *
- * @since 5.19.0
+ * @since 5.18.1
  */
 final class SharedTransportGuardTest extends TestCase
 {

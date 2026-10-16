@@ -24,7 +24,7 @@ use yii\mutex\PgsqlMutex;
 /**
  * Durable, serialized provider admission shared by every sender in an installation.
  *
- * @since 5.19.0
+ * @since 5.18.1
  */
 class TransportService extends Component
 {

@@ -183,7 +183,7 @@ final class SmsPrivacyHelper
     /**
      * Only explicit, sanitized provider classifications may establish a hold.
      *
-     * @since 5.19.0
+     * @since 5.18.1
      */
     public static function isHoldResult(array $result): bool
     {

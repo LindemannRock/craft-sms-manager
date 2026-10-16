@@ -14,7 +14,7 @@ use Craft;
  * Provider-owned account identity and active lane for shared admission.
  * Credentials stay private; only keyed identities enter guard storage.
  *
- * @since 5.19.0
+ * @since 5.18.1
  */
 final class TransportContext
 {

@@ -15,7 +15,7 @@ use lindemannrock\smsmanager\models\TransportContext;
  * The provider wraps its HTTP operation in transport->send() and returns
  * bounded failure metadata; the shared service owns all guard state.
  *
- * @since 5.19.0
+ * @since 5.18.1
  */
 interface TransportProviderInterface
 {

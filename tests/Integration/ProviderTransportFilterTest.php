@@ -26,7 +26,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 /**
  * Provider transport filters compose with existing list controls without sending.
  *
- * @since 5.19.0
+ * @since 5.18.1
  */
 final class ProviderTransportFilterTest extends TestCase
 {
