@@ -1,23 +1,5 @@
 # Changelog
 
-## [5.18.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.17.0...v5.18.0) - 2026-10-16
-
-### Added
-
-* Detailed SMS results now include bounded failure codes, scopes, and recovery hints for consumers that manage pending work.
-* MPP providers now show transport holds and allow authorized administrators to release a selected hold after confirming recovery. Releasing a hold sends no messages and does not restart or retry jobs.
-
-### Fixed
-
-* Contain repeated MPP inactive-account and IP-block failures with shared database-backed admission, account and transport holds, and fail-closed recovery after interrupted requests.
-* Keep suppressed MPP submissions out of SMS attempt logs and analytics while retaining accounting for actual requests.
-
-### Upgrade notes
-
-* Existing installations need the two MPP transport tables before MPP sending can resume. Coordinate the schema and code upgrade with all sending processes stopped; see [MPP provider setup and recovery](docs/feature-tour/provider-mpp-sms.md).
-* Boolean send methods remain compatible. Consumers that need to preserve pending work must handle the detailed failure metadata. No historical failed job is retried automatically.
-* This remains a package release before Craft Plugin Store launch. The plugin schema version stays `1.0.0`; no automatic migration is included.
-
 ## [5.17.0](https://github.com/LindemannRock/craft-sms-manager/compare/v5.16.1...v5.17.0) - 2026-10-13
 
 
