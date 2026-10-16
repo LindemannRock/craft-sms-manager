@@ -33,6 +33,11 @@
     })|trim %}
 {% endif %}
 
+{% if transportStatus ?? null %}
+    {% set transportNotice = include('sms-manager/_components/_transport-notice', {transportStatus: transportStatus}, with_context = false)|trim %}
+    {% set errorSummary = [transportNotice, errorSummary]|filter(v => v)|join("\n") %}
+{% endif %}
+
 {% block actionButton %}
     {% if canEdit %}
         <div class="btngroup submit">
@@ -64,18 +69,6 @@
             </div>
         {% endif %}
     {% endif %}
-{% endblock %}
-
-{% block main %}
-    {% if transportStatus ?? null %}
-        {% set transportNotice = include('sms-manager/_components/_transport-notice', {transportStatus: transportStatus}, with_context = false)|trim %}
-        {% if transportNotice %}
-            <div class="content-grid__main">
-                {{ transportNotice|raw }}
-            </div>
-        {% endif %}
-    {% endif %}
-    {{ parent() }}
 {% endblock %}
 
 {% block content %}
